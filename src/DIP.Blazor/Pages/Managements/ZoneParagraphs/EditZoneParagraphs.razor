@@ -1,0 +1,317 @@
+@page "/admin/zone-paragraphs/edit/{id}"
+@page "/admin/zone-paragraphs/create"
+
+@attribute [Authorize(DIPPermissions.ZoneParagraphs.Default)]
+@using DIP.Blazor.Components
+@using DIP.ZoneParagraphs
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IZoneParagraphsAppService ZoneParagraphsAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+
+
+<PageHeader Title="@( $"{L[Id.IsNullOrEmpty()? "Create":"Update"]} {L["ZoneParagraphs"]}")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+<Card>
+    @if (Id.IsNullOrEmpty())
+    {
+        <Form id="CreateZoneParagraphForm">
+          
+
+                  <CardBody>
+                <Tabs SelectedTab="@SelectedCreateTab" SelectedTabChanged="@OnSelectedCreateTabChanged">
+                    <Items>
+                        <Tab Name="create-tab-english">@L["English"]</Tab>
+                        <Tab Name="create-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                        <Validations @ref="@NewZoneParagraphValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@NewZoneParagraph"
+                                 ValidateOnLoad="false">
+                            <TabPanel Name="create-tab-english">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                                        <TextEdit @bind-Text="@NewZoneParagraph.TitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SubTilteEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewZoneParagraph.SubTilteEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                                    <CustomRichTextEditor ContentChanged="@CreatingDescriptionEnOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionEnValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionEnRequired"]
+                                    </div>
+                                }
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@NewZoneParagraph.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@NewZoneParagraph.IsActive">@L["IsActive"]</Check>
+                                </Field>
+
+                                <Field>
+                                    <FieldLabel>@L["Zone"]</FieldLabel>
+                                    <Select TValue="Guid" SelectedValue="@NewZoneParagraph.ZoneId" SelectedValueChanged="@OnSelectedValueChanged">
+                                        @foreach (var zone in ZonesCollection)
+                                        {
+                                            <SelectItem TValue="Guid" Value="@zone.Id">
+                                                @zone.DisplayName
+                                            </SelectItem>
+                                        }
+                                    </Select>
+                                </Field>
+                   @*             <Field>
+                                    <FieldLabel>@L["Zone"] *</FieldLabel>
+                                    <Autocomplete Data="@ZonesCollection"
+                                                  TItem="LookupDto<Guid>"
+                                                  TValue="Guid"
+                                                  TextField="@((item) => item?.DisplayName)"
+                                                  ValueField="@((item) => item?.Id ?? default)"
+                                                  SearchChanged="@GetZoneCollectionLookupAsync"
+                                    @bind-SelectedValue="@NewZoneParagraph.ZoneId"
+                                                  Placeholder="&#8212;" />
+                                </Field>*@
+                            </TabPanel>
+                            <TabPanel Name="create-tab-arabic">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewZoneParagraph.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SubTitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewZoneParagraph.SubTitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                                    <CustomRichTextEditor ContentChanged="@CreatingDescriptionArOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionArValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionArRequired"]
+                                    </div>
+                                }
+                            </TabPanel>
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+           
+            <CardFooter>
+                <SubmitButton Form="CreateZoneParagraphForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="CreateZoneParagraphForm" Clicked="async()=> await CreateZoneParagraphAsync()" />
+            </CardFooter>
+        </Form>
+    }
+    else
+    {
+ <Form id="EditZoneParagraphForm">
+            <CardBody>
+                <Tabs SelectedTab="@SelectedEditTab" SelectedTabChanged="@OnSelectedEditTabChanged">
+                    <Items>
+                        <Tab Name="edit-tab-english">@L["English"]</Tab>
+                        <Tab Name="edit-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                    <Validations @ref="@EditingZoneParagraphValidations"
+                             Mode="ValidationMode.Auto"
+                             Model="@EditingZoneParagraph"
+                             ValidateOnLoad="false">
+                            <TabPanel Name="edit-tab-english">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingZoneParagraph.TitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SubTilteEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingZoneParagraph.SubTilteEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                                    <CustomRichTextEditor InitValue="@EditingZoneParagraph.DescriptionEn" ContentChanged="@EditingDescriptionEnOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionEnValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionEnRequired"]
+                                    </div>
+                                }
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@EditingZoneParagraph.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@EditingZoneParagraph.IsActive">@L["IsActive"]</Check>
+                                </Field>
+
+                                <Field>
+                                    <FieldLabel>@L["Zone"]</FieldLabel>
+                                    <Select TValue="Guid" SelectedValue="@EditingZoneParagraph.ZoneId" SelectedValueChanged="@OnSelectedEditValueChanged">
+                                        @foreach (var zone in ZonesCollection)
+                                        {
+                                            <SelectItem TValue="Guid" Value="@zone.Id">
+                                                @zone.DisplayName
+                                            </SelectItem>
+                                        }
+                                    </Select>
+                                </Field>
+
+                     @*           <Field>
+                                    <FieldLabel>@L["Zone"] *</FieldLabel>
+                                    <Autocomplete Data="@ZonesCollection"
+                                                  TItem="LookupDto<Guid>"
+                                                  TValue="Guid"
+                                                  TextField="@((item) => item?.DisplayName)"
+                                                  ValueField="@((item) => item?.Id ?? default)"
+                                                  SearchChanged="@GetZoneCollectionLookupAsync"
+                                    @bind-SelectedValue="@EditingZoneParagraph.ZoneId"
+                                                  Placeholder="&#8212;" />
+                                </Field>*@
+                            </TabPanel>
+                            <TabPanel Name="edit-tab-arabic">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingZoneParagraph.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SubTitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingZoneParagraph.SubTitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                                    <CustomRichTextEditor InitValue="@EditingZoneParagraph.DescriptionAr" ContentChanged="@EditingDescriptionArOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionArValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionArRequired"]
+                                    </div>
+                                }
+                            </TabPanel>
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="EditZoneParagraphForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="EditZoneParagraphForm" Clicked="async()=> await UpdateZoneParagraphAsync()" />
+            </CardFooter>
+            </Form>
+
+
+
+
+
+
+
+    
+    }
+
+</Card>
+
+
+

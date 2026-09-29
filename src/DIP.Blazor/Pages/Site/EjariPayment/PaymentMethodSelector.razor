@@ -1,0 +1,22 @@
+﻿
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = "Payment Method";
+
+    [Parameter]
+    public string Name { get; set; } = "paymentMethod";
+
+    [Parameter]
+    public int SelectedValue { get; set; } = 1;
+
+    [Parameter]
+    public EventCallback<int> SelectedValueChanged { get; set; }
+
+    private string SelectedMethodText => SelectedValue switch
+    {
+        1 => "Direct Payment",
+        2 => "Credit/Debit Card",
+        _ => "Direct Payment"
+    };
+}

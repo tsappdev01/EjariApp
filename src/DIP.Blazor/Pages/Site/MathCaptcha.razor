@@ -1,0 +1,75 @@
+﻿@using System.Globalization;
+@using DIP.Blazor.Components.Layout;
+@using DIP.Blazor.Shared;
+@inherits DIPComponentBase;
+@layout CustomLayout;
+@code {
+    private int number1;
+    private int number2;
+    private string userAnswer;
+    private bool isVerified = false;
+
+    private bool isAttempt = false;
+
+    [Parameter] public EventCallback<bool> OnCaptchaVerified { get; set; }
+
+    protected override void OnInitialized()
+    {
+        GenerateQuestion();
+    }
+
+    private void GenerateQuestion()
+    {
+        var rand = new Random();
+        number1 = rand.Next(1, 10);
+        number2 = rand.Next(1, 10);
+        isVerified = false;
+    }
+
+    private void CheckAnswer()
+    {
+        bool success = Int32.TryParse(userAnswer, out int result);
+        if (success)
+        {
+            isVerified = (Int32.Parse(userAnswer) == (number1 + number2));
+            OnCaptchaVerified.InvokeAsync(isVerified);
+            
+        }
+        else{
+            OnCaptchaVerified.InvokeAsync(success);
+            isVerified = false;
+        }
+            
+            
+        
+            
+        isAttempt = true;
+        
+
+    }
+
+    public void ResetCaptcha()
+    {
+        GenerateQuestion();
+    }
+}
+
+<div class="captcha-container mt-2">
+    <p> @L["SolveToVerify"] <strong>@number1 + @number2 = ?</strong></p>
+
+    <input type="number" @bind="userAnswer" class="form-control" placeholder="Your answer" />
+
+    <button class="btn btn-primary mt-2" type="button" @onclick="CheckAnswer">Verify</button>
+
+    @if (isAttempt)
+    {
+        if (isVerified)
+        {
+            <p class="text-success mt-2">✅ CAPTCHA Verified.</p>
+        }
+        else
+        {
+            <p class="text-danger mt-2">❌ Incorrect. Try again.</p>
+        }
+    }
+</div>

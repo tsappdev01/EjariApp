@@ -1,0 +1,462 @@
+
+
+@page "/commercials"
+
+@attribute [Authorize(DIPPermissions.Commercials.Default)]
+@using DIP.Commercials
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject ICommercialsAppService CommercialsAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["Commercials"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+        <Form id="CommercialSearchForm" class="mb-3">
+            <Addons>
+                <Addon AddonType="AddonType.Body">
+                    <TextEdit @bind-Text="@Filter.FilterText"
+                              Autofocus="true"
+                              Placeholder="@L["Search"]">
+                    </TextEdit>
+                </Addon>
+                <Addon AddonType="AddonType.End">
+                    <SubmitButton Form="CommercialSearchForm" Clicked="GetCommercialsAsync">
+                        <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                    </SubmitButton>
+                </Addon>
+            </Addons>
+        </Form>
+    </CardBody>
+</Card>
+
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>
+        <DataGrid TItem="CommercialWithNavigationPropertiesDto"
+                  Data="CommercialList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="CommercialWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="CommercialWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="CommercialWithNavigationPropertiesDto"
+                                          Visible="@CanEditCommercial"
+                                          Clicked="async () => await OpenEditCommercialModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="CommercialWithNavigationPropertiesDto"
+                                          Visible="@CanDeleteCommercial"
+                                          Clicked="() => DeleteCommercialAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+               
+              <DataGridColumn TItem="CommercialWithNavigationPropertiesDto"
+                      Field="Commercial.TitleEn"
+                      Caption="@L["TitleEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="CommercialWithNavigationPropertiesDto"
+                      Field="Commercial.TitleAr"
+                      Caption="@L["TitleAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="CommercialWithNavigationPropertiesDto"
+                      Field="Commercial.PlotNo"
+                      Caption="@L["PlotNo"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="CommercialWithNavigationPropertiesDto"
+                      Field="Commercial.ActivityEn"
+                      Caption="@L["ActivityEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="CommercialWithNavigationPropertiesDto"
+                      Field="Commercial.ActivityAr"
+                      Caption="@L["ActivityAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="CommercialWithNavigationPropertiesDto"
+                      Field="Commercial.Phone"
+                      Caption="@L["Phone"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="CommercialWithNavigationPropertiesDto"
+                      Field="Commercial.Fax"
+                      Caption="@L["Fax"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="CommercialWithNavigationPropertiesDto"
+                      Field="Commercial.MakaniNo"
+                      Caption="@L["MakaniNo"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="CommercialWithNavigationPropertiesDto"
+                      Field="Commercial.IsActive"
+                      Caption="@L["IsActive"]">
+                    <DisplayTemplate>
+                        @if (context.Commercial.IsActive)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+
+
+              <DataGridColumn TItem="CommercialWithNavigationPropertiesDto"
+                      Field="Commercial.Order"
+                      Caption="@L["Order"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="CommercialWithNavigationPropertiesDto"
+                      Field="SubCategory.TitleEn"
+                      Caption="@L["SubCategory"]">
+              </DataGridColumn>
+
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateCommercialModal" Closing="@CreateCommercialModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="CreateCommercialForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewCommercial"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateCommercialModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewCommercialValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewCommercial"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewCommercial.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewCommercial.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["PlotNo"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewCommercial.PlotNo" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["ActivityEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewCommercial.ActivityEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["ActivityAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewCommercial.ActivityAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Phone"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewCommercial.Phone" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Fax"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewCommercial.Fax" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MakaniNo"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewCommercial.MakaniNo" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewCommercial.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@NewCommercial.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <FieldLabel>@L["SubCategory"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@NewCommercial.SubCategoryId">
+                            @foreach (var subCategory in SubCategoriesCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@subCategory.Id">
+                                    @subCategory.DisplayName
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateCommercialModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateCommercialForm" Clicked="CreateCommercialAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditCommercialModal" Closing="@EditCommercialModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="EditCommercialForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditCommercialModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingCommercialValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingCommercial"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingCommercial.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingCommercial.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["PlotNo"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingCommercial.PlotNo" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["ActivityEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingCommercial.ActivityEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["ActivityAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingCommercial.ActivityAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Phone"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingCommercial.Phone" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Fax"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingCommercial.Fax" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MakaniNo"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingCommercial.MakaniNo" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingCommercial.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@EditingCommercial.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <FieldLabel>@L["SubCategory"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@EditingCommercial.SubCategoryId">
+                            @foreach (var subCategory in SubCategoriesCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@subCategory.Id">
+                                    @subCategory.DisplayName
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditCommercialModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateCommercialForm" Clicked="UpdateCommercialAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>

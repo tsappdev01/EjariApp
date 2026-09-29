@@ -1,0 +1,485 @@
+﻿@using System.Globalization;
+@using DIP.Blazor.Components.Layout;
+@using DIP.Blazor.Shared;
+@inherits DIPComponentBase;
+@layout CustomLayout;
+
+@page "/"
+@page "/{lang}"
+
+
+
+<PageTitle>
+    @PageInfoHomeFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoHomeFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+<!--===============PAGE CONTENT==============-->
+<!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content">
+    @if (SliderHomePageList != null && SliderHomePageList.Count >0)
+    {
+        <!---slider-->
+        <section class="slider style_four nav_position_one mainslider">
+            <div class="owl-carousel owl_nav_block owl_dots_none theme_carousel owl-theme"
+             data-options='{"loop": true, "margin": 0, "autoheight":true, "lazyload":true, "nav": true, "dots": true, "autoplay": true, "autoplayTimeout": 7000, "smartSpeed": 2000, "responsive":{ "0" :{ "items": "1" }, "768" :{ "items" : "1" } , "1000":{ "items" : "1" }}}'>
+                @foreach (var sliderHomePage in SliderHomePageList)
+                {
+                    <div class="slide-item-content">
+                        <div class="slide-item content_left">
+                            @if (!sliderHomePage.YoutubeUrl.IsNullOrEmpty())
+                            {
+                                <div class="video-container">
+                                    <iframe id="youtube-background" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" title="@sliderHomePage.Title" width="100%" height="100%" src="@sliderHomePage.YoutubeUrl?autoplay=1&controls=1&showinfo=0&loop=1&mute=1&playlist=@GetPlayList(sliderHomePage.YoutubeUrl)&enablejsapi=1"></iframe>
+                                    @*  <div id="youtube-background"></div>*@
+                                </div>
+
+
+                            }
+                            else
+                            {
+                                if (!sliderHomePage.Image.IsNullOrEmpty())
+                                {
+                                    <div class="image-layer" style="background-image:url(@sliderHomePage.Image)">
+                                    </div>
+                                }
+                            }
+                            <div class="hero-background-overlay"></div>
+                            <div class="auto-container">
+                                <div class="row">
+                                    <div class="col-md-12 col-lg-12 col-sm-12 col-xs-12">
+                                        <div class="slider_content pd_top_180 pd_bottom_200">
+                                            <h1 class="animate_left">@sliderHomePage.Title</h1>
+                                            <p class="description animate_right text-white">
+                                                @sliderHomePage.Description
+                                            </p>
+                                            @if (!sliderHomePage.ButtonUrl.IsNullOrEmpty())
+                                            {
+                                                <div class="button_all animate_down">
+                                                    <a href="@sliderHomePage.ButtonUrl"  rel="nofollow" class="theme-btn one  animated">
+                                                        @if(sliderHomePage.ButtonTitle.IsNullOrEmpty())
+                                                        {
+                                                            @L["Site:ReadMore"]
+                                                        }
+                                                        else
+                                                        {
+                                                          @sliderHomePage.ButtonTitle  
+                                                        }
+                                                    </a>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                }
+            </div>
+        </section>
+        <!---slider-end--->
+    }
+  
+    @if (PageInfoFrontEnd != null)
+    {
+        <!---image-box-section---->
+        <section class="image-box-section py-lg-5">
+            <!--===============spacing==============-->
+            <div class="pd_top_80"></div>
+            <!--===============spacing==============-->
+            <div class="auto-container">
+                <div class="row">
+                    <div class="col-xl-6 col-lg-12">
+                        <div class="title_all_box style_one dark_color">
+                            <div class="title_sections ">
+                                <div class="title text-uppercase text-primary-color mb-4">@PageInfoFrontEnd?.Title</div>
+                                <p>
+                                    @PageInfoFrontEnd?.Summary
+                                </p>
+                                <div class="theme_btn_all color_one mt-4 mb-4">
+                                    <a href="@($"/{CultureInfo.CurrentCulture.Name}/about-us/our-profile")"  rel="nofollow" class="theme-btn one">
+                                        @L["Site:ReadMore"]
+                                    </a>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-1"></div>
+                    <div class="col-xl-5 col-lg-12 mb-5 mb-lg-5 mb-xl-0">
+                        <div class="image_boxes style_three">
+                            <img src="@PageInfoFrontEnd?.Image" class="img-fluid" alt="@PageInfoFrontEnd?.Title">
+                            <div class="video_box">
+                                <a href="@PageInfoFrontEnd.YouTubeUrl" class="lightbox-image">
+                                    <i class="fa fa-play"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <!--===============spacing==============-->
+            <div class="pd_bottom_80 d-none"></div>
+            <!--===============spacing==============-->
+        </section>
+        <!---image-box-section-end---->
+    }
+    <!--feature-->
+    @if (!EServiceList.IsNullOrEmpty())
+    {
+        <section class="feature-section bg_light_1 py-lg-5">
+            <!--===============spacing==============-->
+            <div class="pd_top_80"></div>
+            <!--===============spacing==============-->
+            <div class="auto-container">
+                <div class="row">
+                    <div class="col-lg-10">
+                        <div class="title_all_box style_seven dark_color">
+                            <div class="title_sections">
+                                <div class="title text-uppercase text-primary-color">@L["Site:Home:EService"]</div>
+                            </div>
+                        </div>
+                    </div>
+             
+                    <div class="col-md-12">
+                        <!--===============spacing==============-->
+                        <div class="pd_bottom_50"></div>
+                        <!--===============spacing==============-->
+                    </div>
+                </div>
+                <div class="row">
+                    @foreach (var eService in EServiceList)
+                    {
+                        <div class="col-lg-4 col-md-6 col-sm-6 col-xs-12">
+                            <div class="icon_box_new_box type_two mb-lg-0">
+                                <span class="borders"></span>
+                                <div class="icon_box">
+                                    <img src="@eService.Image" class="img-fluid svg_image" alt="@eService.Title">
+
+                                </div>
+                                <div class="content">
+                                    <h2>
+                                        <a href="@($"/{CultureInfo.CurrentCulture.Name}/{eService.Slug}")" class="text-uppercase">@eService.Title</a>
+                                    </h2>
+                                    @((MarkupString)eService.Description)
+                                    <a href="@($"/{CultureInfo.CurrentCulture.Name}/{eService.Slug}")" class="read_more type_two">
+                                        @L["Site:Home:ReadMore"]<span class="icon-arrow-right"></span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <!--===============spacing==============-->
+            <div class="pd_bottom_80"></div>
+            <!--===============spacing==============-->
+        </section>
+    }
+    <!---feature end-->
+    <!---project--->
+    @if (!ZonesList.IsNullOrEmpty())
+    {
+        <section class="zones-area py-lg-5" id="projects">
+            <!--===============spacing==============-->
+            <div class="pd_top_80"></div>
+            <!--===============spacing==============-->
+            <div class="auto-container">
+
+                <div class="row">
+                    <div class="col-lg-10 col-md-8">
+                        <div class="title_all_box style_seven dark_color">
+                            <div class="title_sections">
+                                <div class="title text-uppercase text-primary-color">@L["Site:Home:YourCityWithinACity"]</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-3">
+                        <div class="theme_btn_all color_one mt-4 mt-md-0">
+                            <a href="@($"/{CultureInfo.CurrentCulture.Name}/zones")"  rel="nofollow" class="theme-btn one w-100">
+                                @L["Site:Home:ViewAll"]
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <!--===============spacing==============-->
+                        <div class="pd_bottom_50"></div>
+                        <!--===============spacing==============-->
+                    </div>
+                </div>
+
+            </div>
+            <div class="auto-container">
+
+                <div class="row">
+                    @foreach (var zone in ZonesList)
+                    {
+                        <div class="col-lg-6">
+                            <a href="@($"/{CultureInfo.CurrentCulture.Name}/zones/{zone.Slug}")" >
+                                <div class="card">
+                                    <img src="@zone.Image" alt="@zone.Title" />
+                                    <div class="text">
+                                        @* <h2 class="zonetitleone">@zone.Title</h2> *@
+                                        <h2>@zone.Title</h2>
+                                        <p>
+                                            @zone.Summary
+                                        </p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    }
+                </div>
+
+            </div>
+            <!--===============spacing==============-->
+            <div class="pd_bottom_90"></div>
+            <!--===============spacing==============-->
+        </section>
+    }
+    <!---project-end--->
+    <!---fun facts--->
+    @if (!DipFactList.IsNullOrEmpty())
+    {
+        <section class="funfact-section bg_light_1 py-lg-5">
+            <!--===============spacing==============-->
+            <div class="pd_bottom_80"></div>
+            <!--===============spacing==============-->
+            <div class="auto-container">
+                <div class="row">
+                    <div class="col-lg-3 d-flex align-items-center">
+                        <div class="title_all_box style_seven dark_color  d-flex align-items-center">
+                            <div class="title_sections">
+                                <div class="title text-uppercase text-primary-color"> @L["Site:Home:DIP"]<br> @L["Site:Home:FACTS"]</div>
+                                <p class="mb-0">
+                                    @L["Site:Home:DIPFactsDescription"]
+                                </p>
+                            </div>
+                            <!--===============spacing==============-->
+                            <div class="mr_bottom_50"></div>
+                            <!--===============spacing==============-->
+                        </div>
+                    </div>
+
+                    <div class="col-lg-9">
+                        <div class="section__counter four_column">
+                            <div class="grid_show_case grid_layout clearfix" style="position: relative; height: 231.219px;">
+                                @{
+                                    int index = 0;
+                                    foreach (var dipFact in DipFactList)
+                                    {
+                                        <div class="grid_box _card" style="position: absolute; left: @($"{index*25}%;") top: 0px;">
+                                            <div class="counter-block style_one count-box counted">
+                                                <div class="icon_box  ">
+                                                    <div class="icon">
+                                                        <img src="@dipFact.Image" class="img-fluid svg_image" alt="@dipFact.Title" />
+                                                    </div>
+                                                    <div class="coun_ter">
+                                                        <span class="count-text" data-speed="1500" data-stop="100">@dipFact.Title</span>
+                                                        <!-- <small>%</small> -->
+                                                    </div>
+                                                </div>
+                                                <div class="content_box">
+                                                    <h6>@dipFact.Description</h6>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        index++;
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--===============spacing==============-->
+            <div class="pd_bottom_70"></div>
+            <!--===============spacing==============-->
+        </section>
+    }
+    <!---fun facts end--->
+    @if (!PressReleaseList.IsNullOrEmpty())
+    {
+        <section class="blog_post_section two_column style_three">
+            <!--===============spacing==============-->
+            <div class="pd_top_80"></div>
+            <!--===============spacing==============-->
+
+            <div class="auto-container">
+
+                <div class="row">
+                    <div class="col-lg-10 col-md-8">
+                        <div class="title_all_box style_seven dark_color">
+                            <div class="title_sections">
+                                <div class="title text-uppercase text-primary-color">@L["Site:Home:PressRelease"]</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-3">
+                        <div class="theme_btn_all color_one mt-4 mt-md-0">
+                            <a href="@($"/{CultureInfo.CurrentCulture.Name}/media-center/press-releases")" rel="nofollow" class="theme-btn one w-100">
+                                @L["Site:Home:ViewAll"]
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <!--===============spacing==============-->
+                        <div class="pd_bottom_50"></div>
+                        <!--===============spacing==============-->
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="auto-container">
+                <div class="row">
+                    @foreach (var pressRelease in PressReleaseList)
+                    {
+                        <div class="col-lg-4">
+                            <a href="@($"/{CultureInfo.CurrentCulture.Name}/media-center/press-releases/{pressRelease.Slug}")">
+                                <div class="news_box style_two grid_box _card has_images">
+
+                                    <div class="content_box">
+                                        <div class="overlay"> </div>
+
+                                        <img src="@pressRelease.Image" class="img-fluid" alt="@pressRelease.Title">
+
+                                        <div class="content_mid">
+                                            <span class="date_in_number">
+                                                @if (pressRelease.Date.HasValue)
+                                                {
+                                                    @($"{pressRelease.Date.Value.ToString("MMMM")} {pressRelease.Date.Value.Day} {pressRelease.Date.Value.Year}")
+                                                }
+                                            </span>
+                                            <h2 class="title">
+                                                <a href="@($"/{CultureInfo.CurrentCulture.Name}/media-center/press-releases/{pressRelease.Slug}")" rel="bookmark">
+                                                    @pressRelease.Summary
+                                                </a>
+                                            </h2>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+            <!--===============spacing==============-->
+            <div class="pd_top_70"></div>
+            <!--===============spacing==============-->
+        </section>
+    }
+    @if (!LastEventList.IsNullOrEmpty())
+    {
+        <section class="service-section bg_light_1">
+            <!--===============spacing==============-->
+            <div class="pd_top_80"></div>
+            <!--===============spacing==============-->
+
+            <div class="auto-container">
+                <div class="row">
+                    <div class="col-lg-10 col-md-8">
+                        <div class="title_all_box style_seven dark_color">
+                            <div class="title_sections">
+                                <div class="title text-uppercase text-primary-color"> @L["Site:Home:LatestEvents"]</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-3">
+                        <div class="theme_btn_all color_one mt-4 mt-md-0">
+                            <a href="@($"/{CultureInfo.CurrentCulture.Name}/media-center/upcoming-events")" rel="nofollow" class="theme-btn one w-100">
+                                @L["Site:Home:ViewAll"]
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <!--===============spacing==============-->
+                        <div class="pd_bottom_50"></div>
+                        <!--===============spacing==============-->
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="auto-container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="service_section grid_all three_column  news_wrapper_grid dark_color">
+                            <div class="grid_show_case grid_layout clearfix" style="position: relative; height: 538px;">
+                                @foreach (var singleEvent in LastEventList)
+                                {
+                                    <div class="grid_box _card">
+                                        <div class="service_post style_four">
+                                            <div class="image_box">
+                                                <div class="eventdate text-center">
+                                                    <span style="font-size: 24px; font-weight: 700; display: block;">@($"{singleEvent?.StartDate.Value.ToString("MMM")}")</span>
+                                                     @($"{singleEvent?.StartDate.Value.Day} - {singleEvent?.EndDate.Value.Day}")
+                                                </div>
+                                                <img src="@singleEvent.Image" class="img-fluid" alt="@singleEvent.Title">
+                                            </div>
+                                            <div class="content_in_box">
+                                                <span class="icon icon-thumbs-up bg_im"></span>
+                                                <div class="content_box ">
+                                                    <h2 class="title_service">
+                                                        <a href="@($"/{CultureInfo.CurrentCulture.Name}/media-center/upcoming-events/{singleEvent.Slug}")"
+                                                           rel="bookmark">@singleEvent.Title</a>
+                                                    </h2>
+                                                    <p class="short_desc">@singleEvent.Summary</p>
+                                                    <a class="read_more"
+                                                       href="@($"/{CultureInfo.CurrentCulture.Name}/media-center/upcoming-events/{singleEvent.Slug}")">
+                                                        @L["Site:Home:ReadMore"]<i class="icon-right-arrow-long"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <!--===============spacing==============-->
+            <div class="pd_bottom_60"></div>
+            <!--===============spacing==============-->
+        </section>
+    }
+
+   <section class="instagram_section two_column style_three">
+    <!--===============spacing==============-->
+    <div class="pd_top_80"></div>
+    <!--===============spacing==============-->
+
+
+
+    <div class="auto-container">
+    <div class="row">
+                <div class="elfsight-app-70947afc-6053-426a-9502-04701b152030" data-elfsight-app-lazy></div>
+    </div>
+    </div>
+    <!--===============spacing==============-->
+    <div class="pd_top_70"></div>
+    <!--===============spacing==============-->
+
+    </section>
+    
+
+</div>
+<!--===============PAGE CONTENT END==============-->
+<!--===============PAGE CONTENT END==============-->

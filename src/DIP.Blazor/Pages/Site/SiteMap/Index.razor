@@ -1,0 +1,211 @@
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@page "/{lang}/sitemap";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+<!----page header----->
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @PageInfoFrontEnd?.Title
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li class="active">@PageInfoFrontEnd?.Title</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!----page header----->
+<!--===============PAGE CONTENT==============-->
+<!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content ">
+    <!---image-box-section---->
+<div class="auto-container">
+    <div class="row">
+            <div class="pd_bottom_25"></div>
+
+            <div class="auto-container">
+                <div class="row">
+                    <div class="col-xl-7 col-lg-12">
+                        <div class="title_all_box style_one dark_color">
+                            <div class="title_sections ">
+                                <div class="title text-uppercase text-primary-color mb-4">@PageInfoFrontEnd?.PageInfoArticleTilte</div>
+                            </div>
+                        </div>
+                    </div>
+                 
+                </div>
+            </div>
+
+            <div class="pd_bottom_60"></div>
+
+        <div class="col-md-12">
+            <!-- Clients Block-->
+            <div class="row">
+                <div class="col-md-12">
+               
+
+                    <ul class="sitemap-list">
+                                <li>
+
+                                <a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Header:Home"]</a>
+
+                                </li>
+                          
+                                <li>
+
+                                <a><span>@L["Site:Header:AboutUs"]</span></a>
+                                    <ul>
+                                    @if (!PageInfoHeaderAboutUs.IsNullOrEmpty())
+                                    {
+                                        foreach (var pageInfoHeader in PageInfoHeaderAboutUs)
+                                        {
+                                            <li >
+                                                <a href="@($"/{CultureInfo.CurrentCulture.Name}/about-us/{pageInfoHeader.Slug}")" class="dropdown-item nav-link">
+                                                    <span>@pageInfoHeader.Title</span>
+                                                </a>
+                                            </li>
+                                        }
+                                    }
+                                    </ul>
+
+                                </li>
+                                <li>
+
+                                <a href="/WebPages/EServices">@L["Site:Header:E-Services"]</a>
+                                    <ul> 
+                                    @if (!EServiceList.IsNullOrEmpty())
+                                     {
+                                        foreach (var pageInfoHeader in EServiceList)
+                                            {
+                                            <li>
+                                                        <a href="@($"/{CultureInfo.CurrentCulture.Name}/{pageInfoHeader.Slug}")"  >
+                                                    <span>@pageInfoHeader.Title</span>
+                                                </a>
+                                            </li>
+                                            }
+                                        }
+                                </ul>
+                                </li>
+                            
+                                <li>
+
+                                <a href="@($"/{CultureInfo.CurrentCulture.Name}/zones")"><span>@L["Site:Header:Zones"]</span></a>
+                                <ul >
+                                    @if (!ZonesList.IsNullOrEmpty())
+                                    {
+                                        foreach (var zone in ZonesList)
+                                        {
+                                            <li >
+                                                <a href="@($"{CultureInfo.CurrentCulture.Name}/zones/{zone.Slug}")" class="dropdown-item nav-link">
+                                                    <span>@zone.Title</span>
+                                                </a>
+                                            </li>
+                                        }
+                                    }
+                                </ul>
+
+                                </li>
+                                <li>
+
+                                <a href="@($"/{CultureInfo.CurrentCulture.Name}/amenities")"><span>@L["Site:Header:Amenities"]</span></a>
+                                <ul >
+                                    @if (!AmenitiesList.IsNullOrEmpty())
+                                    {
+                                        foreach (var amenity in AmenitiesList)
+                                        {
+                                            <li >
+                                                <a href="@($"{CultureInfo.CurrentCulture.Name}/amenities/{amenity.Slug}")" class="dropdown-item nav-link">
+                                                    <span>@amenity.Title</span>
+                                                </a>
+                                            </li>
+                                        }
+                                    }
+                                </ul>
+
+                                </li>
+                                <li>
+
+                                <a onclick="return false" >
+                                    <span>@L["Site:Header:MediaCenter"]</span>
+                                </a>
+                                <ul >
+                                    @if (!PageInfoHeaderMediaCenter.IsNullOrEmpty())
+                                    {
+                                        foreach (var pageInfoHeader in PageInfoHeaderMediaCenter)
+                                        {
+                                            <li >
+                                                <a href="@($"/{CultureInfo.CurrentCulture.Name}/media-center/{pageInfoHeader.Slug}")" >
+                                                    <span>@pageInfoHeader.Title</span>
+                                                </a>
+                                            </li>
+                                        }
+                                    }
+                                </ul>
+                                </li>
+                            @if (PageInfoHeaderDirectory != null)
+                            {
+                                <li >
+                                    <a href="@($"/{CultureInfo.CurrentCulture.Name}/{PageInfoHeaderDirectory?.Slug}")" >
+                                        <span>@PageInfoHeaderDirectory?.Title</span>
+                                    </a>
+                                </li>
+                            }
+                            @if (PageInfoHeaderContactUs != null)
+                            {
+                                <li >
+                                    <a href="@($"/{CultureInfo.CurrentCulture.Name}/{PageInfoHeaderContactUs?.Slug}")" >
+                                        <span>@PageInfoHeaderContactUs?.Title</span>
+                                    </a>
+                                </li>
+                            }
+                    </ul>
+                </div>
+            </div>
+            <!-- End Clients Block-->
+        </div><!--/col-md-9-->
+
+        <div class="pd_bottom_60"></div>
+        </div>
+        </div>
+    <!---image-box-section-end---->
+
+</div>
+<!--===============PAGE CONTENT END==============-->
+<!--===============PAGE CONTENT END==============-->

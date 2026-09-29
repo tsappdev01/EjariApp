@@ -1,0 +1,589 @@
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@using DIP.ContactForms;
+@using DIP.FeedBacks;
+@using DIP.InquiryForms;
+@using DIP.Settings;
+@using Volo.Abp.AspNetCore.Components.Messages;
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@inject IContactFormsAppService ContactFormsAppService
+@inject IInquiryFormsAppService InquiryFormsAppService
+@inject IFeedBacksAppService FeedBacksAppService
+@inject IDIPSettingAppService DIPSettingAppService
+@inject IUiMessageService UiMessageService
+
+@page "/{lang}/contact-us";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+<!----page header----->
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @PageInfoFrontEnd?.Title
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li class="active">@PageInfoFrontEnd?.Title</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!----page header----->
+<!--===============PAGE CONTENT==============-->
+<!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content ">
+
+    <!---image-box-section---->
+    <section class="image-box-section bg_light_1">
+        <!--===============spacing==============-->
+        <div class="pd_top_80"></div>
+        <!--===============spacing==============-->
+        <div class="auto-container">
+            <div class="row">
+
+                <div class="col-xl-4 col-lg-4 col-md-4 col-12">
+                    <div class="theme_btn_all color_one mt-4 mt-md-0">
+                        <button type="button" class="theme-btn one w-100 contact-toggler">@L["Site:ContactUs"]</button>
+                    </div>
+                </div>
+
+                <div class="col-xl-4 col-lg-4 col-md-4 col-12">
+                    <div class="theme_btn_all color_one mt-4 mt-md-0">
+                        <button type="button" class="theme-btn one w-100 inquiry-toggler">@L["Site:SendInquiry"]</button>
+                    </div>
+                </div>
+
+                <div class="col-xl-4 col-lg-4 col-md-4 col-12">
+                    <div class="theme_btn_all color_one mt-4 mt-md-0">
+                        <button type="button" class="theme-btn one w-100 feedback-toggler">@L["Site:Feedback"]</button>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_bottom_80"></div>
+        <!--===============spacing==============-->
+    </section>
+    <!---image-box-section-end---->
+    <!---image-box-section---->
+    <section class="image-box-section">
+        <!--===============spacing==============-->
+        <div class="pd_top_80"></div>
+        <!--===============spacing==============-->
+        <div class="auto-container">
+            <div class="row">
+
+                <div class="col-xl-8 col-lg-8">
+                    <iframe src="@SiteSettingFrontEnd?.PbLocation" width="100%" height="600" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+
+
+                </div>
+                <div class="col-xl-4 col-lg-4">
+
+                    <div class="contact-card h-auto">
+                        <h5 class="contact-card-title bg-blue-brand title-white">@L["Site:TheOffice"]</h5>
+                        <div class="contact-card-body">
+                            <ul class="list-unstyled contact-info-list">
+                                @if (SiteSettingFrontEnd != null)
+                                {
+                                    <li><i class="fas fa-map-marker-alt"></i>@SiteSettingFrontEnd.OfficeLocation</li>
+                                    <li><i class="fa fa-inbox"></i> @SiteSettingFrontEnd.POBox</li>
+                                    <li><i class="fa fa-envelope"></i>@SiteSettingFrontEnd.DipEmail</li>
+                                    <li><i class="fa fa-phone"></i>@SiteSettingFrontEnd.Phone</li>
+                                    <li><i class="fa fa-globe"></i>@SiteSettingFrontEnd.SiteLink</li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="contact-card h-auto">
+                        <h5 class="contact-card-title bg-blue-brand title-white">@L["Site:BusinessHours"]</h5>
+                        <div class="contact-card-body">
+                            <ul class="list-unstyled contact-info-list">
+                                @if (SiteSettingFrontEnd != null)
+                                {
+                                    <li class="justify-content-between"><b>@SiteSettingFrontEnd.WorkDays</b> @SiteSettingFrontEnd.WorkHours</li>
+                                    <li class="justify-content-between"><b>@SiteSettingFrontEnd.RamadanWorkDays </b> @SiteSettingFrontEnd.RamadanWorkHours</li>
+                                    <li class="justify-content-between"><b>@L["Site:Friday"]</b> @SiteSettingFrontEnd.FridayWorkHours</li>
+                                    <li class="justify-content-between"><b>@SiteSettingFrontEnd.ClosedDay1 </b> @L["Site:Closed"]</li>
+                                    <li class="justify-content-between"><b>@SiteSettingFrontEnd.ClosedDay2 </b> @L["Site:Closed"]</li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+            @if (!DipBranchesList.IsNullOrEmpty())
+            {
+                <div class="row contact-cards">
+                    @foreach (var dipBranch in DipBranchesList)
+                    {
+                        <div class="col-lg-4 col-md-6 col-12">
+                            <div class="contact-card">
+                                <h5 class="contact-card-title">@dipBranch.Title</h5>
+                                <div class="contact-card-body">
+                                    <p><b>@dipBranch.SubTitle</b></p>
+                                    <ul class="list-unstyled contact-info-list">
+                                        @if (!dipBranch.Phone.IsNullOrEmpty())
+                                        {
+                                            <li><a href="tel:@dipBranch?.Phone" class="d-flex align-items-center"><i class="fa fa-phone"></i>@dipBranch.Phone</a></li>
+                                        }
+                                        @if (!dipBranch.AlternativePhone.IsNullOrEmpty())
+                                        {
+                                            <li><a href="tel:@dipBranch?.AlternativePhone" class="d-flex align-items-center"><i class="fa fa-phone"></i> @dipBranch.AlternativePhone</a></li>
+                                        }
+                                        @if (!dipBranch.Email.IsNullOrEmpty())
+                                        {
+                                            <li><a href="mailto:@dipBranch?.Email" class="d-flex align-items-center"><i class="fa fa-envelope"></i> @dipBranch.Email</a></li>
+                                        }
+                                        @if (!dipBranch.AlternativeEmail.IsNullOrEmpty())
+                                        {
+                                            <li><a href="mailto:@dipBranch?.AlternativeEmail" class="d-flex align-items-center"><i class="fa fa-envelope"></i> @dipBranch.AlternativeEmail</a></li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_bottom_80"></div>
+        <!--===============spacing==============-->
+    </section>
+    <!---image-box-section-end---->
+</div>
+<!--===============PAGE CONTENT END==============-->
+<!--===============PAGE CONTENT END==============-->
+
+<div class="modal_popup modal_popup_contact one">
+    <div class="modal-popup-inner">
+        <div class="close-modal"><i class="fa fa-times"></i></div>
+        <div class="modal_box">
+            <div class="row">
+                <div class="col-lg-12 col-md-12 form_inner">
+                    <div class="form_content">
+
+                        <EditForm EditContext="@EditContextContactUs" OnValidSubmit="async()=> await CreateContactFormAsync()" class="contact-form">
+                            <DataAnnotationsValidator></DataAnnotationsValidator>
+
+                            <p>
+                                <label>
+                                    @L["Site:YourName"]
+                                    <br />
+
+                                    <InputText @bind-Value="@NewContactForm.FullName" Placeholder="@L["Site:EnterYourName"]">
+
+                                    </InputText>
+
+                                    <br />
+                                    <i class="fa fa-user"></i><br />
+                                </label>
+                                <ValidationMessage For="() => NewContactForm.FullName" />
+                            </p>
+
+                            <p>
+                                <label>
+                                    @L["Site:YourEmail"]<br />
+                                    <InputText @bind-Value="@NewContactForm.Email" Role="TextRole.Email" Placeholder="@L["Site:EnterYourEmail"]">
+                                    </InputText>
+                                    <br />
+                                    <i class="fa fa-envelope"></i><br />
+                                </label>
+                                <ValidationMessage For="() => NewContactForm.Email" />
+
+                            </p>
+                            <p>
+                                <label>
+                                    @L["Site:Subject"]
+                                    <br />
+
+                                    <InputText @bind-Value="@NewContactForm.Subject" Placeholder="@L["Site:EnterYourSubject"]">
+                                    </InputText>
+
+                                    <br />
+                                    <i class="fa fa-edit"></i><br />
+                                </label>
+                            </p>
+                            <p>
+                                <label>
+                                    @($"{L["Site:YourMessage"]} ({L["Site:Optional"]})")<br />
+
+                                    <MemoEdit Class="wpcf7-form-control wpcf7-textarea" @bind-Text="@NewContactForm.Message" Placeholder="@L["Site:EnterYourMessage"]">
+                                    </MemoEdit>
+
+
+                                    <br />
+                                    <i class="fa fa-comment"></i><br />
+                                </label>
+                            </p>
+                         @*    @if (GoogleReCaptachDto != null)
+                            { *@
+                                <p>
+                        @*             <Captcha @ref="captchaComponent" SiteKey="@GoogleReCaptachDto.SiteKey" OnSuccess="OnSuccessCaptchaContact" OnExpired="OnExpiredCaptchaContact"></Captcha> *@
+
+                                    <MathCaptcha OnCaptchaVerified="(result) => OnSuccessCaptchaContact(result)" />
+
+                                    <ValidationMessage For="() => NewContactForm.Captcha" />
+                                </p>
+                            @* } *@
+                            <div class="theme_btn_all color_one mt-4 mt-md-0">
+                                <button type="submit" disabled="@DisableButton" class="theme-btn one w-100 ">@L["Site:Submit"]</button>
+                              
+@*                                <button type="submit" disabled ="@( !ValidCaptchaContact || DisableButton )" class="theme-btn one w-100 ">@L["Site:Submit"]</button>*@
+                            </div>
+                            <div class="col-xl-12 py-0 px-05 d-flex justify-content-end">
+                                <div class="cont-btn mb-0 w-100">
+                                </div>
+                            </div>
+                      @*      @if (DisplayAlert)
+                            {
+                                <div class="col-xl-12 py-0 px-05 d-flex justify-content-end">
+                                    <div style="width: 100%; position:relative; top:30px;" class="alert alert-success fade-in" role="alert">
+                                        @L["Site:AddedSuccessfuly"]
+                                    </div>
+                                </div>
+                            }*@
+
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal_popup modal_popup_inquiry one">
+    <div class="modal-popup-inner">
+        <div class="close-modal"><i class="fa fa-times"></i></div>
+        <div class="modal_box">
+            <div class="row">
+                <div class="col-lg-12 col-md-12 form_inner">
+                    <div class="form_content">
+                        <EditForm EditContext="@EditContextInquiry" OnValidSubmit="async()=> await CreateInquiryFormAsync()" class="contact-form">
+                            <DataAnnotationsValidator></DataAnnotationsValidator>
+                            <p>
+                                <label>
+                                    @L["Site:CompanyName"]
+                                    <br />
+
+                                    <TextEdit @bind-Text="@NewInquiryForm.CompanyName" Placeholder="@L["Site:EnterCompanyName"]">
+                                    </TextEdit>
+
+                                    <br />
+                                    <i class="fa fa-user"></i><br />
+                                </label>
+                            </p>
+                            <p>
+                                <label>
+                                    @L["Site:Name"]
+                                    <br />
+                                    <InputText @bind-Value="@NewInquiryForm.Name" Placeholder="@L["Site:EnterYourName"]">
+                                    </InputText>
+                                    <br />
+                                    <i class="fa fa-user"></i><br />
+                                </label>
+                                <ValidationMessage For="() => NewInquiryForm.Name" />
+                            </p>
+                            <p>
+                                <label>
+                                    @L["Site:Email"]<br />
+                                    <InputText @bind-Value="@NewInquiryForm.Email" Placeholder="@L["Site:EnterYourEmail"]">
+                                    </InputText>
+                                    <br />
+                                    <i class="fa fa-envelope"></i><br />
+                                </label>
+                                <ValidationMessage For="() => NewInquiryForm.Email" />
+
+                            </p>
+                            <p>
+                                <label>
+                                    @L["Site:Mobile"]
+                                    <br />
+                                    <InputText @bind-Value="@NewInquiryForm.Mobile" Placeholder="@L["Site:EnterMobile"]">
+                                    </InputText>
+                                    <br />
+                                    <i class="fa fa-phone"></i><br />
+                                </label>
+                                <ValidationMessage For="() => NewInquiryForm.Mobile" />
+                            </p>
+                      @*       <p>
+                                <label>
+                                    @L["Site:Fax"]
+                                    <br />
+                                    <InputText @bind-Value="@NewInquiryForm.Fax" Placeholder="@L["Site:EnterFax"]">
+                                    </InputText>
+                                    <br />
+                                    <i class="fa fa-fax"></i><br />
+                                </label>
+                            </p> *@
+                            <p>
+                                <label>
+                                    @L["Site:Phone"]
+                                    <br />
+                                    <InputText @bind-Value="@NewInquiryForm.Phone" Placeholder="@L["Site:EnterPhone"]">
+                                    </InputText>
+                                    <br />
+                                    <i class="fa fa-phone"></i><br />
+                                </label>
+                            </p>
+                            <p>
+                                <label>
+                                    @L["Site:InquiryType"]
+                                    <br />
+                                    <InputText @bind-Value="@NewInquiryForm.InquiryType" Placeholder="@L["Site:EnterInquiryType"]">
+                                    </InputText>
+                                    <br />
+                                    <i class="fa fa-edit"></i><br />
+                                </label>
+                            </p>
+                            <p>
+                                <label>
+                                    @L["Site:TradeLicensePlateOfIssue"]
+                                    <br />
+                                    <InputText @bind-Value="@NewInquiryForm.TradeLicensePlateOfIssue" Placeholder="@L["Site:EnterTradeLicensePlateOfIssue"]">
+                                    </InputText>
+                                    <br />
+                                    <i class="fa fa-edit"></i><br />
+                                </label>
+                            </p>
+                            <p>
+                                <label>
+                                    @L["Site:BuyRent"]
+                                    <br />
+                                    <InputText @bind-Value="@NewInquiryForm.BuyRent" Placeholder="@L["Site:EnterBuyRent"]">
+                                    </InputText>
+                                    <br />
+                                    <i class="fa fa-edit"></i><br />
+                                </label>
+                            </p>
+                            <p>
+                                <label>
+                                    @L["Site:SpaceInSquareFeet"]
+                                    <br />
+                                    <NumericPicker TValue="double" @bind-Value="@NewInquiryForm.SpaceInSquareFeet" Placeholder="@L["Site:EnterSpaceInSquareFeet"]">
+                                    </NumericPicker>
+                                    <br /><br />
+                                </label>
+                            </p>
+                            <p>
+                                <label>
+                                    @L["Site:Comments"]
+                                    <br />
+                                    <InputText @bind-Value="@NewInquiryForm.Comments" Placeholder="@L["Site:EnterComments"]">
+                                    </InputText>
+                                    <br />
+                                    <i class="fa fa-file"></i><br />
+                                </label>
+                            </p>
+                         @*    @if (GoogleReCaptachDto != null)
+                            { *@
+                                <p>
+                                @*     <Captcha @ref="captchaComponentInquiry"  SiteKey="@GoogleReCaptachDto.SiteKey" OnSuccess="OnSuccessCaptchaInquiry" OnExpired="OnExpiredCaptchaInquiry"></Captcha> *@
+
+                                    <MathCaptcha OnCaptchaVerified="(result) => OnSuccessCaptchaInquiry(result)" />
+
+                                    <ValidationMessage For="() => NewInquiryForm.Captcha" />
+                                </p>
+                            @* } *@
+                            <div class="theme_btn_all color_one mt-4 mt-md-0">
+                                <button type="submit" disabled="@DisableButtonInquiry" class="theme-btn one w-100 ">@L["Site:Submit"]</button>
+
+                            </div>
+                            <div class="col-xl-12 py-0 px-05 d-flex justify-content-end">
+                                <div class="cont-btn mb-0 w-100">
+                                </div>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal_popup modal_popup_feedback one">
+    <div class="modal-popup-inner">
+        <div class="close-modal"><i class="fa fa-times"></i></div>
+        <div class="modal_box">
+            <div class="row">
+                <div class="col-lg-12 col-md-12 form_inner">
+                    <div class="form_content">
+                        <EditForm EditContext="@EditContextFeedback" OnValidSubmit="async()=> await CreateFeedBackFormAsync()" class="contact-form">
+                            <DataAnnotationsValidator></DataAnnotationsValidator>
+                            <p>
+                                <label>
+                                    @L["Site:Subject"]
+                                    <br />
+                                    <InputText @bind-Value="@NewFeedBack.Subject" Placeholder="@L["Site:EnterYourSubject"]">
+                                    </InputText>
+                                    <br />
+                                    <i class="fa fa-edit"></i><br />
+                                </label>
+                                <ValidationMessage For="() => NewFeedBack.Subject" />
+                            </p>
+                            <p>
+                                <label>
+                                    @L["Site:CompanyName"]
+                                    <br />
+                                    <InputText @bind-Value="@NewFeedBack.CompanyName" Placeholder="@L["Site:EnterCompanyName"]">
+                                    </InputText>
+                                    <br />
+                                    <i class="fa fa-user"></i><br />
+                                </label>
+                                <ValidationMessage For="() => NewFeedBack.CompanyName" />
+                            </p>
+                            <p>
+                                <label>
+                                    @L["Site:PlotNo"]
+                                    <br />
+                                    <InputText @bind-Value="@NewFeedBack.PlotNo" Placeholder="@L["Site:EnterPlotNo"]">
+                                    </InputText>
+                                    <br />
+                                    <i class="fa fa-edit"></i><br />
+                                </label>
+                                <ValidationMessage For="() => NewFeedBack.PlotNo" />
+                            </p>
+                            <p>
+                                <label>
+                                    @L["Site:PlotCategory"]
+                                    <br />
+                                    <InputText @bind-Value="@NewFeedBack.PlotCategory" Placeholder="@L["Site:EnterPlotCategory"]">
+                                    </InputText>
+                                    <br />
+                                    <i class="fa fa-edit"></i><br />
+                                </label>
+                                <ValidationMessage For="() => NewFeedBack.PlotCategory" />
+                            </p>
+                            <p>
+                                <label>
+                                    @L["Site:ContactPersonName"]
+                                    <br />
+                                    <InputText @bind-Value="@NewFeedBack.ContactPersonName" Placeholder="@L["Site:EnterContactPersonName"]">
+                                    </InputText>
+                                    <br />
+                                    <i class="fa fa-user"></i><br />
+                                </label>
+                                <ValidationMessage For="() => NewFeedBack.ContactPersonName" />
+
+                            </p>
+                            <p>
+                                <label>
+                                    @L["Site:Email"]<br />
+                                    <InputText @bind-Value="@NewFeedBack.EmailId" Placeholder="@L["Site:EnterYourEmail"]">
+                                    </InputText>
+                                    <br />
+                                    <i class="fa fa-envelope"></i><br />
+                                </label>
+                                <ValidationMessage For="() => NewFeedBack.ContactPersonName" />
+                            </p>
+                            <p>
+                                <label>
+                                    @L["Site:MobileNumber"]
+                                    <br />
+                                    <InputText @bind-Value="@NewFeedBack.MobileNumber" Placeholder="@L["Site:EnterMobileNumber"]">
+                                    </InputText>
+                                    <br />
+                                    <i class="fa fa-phone"></i><br />
+                                </label>
+                                <ValidationMessage For="() => NewFeedBack.ContactPersonName" />
+                            </p>
+                            <p>
+                                <label>
+                                    @L["Site:Department"]
+                                    <br />
+                                    <InputText @bind-Value="@NewFeedBack.Department" Placeholder="@L["Site:EnterDepartment"]">
+                                    </InputText>
+                                    <br />
+                                    <i class="fa fa-edit"></i><br />
+                                </label>
+                                <ValidationMessage For="() => NewFeedBack.Department" />
+                            </p>
+                            <p>
+                                <label>
+                                    @L["Site:CategoryName"]
+                                    <br />
+                                    <InputText @bind-Value="@NewFeedBack.CategoryName" Placeholder="@L["Site:EnterCategoryName"]">
+                                    </InputText>
+                                    <br />
+                                    <i class="fa fa-edit"></i><br />
+                                </label>
+                                <ValidationMessage For="() => NewFeedBack.CategoryName" />
+                            </p>
+                            <p>
+                                <label>
+                                    @($"{L["Site:Description"]}")<br />
+                                    <MemoEdit Class="wpcf7-form-control wpcf7-textarea" @bind-Text="@NewFeedBack.Description" Placeholder="@L["Site:EnterDescription"]">
+
+                                    </MemoEdit>
+                                    <br />
+                                    <i class="fa fa-comment"></i><br />
+                                </label>
+                                <ValidationMessage For="() => NewFeedBack.Description" />
+                            </p>
+                         @*    @if (GoogleReCaptachDto != null)
+                            { *@
+                                <p>
+                                 @*    <Captcha @ref="captchaComponentFeeddback"  SiteKey="@GoogleReCaptachDto.SiteKey" OnSuccess="OnSuccessCaptchaFeedback" OnExpired="OnExpiredCaptchaFeedback"></Captcha> *@
+
+
+                                    <MathCaptcha OnCaptchaVerified="(result) => OnSuccessCaptchaFeedback(result)" />
+
+                                    <ValidationMessage For="() => NewFeedBack.Captcha" />
+                                </p>
+                            @* } *@
+                            <div class="theme_btn_all color_one mt-4 mt-md-0">
+                                <button type="submit" disabled="@DisableButtonFeedBack" class="theme-btn one w-100 ">@L["Site:Submit"]</button>
+                                @*<Button Form="CreateFeedbackForm" class="theme-btn one w-100 contact-toggler" Disabled="@DisableButtonFeedBack" Clicked="async()=> await CreateFeedBackAsync()">@L["Site:Submit"]</Button>*@
+                            </div>
+                            <div class="col-xl-12 py-0 px-05 d-flex justify-content-end">
+                                <div class="cont-btn mb-0 w-100">
+                                </div>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

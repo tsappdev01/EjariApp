@@ -1,0 +1,283 @@
+
+@page "/admin/e-form-service-sub-categories/edit/{id}"
+@page "/admin/e-form-service-sub-categories/create"
+@attribute [Authorize(DIPPermissions.EFormServiceSubCategories.Default)]
+@using DIP.EFormServiceSubCategories
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IEFormServiceSubCategoriesAppService EFormServiceSubCategoriesAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+
+
+
+<PageHeader Title="@( $"{L[Id.IsNullOrEmpty()? "Create":"Update"]} {L["EFormServiceSubCategories"]}")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+
+
+@* ************************* CREATE MODAL ************************* *@
+
+<Card>
+    @if (Id.IsNullOrEmpty())
+    {
+
+        <Form id="CreateEFormServiceSubCategoryForm">
+        <CardBody>
+                <Tabs SelectedTab="@SelectedCreateTab" SelectedTabChanged="@OnSelectedCreateTabChanged">
+                    <Items>
+                        <Tab Name="create-tab-english">@L["English"]</Tab>
+                        <Tab Name="create-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                <Validations @ref="@NewEFormServiceSubCategoryValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewEFormServiceSubCategory"
+                            ValidateOnLoad="false">
+                 <TabPanel Name="create-tab-english">
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                                    <TextEdit @bind-Text="@NewEFormServiceSubCategory.TitleEn">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>
+
+                                  <Field>
+                            <FieldLabel>@L["File"]</FieldLabel>
+                            <Row>
+                            <Column ColumnSize="ColumnSize.Is11">
+                            <FilePicker Multiple Changed="FileChanged" Upload="OnFileUpload" ShowMode="FilePickerShowMode.List" />
+                            </Column>
+                            <Column ColumnSize="ColumnSize.Is1">
+                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia()">@L["Reset"]</Button>
+                            </Column>
+                            </Row>
+                            @if (!FormFile.IsNullOrEmpty())
+                            {
+                                        <iframe src="@($"data:{MimeTypes.MimeTypeMap.GetMimeType(FormFile)};base64, {Convert.ToBase64String(FormFileContent)}")" style="width:750px;height:750px;" />
+                            }
+                            </Field>
+              @*              <Validation>
+                                <Field>
+                                    <FieldLabel>@L["File"]</FieldLabel>
+                                    <TextEdit @bind-Text="@NewEFormServiceSubCategory.File">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>*@
+
+
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["Order"]</FieldLabel>
+                                    <NumericPicker TValue="int" @bind-Value="@NewEFormServiceSubCategory.Order" Decimals="0">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </NumericPicker>
+                                </Field>
+                            </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["EFormService"]</FieldLabel>
+                                    <Select TValue="Guid" @bind-SelectedValue="@NewEFormServiceSubCategory.EFormServiceId">
+                                        @foreach (var eFormService in EFormServicesCollection)
+                                        {
+                                            <SelectItem TValue="Guid" Value="@eFormService.Id">
+                                                @eFormService.DisplayName
+                                            </SelectItem>
+                                        }
+                                    </Select>
+                                </Field>                             
+
+                            <Field>
+                                <Check TValue="bool" @bind-Checked="@NewEFormServiceSubCategory.IsActive">@L["IsActive"]</Check>
+                            </Field>
+
+@*                                <FieldLabel>@L["EFormService"] *</FieldLabel>
+                                <Autocomplete Data="@EFormServicesCollection"
+                                              TItem="LookupDto<Guid>"
+                                              TValue="Guid"
+                                              TextField="@((item) => item?.DisplayName)"
+                                              ValueField="@((item) => item?.Id ?? default)"
+                                              SearchChanged="@GetEFormServiceCollectionLookupAsync"
+                                              @bind-SelectedValue="@NewEFormServiceSubCategory.EFormServiceId"
+                                              Placeholder="&#8212;" />*@
+                </TabPanel>
+
+                    
+                 <TabPanel Name="create-tab-arabic">
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                    <TextEdit @bind-Text="@NewEFormServiceSubCategory.TitleAr">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>
+                 </TabPanel> 
+                    
+                       </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="CreateEFormServiceSubCategoryForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+            <SubmitButton Form="CreateEFormServiceSubCategoryForm" Clicked="async()=> await CreateEFormServiceSubCategoryAsync()" />
+            </CardFooter>
+        </Form>
+    }
+    else
+    {
+                <Form id="EditEFormServiceSubCategoryForm">
+                 <CardBody>
+                <Tabs SelectedTab="@SelectedEditTab" SelectedTabChanged="@OnSelectedEditTabChanged">
+                    <Items>
+                        <Tab Name="edit-tab-english">@L["English"]</Tab>
+                        <Tab Name="edit-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                        <Validations @ref="@EditingEFormServiceSubCategoryValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@EditingEFormServiceSubCategory"
+                                 ValidateOnLoad="false">
+
+                            <TabPanel Name="edit-tab-english">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingEFormServiceSubCategory.TitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                                <Field>
+                                    <FieldLabel>@L["File"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="FileChanged" Upload="OnFileUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia()">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (FormFileNewUpload && !FormFile.IsNullOrEmpty() && !FormFileContent.IsNullOrEmpty())
+                                    {
+                                        <iframe src="@($"data:{MimeTypes.MimeTypeMap.GetMimeType(FormFile)};base64, {Convert.ToBase64String(FormFileContent)}")" style="width:750px;height:750px;" />
+                                    }
+                                    else
+                                    {
+                                        if (!FormFile.IsNullOrEmpty())
+                                        {
+                                            <iframe src="@($"{MimeTypes.MimeTypeMap.GetAttachmentPath()}/eformServiceSubCategory/{FormFile}")" style="width:750px;height:750px;" />
+                                        }
+                                    }
+                                </Field>
+                       @*         <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["File"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingEFormServiceSubCategory.File">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>*@
+
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@EditingEFormServiceSubCategory.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["EFormService"]</FieldLabel>
+                                    <Select TValue="Guid" @bind-SelectedValue="@EditingEFormServiceSubCategory.EFormServiceId">
+                                        @foreach (var eFormServices in EFormServicesCollection)
+                                        {
+                                            <SelectItem TValue="Guid" Value="@eFormServices.Id">
+                                                @eFormServices.DisplayName
+                                            </SelectItem>
+                                        }
+                                    </Select>
+                                </Field>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@EditingEFormServiceSubCategory.IsActive">@L["IsActive"]</Check>
+                                </Field>
+
+ @*                               <Field>
+                                    <FieldLabel>@L["EFormService"] *</FieldLabel>
+                                    <Autocomplete Data="@EFormServicesCollection"
+                                              TItem="LookupDto<Guid>"
+                                              TValue="Guid"
+                                              TextField="@((item) => item?.DisplayName)"
+                                              ValueField="@((item) => item?.Id ?? default)"
+                                              SearchChanged="@GetEFormServiceCollectionLookupAsync"
+                                              @bind-SelectedValue="@EditingEFormServiceSubCategory.EFormServiceId"
+                                              Placeholder="&#8212;" />
+                                </Field>*@
+                            </TabPanel>
+                           
+                            <TabPanel Name="edit-tab-arabic">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingEFormServiceSubCategory.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                            </TabPanel>
+                        </Validations>
+                        </Content>
+                        </Tabs>
+                        </CardBody>
+            <CardFooter>
+                <SubmitButton Form="EditEFormServiceSubCategoryForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="EditEFormServiceSubCategoryForm" Clicked="async()=> await UpdateEFormServiceSubCategoryAsync()" />
+            </CardFooter>
+                   
+                </Form>
+       
+
+    }
+    @* ************************* EDIT MODAL ************************* *@
+</Card>

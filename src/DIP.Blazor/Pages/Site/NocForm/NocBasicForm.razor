@@ -1,0 +1,944 @@
+﻿@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@using DIP.Settings
+@using Blazorise.Components
+@using DIP.EServices
+@using Microsoft.AspNetCore.Mvc.Rendering;
+@using DIP.Blazor.Pages.Site.EjariLogin;
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+
+@inject IDIPSettingAppService DIPSettingAppService
+@page "/{lang}/Ejari/NocBasicForm/{ReferenceNumber}";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+    <style>
+            .btn-proceed {
+                background-color: #6F6259;
+                border-color: transparent;
+                color: white;
+                font-weight: 500;
+                padding: 12px 40px;
+                border-top-left-radius: 10px;
+                border-bottom-left-radius: 0px;
+                border-top-right-radius: 0px;
+                border-bottom-right-radius: 10px;
+            }
+
+                .btn-proceed:hover {
+                    background-color: #5a6268;
+                    border-color: #545b62;
+                    color: white;
+                }
+
+            .b-is-autocomplete-multipleselection {
+                background: #ffffff !important;
+            }
+
+            .radio_custom .form-check-inline {
+                display: block !important;
+            }
+
+                .radio_custom .form-check-inline .form-check-input {
+                    margin-left: 0.5em;
+                }
+
+                .radio_custom .form-check-inline label {
+                    display: block !important;
+                }
+
+                .radio_custom .form-check-inline .form-check-label .form-check {
+                    padding-left: unset !important;
+                }
+
+            .licenseTypeContainer .validation-message {
+                margin-left: 1rem !important;
+            }
+
+            .page_wapper #wrapper_full {
+                overflow: unset !important;
+            }
+    </style>
+</HeadContent>
+
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            NOC Application Details
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:Home:Ejari"]</li>
+                            <li class="active">NOC Application Details</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white">
+    <div class="container py-4">
+        <StepProgress Steps="@registrationSteps"
+                      CurrentStep="@currentStep"
+                      OnStepChanged="HandleStepChanged"
+                      AllowClickNavigation="true" />
+        <EditForm EditContext="EditContextEjariNocBasicFormDetails" OnValidSubmit="OnSubmit" OnInvalidSubmit="OnInvalid" class="wpcf7-form init row">
+            <DataAnnotationsValidator></DataAnnotationsValidator>
+
+            <!-- Applicant Details Section -->
+            <div class="form-section mb-3">
+                <div class="py-3">
+                    <h5 class="mb-0 fs-2 fw-normal" style="color:#6F6259">Applicant Details</h5>
+                </div>
+                <div class="p-2 p-md-4 rounded-2" style="background-color: #EEEEEE;border: 1px solid #DEE2E6;">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="contactPerson" class="form-label text-muted">Contact Person</label>
+                            <input value="@Info?.CompanyName" readonly type="text" class="form-control pt-2 pb-2 ps-3 pe-3" id="contactPerson"
+                                   placeholder="Contact Person">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="email" class="form-label text-muted">Email</label>
+                            <input type="email" value="@Info?.Email" readonly class="form-control pt-2 pb-2 ps-3 pe-3" id="email" placeholder="Email">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="mobileNumber" class="form-label text-muted">Mobile Number</label>
+                            <div class="input-group">
+                                @* <select disabled class="form-select pt-2 pb-2 ps-3 pe-3" style="max-width: 80px;"
+                                        id="countryCode">
+                                    <option selected>+971</option>
+                                </select> *@
+                                <Autocomplete TItem="@CountryItem"
+                                              TValue="string"
+                                              Data="CountryItems"
+                                              TextField="@((item) => $"{item.Icon} - ({item.DialCode})")"
+                                              ValueField="@((item) => item.DialCode)"
+                                              SelectedValue="@GetCountryCode(Info?.MobileNo)"
+                                              Placeholder="Select Country  Code"
+                                              MinLength="0"
+                                              Filter="AutocompleteFilter.Contains"
+                                              Disabled="@(!(NocDetailsDto.RenewalFlag > 0))">
+                                </Autocomplete>
+
+                                <input readonly="@(!(NocDetailsDto.RenewalFlag > 0))" value="@GetMobileNumber(Info?.MobileNo)" class="form-control pt-2 pb-2 ps-3 pe-3" id="mobileNumber"
+                                       placeholder="Mobile Number">
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="companyName" class="form-label text-muted">Company Name</label>
+                            <input @bind="@NocDetailsDto.TenatCompanyName" type="text" class="form-control pt-2 pb-2 ps-3 pe-3" id="companyName">
+
+                            <ValidationMessage For="() => NocDetailsDto.TenatCompanyName" />
+                        </div>
+                        <div class="col-md-8">
+                            <label for="companyName" class="form-label text-muted">Address </label>
+                            <input @bind="@NocDetailsDto.TenantAddress" type="text" class="form-control pt-2 pb-2 ps-3 pe-3" id="addressfield">
+
+                            <ValidationMessage For="() => NocDetailsDto.TenantAddress" />
+                        </div>
+                        <div class="col-md-4">
+                            <label for="companyName" class="form-label text-muted">City</label>
+                            <input @bind="@NocDetailsDto.TenantCity" type="text" readonly class="form-control pt-2 pb-2 ps-3 pe-3" id="cityfield">
+
+                            <ValidationMessage For="() => NocDetailsDto.TenantCity" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Noc For -->
+            <div class="form-section mb-3 d-none">
+                <div class="py-3">
+                    <h5 class="mb-0 fs-2 fw-normal" style="color:#6F6259">NOC For</h5>
+                </div>
+                <div class="p-2 p-md-4 rounded-2" style="background-color: #EEEEEE;border: 1px solid #DEE2E6;">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <select name="service-name" hidden
+                                    @bind="@NocDetailsDto.NOCFor"
+                                    class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required bg-white"
+                                    aria-required="true" aria-invalid="false">
+                                <option selected Value="">NOC For</option>
+                                @if (Categories != null)
+                                    @foreach (var category in Categories)
+                                    {
+                                        <option Value="@category.Value">
+                                            @category.Text
+                                        </option>
+                                    }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--Noc Form -->
+            @if (NocDetailsDto.RenewalFlag > 0)
+            {
+                <!-- Is Sister Company Section -->
+                <div class="form-section mb-3">
+                    <div class="py-3">
+                        <h5 class="mb-0 fs-2 fw-normal" style="color:#6F6259">Change In The Bussiness Activity</h5>
+                    </div>
+                    <div class="p-2 p-md-4 rounded-2" style="background-color: #EEEEEE;border: 1px solid #DEE2E6;">
+                        <RadioGroup TValue="bool"
+                                    Name="ChangeInActivities"
+                                    @bind-CheckedValue="@NocDetailsDto.ChangeInActivities">
+                            <div class="row g-3">
+                                <div class="col-12 col-md-4">
+                                    <label for="IsSisterNoCheck" class="w-100">
+                                        <div class="bg-white p-2 rounded-2">
+                                            <div class="form-check">
+                                                <Radio id="IsSisterNoCheck" Value="@(false)">No</Radio>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <div class="col-12 col-md-4">
+                                    <label for="IsSisterYesCheck" class="w-100">
+                                        <div class="bg-white p-2 rounded-2">
+                                            <div class="form-check">
+                                                <Radio id="IsSisterYesCheck" Value="@(true)">Yes</Radio>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+
+                        </RadioGroup>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="pt-2">
+                            <div class="px-3 py-3 rounded-2 alert alert-secondary" role="alert">
+                                You are currently in the renewal process. We already have your previous application details.
+                                If you want to continue with the same information or make changes, please select <strong>Yes</strong>,
+                                update the required details, and proceed. <br><br>
+                                If you select <strong>No</strong>, please fill in the <strong>Contract From</strong> and
+                                <strong>Contract To</strong> fields and continue — the existing data will be filled automatically.
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                @* <div class="mb-3">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <div class="px-3 py-3 rounded-2" style="background-color: #FFF2CC;color: #8D7A3E">
+                                Please select NOC For, Then continue ti fill required filelds.
+                            </div>
+                        </div>
+                    </div>
+                </div> *@
+            }
+            @if (!IsModelValid || NocDetailsDto.ChangeInActivities)
+            {
+
+                <!-- Is Sister Company Section -->
+                <div class="form-section mb-3">
+                    <div class="py-3">
+                        <h5 class="mb-0 fs-2 fw-normal" style="color:#6F6259">Is Sister Company</h5>
+                    </div>
+                    <div class="p-2 p-md-4 rounded-2" style="background-color: #EEEEEE;border: 1px solid #DEE2E6;">
+                        <RadioGroup TValue="int"
+                                    Name="IsSisterCompany"
+                                    @bind-CheckedValue="@NocDetailsDto.IsSisterCompany">
+                            <div class="row g-3">
+                                <div class="radio_custom col-md-4">
+                                    <div class="bg-white p-2 rounded-2">
+                                        <Radio Value="@(1)">
+                                            <div class="form-check">
+                                                No
+                                            </div>
+                                        </Radio>
+                                    </div>
+                                </div>
+                                <div class="radio_custom col-md-4">
+                                    <div class="bg-white p-2 rounded-2">
+                                        <Radio Value="@(2)">
+                                            <div class="form-check">
+                                                Yes
+                                            </div>
+                                        </Radio>
+                                    </div>
+                                </div>
+                            </div>
+                        </RadioGroup>
+                    </div>
+                </div>
+
+                <!-- Basic Rent And Security Deposit Section -->
+                <div class="form-section mb-3">
+                    <div class="p-2 p-md-4 rounded-2" style="background-color: #EEEEEE;border: 1px solid #DEE2E6;">
+                        <div class="row g-3">
+                            @* @if (new[] { "1" }.Contains(NocDetailsDto.NOCFor))
+                            {
+                                <div class="col-md-6">
+                                    <label for="preferredUnits" class="form-label text-muted">Basic Value</label>
+                                    <input @bind="NocDetailsDto.BasicRent" type="text" class="form-control pt-2 pb-2 ps-3 pe-3" id="RentinputField"
+                                           placeholder="Basic Value">
+                                    <ValidationMessage For="() => NocDetailsDto.BasicRent" />
+                                </div>
+
+                            } *@
+                            <div class="col-md-6">
+                                @if (new[] { "1" }.Contains(NocDetailsDto.NOCFor))
+                                {
+                                    <label for="preferredUnits" class="form-label text-muted">Basic Rent</label>
+                                }
+                                else
+                                {
+                                    <label for="preferredUnits" class="form-label text-muted">Contract Value</label>
+                                }
+                                <input @bind="NocDetailsDto.BasicRent" type="text" class="form-control pt-2 pb-2 ps-3 pe-3" id="BasicRentField"
+                                       placeholder="Value">
+
+                                <ValidationMessage For="() => NocDetailsDto.BasicRent" />
+                            </div>
+                            <div class="col-md-6">
+                                <label for="preferredUnits" class="form-label text-muted">Security Deposit</label>
+                                <input @bind="NocDetailsDto.SecurityDeposit" type="text" class="form-control pt-2 pb-2 ps-3 pe-3" id="securityDepositinputField"
+                                       placeholder="SecurityDeposit">
+                                <ValidationMessage For="() => NocDetailsDto.SecurityDeposit" />
+                            </div>
+                            @if (new[] { "1" }.Contains(NocDetailsDto.NOCFor))
+                            {
+                                <div class="col-md-6">
+                                    <label for="preferredUnits" class="form-label text-muted">Utility Charges</label>
+                                    <input @bind="NocDetailsDto.UtilityCharge" type="text" class="form-control pt-2 pb-2 ps-3 pe-3" id="basicUtilityChargeField"
+                                           placeholder="Utility Charges">
+                                    <ValidationMessage For="() => NocDetailsDto.UtilityCharge" />
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Property Details Section -->
+                <div class="form-section mb-3">
+                    <div class="py-3">
+                        <h5 class="mb-0 fs-2 fw-normal" style="color:#6F6259">Property Details</h5>
+                    </div>
+                    <div class="p-2 p-md-4 rounded-2" style="background-color: #EEEEEE;border: 1px solid #DEE2E6;">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="mobileNumber" class="form-label text-muted">Property Code (Plot No)</label>
+                                <div class="input-group">
+                                    <select disabled class="form-select pt-2 pb-2 ps-3 pe-3" style="max-width: 90px;"
+                                            id="propertyCodepart">
+                                        <option>@Info?.PropertyCode.Split("-")[0]</option>
+                                    </select>
+                                    <input readonly value="@Info?.PropertyCode.Split("-")[1]" type="text" class="form-control pt-2 pb-2 ps-3 pe-3" id="propertycodeinputfield"
+                                           placeholder="">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="preferredUnits" class="form-label text-muted">Property Category</label>
+                                <input readonly @bind="NocDetailsDto.PropertyCategoryName" type="text" class="form-control pt-2 pb-2 ps-3 pe-3" id="PropertyCategoryNameInput"
+                                       placeholder="Property Category">
+                            </div>
+                            @* <div class="col-md-4">
+                                <label for="preferredUnits" class="form-label text-muted">Property Usage</label>
+                                <input readonly @bind="NocDetailsDto.PropertySubCategoryNames" type="text" class="form-control pt-2 pb-2 ps-3 pe-3" id="PropertySubCategoryNamesInput"
+                                       placeholder=" Property Usage">
+                            </div> *@
+                            <div class="col-md-4">
+                                <label for="building" class="form-label text-muted">Building</label>
+                                <Autocomplete TItem="@SelectListItem"
+                                              TValue="string"
+                                              Data="BuildingNamesTemp"
+                                              TextField="@((item) => item.Text)"
+                                              ValueField="@((item) => item.Value)"
+                                              SelectedValue="@BuildingSelectedValue"
+                                              SelectedValueChanged="BuildingNameSelectedValueChanged"
+                                              SelectionMode="AutocompleteSelectionMode.Default"
+                                              Placeholder="Select Building Name"
+                                              CloseOnSelection="true"
+                                              MinLength="0"
+                                              Disabled="@unitsLoading"
+                                              Filter="AutocompleteFilter.Contains"
+                                              CustomFilter="@((item, searchValue) => item.Text.IndexOf(searchValue, StringComparison.InvariantCultureIgnoreCase) >= 0 )" />
+                                @*                                 <select name="service-name"
+                                        @bind="@NocDetailsDto.BuildingName"
+                                        class="form-select pt-2 pb-2 ps-3 pe-3"
+                                        aria-required="true" aria-invalid="false"
+                                        id="building">
+                                    <option selected Value="">Select Building</option>
+                                    @if (BuildingNames != null)
+                                        @foreach (var building in BuildingNames)
+                                        {
+                                            <option Value="@building.Value">
+                                                @building.Text
+                                            </option>
+                                        }
+                                </select> *@
+                                <ValidationMessage For="() => NocDetailsDto.BuildingName" />
+                            </div>
+                            <div class="col-md-4">
+                                <label for="preferredUnits" class="form-label text-muted">Number of Units</label>
+                                <input readonly @bind="NocDetailsDto.NumberOfUnits" type="number" class="form-control pt-2 pb-2 ps-3 pe-3" id="preferredUnits"
+                                       placeholder="Number of Units">
+
+                                <ValidationMessage For="() => NocDetailsDto.NumberOfUnits" />
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="areaRequired" class="form-label text-muted">Area required in sq.m</label>
+                                <input readonly @bind="NocDetailsDto.unitTotalArea" type="number" class="form-control pt-2 pb-2 ps-3 pe-3" id="areaRequired"
+                                       placeholder="Area required in sq.m">
+
+                                <ValidationMessage For="() => NocDetailsDto.unitTotalArea" />
+
+                            </div>
+                            <div class="col-md-12" style="background: #ffffff !important;">
+                                <label for="warehouseNo" class="form-label text-muted">Units</label>
+                                <Autocomplete TItem="@UnitListDto"
+                                              TValue="string"
+                                              Data="UnitListTemp"
+                                              TextField="@((item) => item.Label)"
+                                              ValueField="@((item) => item.Value)"
+                                              SelectedValues="UnitSelectedValues"
+                                              SelectedValuesChanged="UnitSelectedValuesChanged"
+                                              SelectionMode="AutocompleteSelectionMode.Multiple"
+                                              Placeholder="Select Unit"
+                                              CloseOnSelection="false"
+                                              MinLength="0"
+                                              Filter="AutocompleteFilter.Contains"
+                                              CustomFilter="@((item, searchValue) => item.Label.IndexOf(searchValue, StringComparison.InvariantCultureIgnoreCase) >= 0 )" />
+
+                                @if (UnitDropdownInvalid)
+                                {
+                                    <div style="color: red !important;font-size: 16px;font-family: var(--dip-family-two);font-size: 16px;" class="invalid-feedback d-block validation-message">
+                                        Units is required.
+                                    </div>
+                                }
+
+                                <ValidationMessage For="() => NocDetailsDto.NumberOfUnits" />
+                            </div>
+                            @if (new[] { "1" }.Contains(NocDetailsDto.NOCFor))
+                            {
+                                <div class="col-md-4">
+                                    <label for="floorNumberField" class="form-label text-muted">Floor Number</label>
+                                    <input @bind="NocDetailsDto.FloorNumber" type="number" class="form-control pt-2 pb-2 ps-3 pe-3" id="floorNumberField"
+                                           placeholder="Floor Number">
+                                    <ValidationMessage For="() => NocDetailsDto.FloorNumber" />
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label for="floorNumberField" class="form-label text-muted">Number Of Rooms</label>
+                                    <input readonly @bind="NocDetailsDto.NumberOfRooms" type="number" class="form-control pt-2 pb-2 ps-3 pe-3" id="numberOfRoomsField"
+                                           placeholder="Number Of Rooms">
+                                    <ValidationMessage For="() => NocDetailsDto.NumberOfRooms" />
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                @if (NocDetailsDto.NOCFor != "1" && Info?.TypeName != "Individual")
+                {
+                    <!-- License Type Section -->
+                    <div class="form-section mb-3">
+                        <div class="py-3">
+                            <h5 class="mb-0 fs-2 fw-normal" style="color:#6F6259">License Type</h5>
+                        </div>
+                        <div class="p-2 p-md-4 rounded-2" style="background-color: #EEEEEE;border: 1px solid #DEE2E6;">
+                            <RadioGroup TValue="string"
+                                        Name="LicenseType"
+                                        @bind-CheckedValue="@NocDetailsDto.LicenseType" Class="licenseTypeContainer">
+                                <div class="row g-3">
+                                    <div class="radio_custom col-md-4">
+                                        <div class="bg-white p-2 rounded-2">
+                                            <Radio Value="@("Commercial")">
+                                                <div class="form-check">
+                                                    Commercial
+                                                </div>
+                                            </Radio>
+                                        </div>
+                                    </div>
+                                    <div class="radio_custom col-md-4">
+                                        <div class="bg-white p-2 rounded-2">
+                                            <Radio Value="@("Professional")">
+                                                <div class="form-check">
+                                                    Professional
+                                                </div>
+                                            </Radio>
+                                        </div>
+                                    </div>
+                                    <div class="radio_custom col-md-4">
+                                        <div class="bg-white p-2 rounded-2">
+                                            <Radio Value="@("Industrial")">
+                                                <div class="form-check">
+                                                    Industrial
+                                                </div>
+                                            </Radio>
+                                        </div>
+                                    </div>
+                                </div>
+                                <ValidationMessage For="() => NocDetailsDto.LicenseType" />
+                            </RadioGroup>
+                        </div>
+                    </div>
+                }
+                <!-- Primary Activity Section -->
+                @* @if (new[] { "4", "3" }.Contains(NocDetailsDto.NOCFor))
+                { *@
+                <div class="form-section mb-3">
+                    <div class="py-3">
+                        <h5 class="mb-0 fs-2 fw-normal" style="color:#6F6259">Primary Activity</h5>
+                    </div>
+                    <div class="p-2 p-md-4 rounded-2" style="background-color: #EEEEEE;border: 1px solid #DEE2E6;">
+                        <div class="row g-3">
+                            @if (BusinessActivitys != null)
+                            {
+                                <Autocomplete TItem="SelectListItem"
+                                              TValue="string"
+                                              Data="BusinessActivitys"
+                                              TextField="@((item) => item.Text)"
+                                              ValueField="@((item) => item.Value.ToString())"
+                                              SelectedValues="BusinessActivitysValues"
+                                              SelectedValuesChanged="OnBusinessActivityChanged"
+                                              SelectionMode="AutocompleteSelectionMode.Multiple"
+                                              Placeholder="Select Primary Activity"
+                                              CloseOnSelection="false"
+                                              MinLength="0"
+                                              Filter="AutocompleteFilter.Contains"
+                                              CustomFilter="@((item, searchValue) => item.Text.IndexOf(searchValue, StringComparison.InvariantCultureIgnoreCase) >= 0 )" />
+                                @if (IsBusinessActivityInvalid)
+                                {
+                                    <div style="color: red !important;font-size: 16px;font-family: var(--dip-family-two);font-size: 16px;" class="invalid-feedback d-block validation-message">
+                                        Primary Activity is required.
+                                    </div>
+                                }
+                            }
+                            @* foreach (var BAItem in BusinessActivitys)
+                            {
+                            <div class="col-md-4">
+                                <div class="bg-white p-2 rounded-2">
+                                    <div class="form-check">
+                                        <Check TValue="bool" class="form-check-input" Checked="@BAItem.Selected" CheckedChanged="@((value) => OnBusinessActivityChanged(value, BAItem))">
+                                            <label class="form-check-label">@BAItem.Text</label>
+                                        </Check>
+                                    </div>
+                                </div>
+                            </div>
+                            } *@
+                        </div>
+                    </div>
+                </div>
+                @* } *@
+
+                <!-- License Main Activity Section -->
+                @if (new[] { "1", "2", "5", "6", "7" }.Contains(NocDetailsDto.NOCFor))
+                {
+
+                    <div class="form-section mb-3">
+                        <div class="py-3">
+                            <h5 class="mb-0 fs-2 fw-normal" style="color:#6F6259">License Main Activity</h5>
+                        </div>
+                        <div class="p-2 p-md-4 rounded-2" style="background-color: #EEEEEE;border: 1px solid #DEE2E6;">
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <div class="form-check">
+                                        <textarea @bind="NocDetailsDto.LicenseMainActivity" type="text" class="form-control pt-2 pb-2 ps-3 pe-3" id="licenseMainActivity"
+                                                  placeholder="License Main Activity" />
+                                        <ValidationMessage For="() => NocDetailsDto.LicenseMainActivity" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!--Facility Subleased Through Section -->
+                <div class="form-section mb-3">
+                    <div class="py-3">
+                        <h5 class="mb-0 fs-2 fw-normal" style="color:#6F6259">Facility Subleased Through?</h5>
+                    </div>
+                    <div class="p-2 p-md-4 rounded-2" style="background-color: #EEEEEE;border: 1px solid #DEE2E6;">
+                        <div class="bg-white p-2 rounded-2">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <select name="service-name"
+                                            @bind="@NocDetailsDto.SubLease"
+                                            class="form-select pt-2 pb-2 ps-3 pe-3"
+                                            aria-required="true" aria-invalid="false"
+                                            id="building">
+                                        @foreach (var subItem in SubLeaseList)
+                                        {
+                                            <option Value="@subItem.Value">
+                                                @subItem.Text
+                                            </option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    @switch (NocDetailsDto.SubLease)
+                                    {
+                                        case 2:
+                                            <input @bind="NocDetailsDto.SubleaseDIPStaffName" type="text" class="form-control pt-2 pb-2 ps-3 pe-3" id="dipStaffNameField"
+                                                   placeholder="DIP Staff Name">
+                                            break;
+                                        case 3:
+                                            <select name="service-name"
+                                                    @bind="@NocDetailsDto.SubleaseBrokerID"
+                                                    class="form-select pt-2 pb-2 ps-3 pe-3"
+                                                    aria-required="true" aria-invalid="false"
+                                                    id="subleaseBrokerField">
+                                                <option value="" disabled selected>Select</option>
+                                                @foreach (var brokerItem in BrokerDetailTemp)
+                                                {
+                                                    <option Value="@brokerItem.ID">
+                                                        @brokerItem.BrokerName
+                                                    </option>
+                                                }
+                                            </select>
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                </div>
+                            </div>
+                            <ValidationMessage For="() => NocDetailsDto.SubLease" />
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Guidelines Section -->
+                @if (new[] { "4", "3" }.Contains(NocDetailsDto.NOCFor))
+                {
+                    <div class="form-section mb-3">
+                        <div class="py-3">
+                            <h5 class="mb-0 fs-2 fw-normal" style="color:#6F6259">
+                                Guidelines for Completing the Application Form
+                                (Subtenant's):
+                            </h5>
+                        </div>
+                        <div class="p-2 p-md-4 rounded-2" style="background-color: #EEEEEE;border: 1px solid #DEE2E6;">
+                            <div class="mb-4">
+                                <label class="form-label fw-normal">
+                                    1) What is the main activity that will be carried out in
+                                    this
+                                    warehouse? – The activity must match the license activities and the activity stated exactly
+                                    in the application (Please give comprehensive details)
+                                </label>
+                                <textarea @bind="NocDetailsDto.LicenseMainActivity" class="form-control mt-2" rows="3"
+                                          placeholder="Enter main activity details..."></textarea>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-normal">
+                                    2) Will there be generation of any liquid or solid
+                                    industrial
+                                    wastes from your operations?
+                                </label>
+                                <div class="mt-2 ">
+                                    <RadioGroup TValue="bool"
+                                                Name="IndustrialWaste"
+                                                @bind-CheckedValue="@NocDetailsDto.IndustrialWaste">
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <div class="bg-white p-2 rounded-2 ">
+                                                    <div class="form-check">
+                                                        <Radio class="form-check-input" Value="@(true)">YES</Radio>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="bg-white p-2 rounded-2 ">
+                                                    <div class="form-check">
+                                                        <Radio class="form-check-input" Value="@(false)">No</Radio>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </RadioGroup>
+                                </div>
+                                @if (NocDetailsDto.IndustrialWaste)
+                                {
+                                    <textarea @bind="NocDetailsDto.IndustrialWasteDescription" class="form-control mt-2" rows="2" placeholder="Specify the type of waste"></textarea>
+                                }
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-normal">
+                                    3) Will there be any requirement for drainage inside the
+                                    warehouse building with holding tank?
+                                </label>
+                                <div class="mt-2 ">
+                                    <RadioGroup TValue="bool"
+                                                Name="Drainage"
+                                                @bind-CheckedValue="@NocDetailsDto.Drainage">
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <div class="bg-white p-2 rounded-2 ">
+                                                    <div class="form-check">
+                                                        <Radio class="form-check-input" Value="@(true)">YES</Radio>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="bg-white p-2 rounded-2 ">
+                                                    <div class="form-check">
+                                                        <Radio class="form-check-input" Value="@(false)">No</Radio>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </RadioGroup>
+                                </div>
+                                @if (NocDetailsDto.Drainage)
+                                {
+                                    <textarea @bind="NocDetailsDto.DrainageDescription" class="form-control mt-2" rows="2" placeholder="Specify Detaily"></textarea>
+                                }
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-normal">
+                                    4) Does your project involve the import/export/storage of
+                                    any
+                                    chemicals/gases/radio active materials/highly combustible or flammable items like (paper,
+                                    pulp, perfumes, oil/lubricants, garments, cotton, etc.) in the leased premises?
+                                </label>
+
+                                <div class="mt-2 ">
+                                    <RadioGroup TValue="bool"
+                                                Name="Hazardous"
+                                                @bind-CheckedValue="@NocDetailsDto.Hazardous">
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <div class="bg-white p-2 rounded-2 ">
+                                                    <div class="form-check">
+                                                        <Radio class="form-check-input" Value="@(true)">YES</Radio>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="bg-white p-2 rounded-2 ">
+                                                    <div class="form-check">
+                                                        <Radio class="form-check-input" Value="@(false)">No</Radio>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </RadioGroup>
+                                </div>
+                            </div>
+                            @if (NocDetailsDto.Hazardous)
+                            {
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-normal">Material Classification</label>
+                                    <div class="row g-3 mt-2">
+                                        @if (MaterialClassification != null)
+                                            foreach (var MCItem in MaterialClassification)
+                                            {
+                                                <div class="col-md-4">
+                                                    <div class="bg-white p-2 rounded-2">
+                                                        <div class="form-check">
+                                                            <Check TValue="bool" class="form-check-input" Checked="@MCItem.Selected" CheckedChanged="@((value) => OnMaterialClassificationChanged(value, MCItem))">
+                                                                <label class="form-check-label">@MCItem.Text</label>
+                                                            </Check>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                }
+
+                @* <!-- Desigination Section -->
+                @if (new[] { "2", "5", "6", "7" }.Contains(NocDetailsDto.NOCFor))
+                {
+                    <div class="form-section mb-3">
+                        <div class="py-3">
+                            <h5 class="mb-0 fs-2 fw-normal" style="color:#6F6259">Desigination</h5>
+                        </div>
+                        <div class="p-2 p-md-4 rounded-2" style="background-color: #EEEEEE;border: 1px solid #DEE2E6;">
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <div class="form-check">
+                                        <input @bind="NocDetailsDto.SubtenantDesignation" type="text" class="form-control pt-2 pb-2 ps-3 pe-3" id="desigination"
+                                               placeholder="Subtenant Desigination">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                } *@
+
+                <!-- Contract From And End Date Section -->
+                <div class="form-section mb-3">
+                    <div class="py-3">
+                        <h5 class="mb-0 fs-2 fw-normal" style="color:#6F6259">Contract Duration</h5>
+                    </div>
+                    <div class="p-2 p-md-4 rounded-2" style="background-color: #EEEEEE;border: 1px solid #DEE2E6;">
+                        <div class="row g-3">
+                            <div class="col-md-6 your-subject">
+                                <label for="contractFromDate" class="form-label text-muted">Contract From Date</label>
+                                <Addons>
+                                    <Addon AddonType="AddonType.Body">
+                                        <input type="text" value="@NocDetailsDto.ContractFromDate.ToString("dd/MM/yyyy")"
+                                               class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required"
+                                               placeholder="" readonly="readonly">
+                                        <DatePicker hidden DisplayFormat="dd/MM/yyyy" @ref="@datePicker" TValue="DateTime" @bind-Date="@NocDetailsDto.ContractFromDate" />
+                                    </Addon>
+                                    <Addon AddonType="AddonType.End">
+                                        <Button Color="Color.Light" Clicked="@ToggleDatePicker">
+                                            <Icon Name="IconName.CalendarDay" />
+                                        </Button>
+                                    </Addon>
+                                </Addons>
+                                @if (IsContractFromDateHaveBetween)
+                                {
+                                    <div style="color: red !important;font-size: 16px;font-family: var(--dip-family-two);font-size: 16px;" class="invalid-feedback d-block validation-message">
+                                        Date must be between @MinDate.ToString("dd-MM-yyyy") and @MaxDate.ToString("dd-MM-yyyy").
+                                    </div>
+                                }
+                                <ValidationMessage For="() => NocDetailsDto.ContractEndDate" />
+                            </div>
+                            <div class="col-md-6 your-subject">
+                                <label for="contractEndDate" class="form-label text-muted">Contract End Date</label>
+                                <Addons>
+                                    <Addon AddonType="AddonType.Body">
+                                        <input type="text" value="@NocDetailsDto.ContractEndDate.ToString("dd/MM/yyyy")"
+                                               class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required"
+                                               placeholder="" readonly="readonly">
+                                        <DatePicker hidden DisplayFormat="dd/MM/yyyy" @ref="@datePickerV1" TValue="DateTime" @bind-Date="@NocDetailsDto.ContractEndDate" />
+                                    </Addon>
+                                    <Addon AddonType="AddonType.End">
+                                        <Button Color="Color.Light" Clicked="@ToggleDatePickerV1">
+                                            <Icon Name="IconName.CalendarDay" />
+                                        </Button>
+                                    </Addon>
+                                </Addons>
+
+                                @if (IsContractEndDateHaveBetween)
+                                {
+                                    <div style="color: red !important;font-size: 16px;font-family: var(--dip-family-two);font-size: 16px;" class="invalid-feedback d-block validation-message">
+                                        Date must be between @MinDate.ToString("dd-MM-yyyy") and @MaxDate.ToString("dd-MM-yyyy").
+                                    </div>
+                                }
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+                    <div></div>
+                    <button type="submit" disabled="@ButtonDisable" class="btn-proceed">Proceed</button>
+                </div>
+            }
+
+            @if (NocDetailsDto.RenewalFlag > 0 && !NocDetailsDto.ChangeInActivities && IsModelValid)
+            {
+                <!-- Contract From And End Date Section -->
+                <div class="form-section mb-3">
+                    <div class="py-3">
+                        <h5 class="mb-0 fs-2 fw-normal" style="color:#6F6259">Contract Duration</h5>
+                    </div>
+                    <div class="p-2 p-md-4 rounded-2" style="background-color: #EEEEEE;border: 1px solid #DEE2E6;">
+                        <div class="row g-3">
+                            <div class="col-md-4 your-subject">
+                                <label for="contractFromDate" class="form-label text-muted">Contract From Date</label>
+                                <Addons>
+                                    <Addon AddonType="AddonType.Body">
+                                        <input type="text" value="@NocDetailsDto.ContractFromDate.ToString("dd/MM/yyyy")"
+                                               class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required"
+                                               placeholder="" readonly="readonly">
+                                        <DatePicker hidden DisplayFormat="dd/MM/yyyy" @ref="@datePicker" TValue="DateTime" @bind-Date="@NocDetailsDto.ContractFromDate" />
+                                    </Addon>
+                                    <Addon AddonType="AddonType.End">
+                                        <Button Color="Color.Light" Clicked="@ToggleDatePicker">
+                                            <Icon Name="IconName.CalendarDay" />
+                                        </Button>
+                                    </Addon>
+                                </Addons>
+                                @if (IsContractFromDateHaveBetween)
+                                {
+                                    <div style="color: red !important;font-size: 16px;font-family: var(--dip-family-two);font-size: 16px;" class="invalid-feedback d-block validation-message">
+                                        Date must be between @MinDate.ToString("dd-MM-yyyy") and @MaxDate.ToString("dd-MM-yyyy").
+                                    </div>
+                                }
+                                <ValidationMessage For="() => NocDetailsDto.ContractEndDate" />
+                            </div>
+                            <div class="col-md-4 your-subject">
+                                <label for="contractEndDate" class="form-label text-muted">Contract End Date</label>
+                                <Addons>
+                                    <Addon AddonType="AddonType.Body">
+                                        <input type="text" value="@NocDetailsDto.ContractEndDate.ToString("dd/MM/yyyy")"
+                                               class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required"
+                                               placeholder="" readonly="readonly">
+                                        <DatePicker hidden DisplayFormat="dd/MM/yyyy" @ref="@datePickerV1" TValue="DateTime" @bind-Date="@NocDetailsDto.ContractEndDate" />
+                                    </Addon>
+                                    <Addon AddonType="AddonType.End">
+                                        <Button Color="Color.Light" Clicked="@ToggleDatePickerV1">
+                                            <Icon Name="IconName.CalendarDay" />
+                                        </Button>
+                                    </Addon>
+                                </Addons>
+                                @if (IsContractEndDateHaveBetween)
+                                {
+                                    <div style="color: red !important;font-size: 16px;font-family: var(--dip-family-two);font-size: 16px;" class="invalid-feedback d-block validation-message">
+                                        Date must be between @MinDate.ToString("dd-MM-yyyy") and @MaxDate.ToString("dd-MM-yyyy").
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+                    <div></div>
+                    <button type="submit" disabled="@ButtonDisable" class="btn-proceed">Proceed</button>
+                </div>
+            }
+        </EditForm>
+
+
+
+
+    </div>
+</div>

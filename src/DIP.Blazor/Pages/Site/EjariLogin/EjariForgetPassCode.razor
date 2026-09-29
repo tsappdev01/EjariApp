@@ -1,0 +1,281 @@
+@using Blazorise.Components
+@using Blazorise
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@using DIP.Settings
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@inject IDIPSettingAppService DIPSettingAppService
+@page "/{lang}/Ejari/Forgot";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+
+
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @L["ForgotPassCode"]
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:Home:Ejari"]</li>
+                            <li class="active">@L["ForgotPassCode"]</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!----page header----->
+<!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content ">
+
+    <!--feature-->
+    <section class="feature-section py-lg-5">
+        <!--===============spacing==============-->
+        <div class="pd_top_20"></div>
+        <!--===============spacing==============-->
+        <div class="container">
+            <div class="row justify-content-center">
+
+
+
+                <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
+                    <div class="login_left_side p-2 p-lg-5 border rounded_radius-5 bg_light_1">
+
+                        <div class="col-sm-12 text-center mb-4">
+                            <h2>
+                                @L["ForgotReferenceOrPasscode"]
+                            </h2>
+                        </div>
+
+                        <div class="login_content_box">
+                            <div class="login_forms_box my-3">
+
+
+                                <div class="tab-content" id="pills-tabContent">
+                                    <div class="tab-pane fade show active" id="pills-home" role="tabpanel"
+                                        aria-labelledby="pills-home-tab">
+
+                                        @if (@hasForgetError)
+                                        {
+                                            <div class="alert alert-danger" role="alert">
+                                                @RegisterMessageError
+                                            </div>
+
+
+                                        }
+
+                                        @if (@resetDone)
+                                        {
+                                            <div class="alert alert-success" role="alert">
+                                                @DoneMessage
+                                            </div>
+                                        }
+                                        <EditForm EditContext="EditContextForget" OnValidSubmit="OnClickForget"
+                                            OnInvalidSubmit="OnInvalid" class="login-register-form login">
+                                            <DataAnnotationsValidator></DataAnnotationsValidator>
+                                            <p class="form-row ">
+                                                <label for="username">@L["ReferenceNumberRegistered"]&nbsp;<span
+                                                        class="required">*</span></label>
+                                                <input @bind-value="@ForgetDto.ReferenceNumber" autocomplete="off"
+                                                    name="username" id="username" aria-required="true"
+                                                    aria-invalid="false">
+
+                                                <ValidationMessage For="@(() => ForgetDto.ReferenceNumber)" />
+
+                                            </p>
+                                            <p class="form-row  ">
+                                            <div>
+                                                @* <RadioGroup TValue="bool"
+                                                                Name="ChangeContact"
+                                                                @bind-CheckedValue="@ForgetDto.ChangeContact">
+                                                        <div class="row g-3 mb-4 justify-content-evenly">
+                                                            <div class="col-md-5" style="border-right: 4px solid #f7f7f7;">
+                                                                <div class="bg-white p-2 rounded-2 ">
+                                                                    <div class="form-check">
+                                                                        <Radio Value="@(false)"> <label style="margin-top: -5px;" for="password">@L["MobileRegistered"]&nbsp;<span class="required">*</span></label></Radio>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            OR
+                                                            <div class="col-md-5">
+                                                                <div class="bg-white p-2 rounded-2 ">
+                                                                    <div class="form-check">
+                                                                        <Radio Value="@(true)"> <label style="margin-top: -5px;" for="password">Enter Registered Email &nbsp;<span class="required">*</span></label></Radio>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </RadioGroup> *@
+                                                <RadioGroup TValue="bool" Name="ChangeContact"
+                                                    @bind-CheckedValue="ForgetDto.ChangeContact">
+
+                                                    <div class="row g-3 mb-4 justify-content-evenly">
+
+                                                        <div class="radio_custom col-md-5">
+                                                            <div class="bg-white p-2 rounded-2">
+                                                                <Radio TValue="bool" Value="false">
+                                                                    @L["MobileRegistered"] <span
+                                                                        class="required">*</span>
+                                                                </Radio>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-md-1 text-center align-self-center">
+                                                            OR
+                                                        </div>
+
+                                                        <div class="radio_custom col-md-5">
+                                                            <div class="bg-white p-2 rounded-2">
+                                                                <Radio TValue="bool" Value="true">
+                                                                    Enter Registered Email <span
+                                                                        class="required">*</span>
+                                                                </Radio>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+                                                </RadioGroup>
+                                            </div>
+                                            @if (!ForgetDto.ChangeContact)
+                                            {
+                                                <span class="d-flex">
+
+                                                    <Autocomplete TItem="@CountryItem" TValue="string" Data="CountryItems"
+                                                        TextField="@((item) => $"{item.Icon} - ({item.DialCode})")"
+                                                        ValueField="@((item) => item.DialCode)"
+                                                        @bind-SelectedValue="ForgetDto.CountryCode"
+                                                        Placeholder="Select Country Code" MinLength="0"
+                                                        Filter="AutocompleteFilter.Contains"
+                                                        CustomFilter="@((item, searchValue) => item.Icon.IndexOf(searchValue, StringComparison.InvariantCultureIgnoreCase) >= 0 || item.DialCode.IndexOf(searchValue, StringComparison.InvariantCultureIgnoreCase) >= 0)">
+                                                    </Autocomplete>
+                                                    <input @bind-value="@ForgetDto.MobileNumber" autocomplete="off"
+                                                        type="number" aria-required="true" aria-invalid="false">
+
+                                                </span>
+                                                <ValidationMessage For="@(() => ForgetDto.MobileNumber)" />
+                                            }
+                                            else
+                                            {
+                                                <span class="d-flex">
+                                                    <input @bind-value="@ForgetDto.Email" autocomplete="off" type="text"
+                                                        aria-required="true" aria-invalid="false" placeholder="Enter Email">
+                                                </span>
+                                                <ValidationMessage For="@(() => ForgetDto.Email)" />
+                                            }
+                                            </p>
+                                            <br />
+                                            @*    @if (GoogleReCaptachDto != null)
+                                            { *@
+                                            <p class="mb-5">
+                                                @*        <Captcha @ref="captchaComponent" SiteKey="@GoogleReCaptachDto.SiteKey" OnSuccess="OnSuccessCaptchaForget" OnExpired="OnExpiredCaptchaForget"></Captcha> *@
+                                                <MathCaptcha
+                                                    OnCaptchaVerified="(result) => OnSuccessCaptchaForget(result)" />
+
+                                                <ValidationMessage For="@(() => ForgetDto.Captcha)" />
+                                            </p>
+                                            @* } *@
+                                            <p class="form-row mt-4 mb-2 text-center">
+                                                <button type="submit" disabled="@DisableButton" name="login"
+                                                    value="Log in" class="fs-6">
+                                                    @if (DisableButton)
+                                                    {
+                                                        <span class="spinner-border spinner-border-sm me-1" role="status"
+                                                            aria-hidden="true"></span>
+                                                        <span>Loading...</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        @L["GetCode"]
+                                                    }
+                                                </button>
+                                            </p>
+
+                                        </EditForm>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                </div>
+                <div class="pd_top_20"></div>
+
+                <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
+                    <div class="login_left_side p-2 p-lg-5 border rounded_radius-5 bg_light_1">
+
+                        <div class="col-sm-12 text-center mb-4">
+                            <h2>
+                                @L["LoginToNocEjari"]
+                            </h2>
+                        </div>
+
+                        <div class="login_content_box">
+                            <div class="login_forms_box my-3">
+
+
+                                <div class="tab-content" id="pills-tabContent">
+                                    <div class="tab-pane fade show active" id="pills-home" role="tabpanel"
+                                        aria-labelledby="pills-home-tab">
+
+                                        <p class="form-row mt-4 mb-2 text-center">
+                                            <button @onclick="async () => await Navigat()" type="submit" name="login"
+                                                value="Log in" class="fs-6">@L["GoToLogin"]</button>
+                                        </p>
+                                    </div>
+                                    <br />
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                </div>
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_bottom_50"></div>
+        <!--===============spacing==============-->
+    </section>
+    <!---feature end-->
+
+
+</div>
+<!--===============PAGE CONTENT END==============-->

@@ -1,0 +1,367 @@
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@page "/{lang}/directory";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+
+
+<!----page header----->
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @PageInfoFrontEnd?.Title
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li class="active">@PageInfoFrontEnd?.Title</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!----page header----->
+<!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content position-relative z_index_up">
+
+    <section class="section-box">
+            <div class="auto-container">
+           @*  <div class="row">
+                <div class="col-lg-12">
+                    <section class="contact_form_box_all type_one">
+                        <div class="contact_form_box_inner">
+                            <div class="contact_form_shortcode">
+                                <div role="form" class="wpcf7">
+                                    <form action="#" method="post" class="wpcf7-form init row">
+                                        <div class="col-md-4">
+                                            <p>
+                                                <label>
+                                                    @L["Site:TopCategory"]<br>
+                                                    <span class="wpcf7-form-control-wrap your-name">                                               
+                                       
+                                                    </span>
+                                                </label>
+                                            </p>
+                                        </div>
+
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div> *@
+            <div class="row align-items-center mt-5">
+                <div class="col-md-12">
+                    <div class="title_all_box style_seven dark_color">
+                        <div class="title_sections">
+                            <div class="title text-uppercase text-primary-color" style="font-size:24px !important;"> @L["Site:SelectCategorySubCategory"]</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    
+        <div class="auto-container my-5 p-0 text-center">
+            <div class="d-flex justify-content-between align-items-center quick-links overflow-auto">
+                @if(!FeaturedCategorySubCategory.IsNullOrEmpty())
+                {
+                    foreach (var featuredCategorySubCategory in FeaturedCategorySubCategory)
+                    {
+                            <div class="col px-1">
+                            <a onclick="@(() => Search(featuredCategorySubCategory))" class="bg_light_5 p-3 px-3 fw-bold text-nowrap w-100 d-flex rounded-10 justify-content-center directory-top-links"><h4 class="fs-5 mb-0">@featuredCategorySubCategory.Title</h4></a>
+                            </div>
+                    }
+                }
+            </div>
+        </div>
+        <div class="auto-container">
+            <div class="text-center mt-90">
+                <ul class="nav row business-tabs" role="tablist">
+                    <li class="col-12">
+                        <label class="w-100 position-relative">
+                            <TextEdit Class="wpcf7-form-control wpcf7-text wpcf7-email wpcf7-validates-as-required mb-0" @bind-Text="@FilterText" @oninput="OnSearchChanged" Placeholder="@L["Site:CompanyIndustryActivities"]">
+                            </TextEdit>
+
+                            <div class="searchbtn" onclick="@(() => SearchByText())"><i class="fa fa-search"></i></div>
+                        </label>
+                    </li>
+                </ul>
+
+                @if (FilteredSuggestions.Any())
+                {
+                    <ul class="suggestions-list suggestion-ul" style="    list-style: none;
+
+    margin: 0;
+    padding: 0;
+    position: relative;
+    width: 100%;
+    background: white;
+    border: 1px solid #ccc;
+    border-top: none;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;">
+                        @foreach (var item in FilteredSuggestions)
+                        {
+                            <li class="suggestion-li" style="    padding: 20px;
+    cursor: pointer;"
+                                @onclick="() => SelectSuggestion(item)">
+                                @item
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+
+
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <section class="contact_form_box_all type_one">
+                        <div class="contact_form_box_inner">
+                            <div class="contact_form_shortcode">
+                                <div role="form" class="wpcf7">
+                                    <form action="#" method="post" class="wpcf7-form init row">
+                                        <div class="col-md-4">
+                                            <p>
+                                                <label>
+                                                    @L["Site:TopCategory"]<br>
+                                                    <span class="wpcf7-form-control-wrap your-name">
+                                                            @*<select name="filter-category" value="" class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required bg-white" aria-required="true" aria-invalid="false">*@
+                                                        <select class="category-class" name="state">
+                                                            <option value="@Guid.Empty">@L["Site:AllCategories"]</option>
+                                                            @if (!CategoriesList.IsNullOrEmpty())
+                                                            {
+                                                                foreach (var category in CategoriesList)
+                                                                {
+                                                                    <option value="@category.Id">@category.Title</option>
+                                                                }                                                       
+                                                            }
+                                                        </select>
+@*                                                         <Select TValue="Guid?" SelectedValue="@SelectedCategory" SelectedValueChanged="@OnSelectedCategoryValueChanged">
+                                                            <SelectItem TValue="Guid?" Value="@Guid.Empty">@L["Site:AllCategories"]</SelectItem>
+                                                            @if (!CategoriesList.IsNullOrEmpty())
+                                                            {
+                                                                foreach (var category in CategoriesList)
+                                                                {
+                                                                    <SelectItem TValue="Guid?" Value="@category.Id">
+                                                                        @category.Title
+                                                                    </SelectItem>
+                                                                }
+                                                            }
+                                                        </Select> *@
+                                                       
+                                       
+                                                    </span>
+                                                </label>
+                                            </p>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <p>
+                                                <label>
+                                                    @L["Site:SubCategory"]<br>
+                                                    <span class="wpcf7-form-control-wrap your-name">
+
+                                                        <select class="sub-category-class" >
+                                                            <option value="@Guid.Empty">@L["Site:AllSubCategories"]</option>
+                                                            @if (!SubCategoriesList.IsNullOrEmpty())
+                                                            {
+                                                                foreach (var subCategory in SubCategoriesList)
+                                                                {
+                                                                    <option value="@subCategory.Id">@subCategory.Title</option>
+                                                                }
+                                                            }
+                                                        </select>
+                                         @*                <Select TValue="Guid?" SelectedValue="@SelectedSubCategory" SelectedValueChanged="@OnSelectedSubCategoryValueChanged">
+                                                            <SelectItem TValue="Guid?" Value="@Guid.Empty">@L["Site:AllSubCategories"]</SelectItem>
+                                                            @if (!SubCategoriesList.IsNullOrEmpty())
+                                                            {
+                                                                foreach (var subCategory in SubCategoriesList)
+                                                                {
+                                                                    <SelectItem TValue="Guid?" Value="@subCategory.Id">
+                                                                        @subCategory.Title
+                                                                    </SelectItem>
+                                                                }
+                                                            }
+                                                        </Select> *@
+                              
+                                                    </span>
+                                                </label>
+                                            </p>
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <p>
+                                                <label>
+                                                    @L["Site:Alphabetical"]<br>
+                                                    <span class="wpcf7-form-control-wrap your-name">
+                                                        <Select TValue="char?" SelectedValue="@SelectedStartLetter" SelectedValueChanged="@OnSelectedStartLetterValueChanged">
+                                                            <SelectItem TValue="char?" Value="' '">@L["Site:All"]</SelectItem>
+                                                            @foreach (char c in alphabet)
+                                                            {
+                                                                    <SelectItem TValue="char?" Value="@c">
+                                                                    @($"{c} -- ( {L["Site:StartWithLetter"]} {c} )")
+                                                                    </SelectItem>
+                                                                }
+                                                        </Select>
+                                 
+                                                    </span>
+                                                </label>
+                                            </p>
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <div class="theme_btn_all color_one mt-4">
+                                                <a  onclick="@(() => Search())"  target="_blank" rel="nofollow"
+                                                   class="theme-btn one border-0 w-auto mw-100 min-w-100">
+                                                    @L["Site:Search"]
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+            <div class="row align-items-center mt-5">
+                <div class="col-md-12">
+                    <div class="title_all_box style_seven dark_color">
+                        <div class="title_sections">
+                            <div class="title text-uppercase text-primary-color">@SelectedCategoryTitle</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             @if (CommercialList != null && CommercialList.Count() > 0)
+            {
+                <div class="mt-3 mt-lg-5">
+                    <div class="row companies-area">
+
+                        @foreach (var singleCommercials in CommercialList)
+                        {
+                            <div class="col-md-4 col-lg-3 col-12">
+                                <div class="bg_light_1 companycard">
+                                    <h5 class="title lh-normal mb-4">@singleCommercials.Title</h5>
+                                    <div class="companyinfo">
+                                        @* <p><b>@L["Site:PlotNo"] : </b>@singleCommercials.PlotNo</p> *@
+                                        <p><b>@L["Site:MakaniNo"] : </b> 
+                                            @if(!singleCommercials.MakaniNo.IsNullOrWhiteSpace())
+                                            {
+                                                <a href="@($"https://www.makani.ae/desktop/?l=E&m={singleCommercials.MakaniNo?.Trim()}")" target="_blank" rel="nofollow">@singleCommercials.MakaniNo</a>
+                                            }
+                                        </p>
+                                        <p><b>@L["Site:Activity"] : </b>@singleCommercials.Activity</p>
+                                        @* <p><b>@L["Site:Category"] : </b>@singleCommercials.Category</p> *@
+                                        <p><b>@L["Site:Phone"] : </b>@singleCommercials.Phone</p>
+                                        @if (!singleCommercials.Fax.IsNullOrWhiteSpace())
+                                        {
+                                            <p><b>@L["Site:Fax"] : </b>@singleCommercials.Fax</p>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="row mt-lg-5">
+                    <div class="col-lg-12">
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination text-center align-items-center justify-content-center">
+
+                                @{
+                                    <li>
+                                        <a onclick="@(() => UpdateCommercials(0))">
+                                            @L["Site:First"]
+                                        </a>
+                                    </li>
+                                    <li >
+                                        <a onclick="@(() => UpdateCommercials(CurrentPage-1))">
+                                            <i class="@(CultureInfo.CurrentCulture.Name.Equals("en", StringComparison.OrdinalIgnoreCase) ? "fa fa-chevron-left" : "fa fa-chevron-right")"></i>
+                                        </a>
+                                    </li>
+                                    // if(CurrentPage > 0)
+                                     int[] array = Enumerable.Range(start, end-start).ToArray();
+                                    foreach (var index in array)
+                                    {
+                                        if (CurrentPage == index)
+                                        {
+                                            <li class="active">
+                                                <a onclick="@(() => UpdateCommercials(index))">@(
+                                            index + 1
+                                            )</a>
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            <li>
+                                                <a onclick="@(() => UpdateCommercials(index))">@(
+                                            index + 1
+                                            )</a>
+                                            </li>
+                                        }
+
+                                    }
+                                }
+                                @* <li  class="@(CultureInfo.CurrentCulture.Name.Equals("en", StringComparison.OrdinalIgnoreCase) ? "next_link" : "previous_link")" > *@
+                                <li >
+                                    <a onclick="@(() => UpdateCommercials(CurrentPage+1))">
+                                        <i class="@(CultureInfo.CurrentCulture.Name.Equals("en", StringComparison.OrdinalIgnoreCase) ? "fa fa-chevron-right" : "fa fa-chevron-left")"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a onclick="@(() => UpdateCommercials(CommercialsTotalPage-1))">
+                                        @L["Site:Last"]
+                                    </a>
+                                </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+            }
+
+        </div>
+        <div class="pd_bottom_50"></div>
+    </section>
+</div>
+<!--===============PAGE CONTENT END==============-->

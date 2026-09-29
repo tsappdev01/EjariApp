@@ -1,0 +1,117 @@
+@page "/admin/feed-backs/details/{id}"
+
+@attribute [Authorize(DIPPermissions.FeedBacks.Default)]
+@using DIP.Blazor.Components
+@using DIP.FeedBacks
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IFeedBacksAppService FeedBacksAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+
+
+<PageHeader Title="@( $"{L["FeedBacks"]} {L["Details"]} ")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+
+@* ************************* CREATE MODAL ************************* *@
+
+<Card>
+    <Form id="DetailsFeedBackForm">
+        <CardBody>
+            @if (FeedBackDto != null)
+            {
+                    <Field>
+                        <FieldLabel>@L["Subject"]</FieldLabel>
+                        <TextEdit @bind-Text="@FeedBackDto.Subject" ReadOnly>
+                        </TextEdit>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["CompanyName"]</FieldLabel>
+                    <TextEdit @bind-Text="@FeedBackDto.CompanyName" ReadOnly>
+                        </TextEdit>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["PlotNo"]</FieldLabel>
+                    <TextEdit @bind-Text="@FeedBackDto.PlotNo" ReadOnly>
+                        </TextEdit>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["PlotCategory"]</FieldLabel>
+                    <TextEdit @bind-Text="@FeedBackDto.PlotCategory" ReadOnly>
+                        </TextEdit>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["ContactPersonName"]</FieldLabel>
+                    <TextEdit @bind-Text="@FeedBackDto.ContactPersonName" ReadOnly>
+                        </TextEdit>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["EmailId"]</FieldLabel>
+                    <TextEdit @bind-Text="@FeedBackDto.EmailId" Role="TextRole.Email" ReadOnly>
+                        </TextEdit>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["MobileNumber"]</FieldLabel>
+                    <TextEdit @bind-Text="@FeedBackDto.MobileNumber" ReadOnly>
+                        </TextEdit>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["Department"]</FieldLabel>
+                    <TextEdit @bind-Text="@FeedBackDto.Department" ReadOnly>
+                        </TextEdit>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["CategoryName"]</FieldLabel>
+                    <TextEdit @bind-Text="@FeedBackDto.CategoryName" ReadOnly>
+                        </TextEdit>
+                    </Field>
+
+
+                <Field>
+                    <FieldLabel>@L["Description"]</FieldLabel>
+                    <MemoEdit @bind-Text="@FeedBackDto.Description" Rows="3" ReadOnly>
+                    </MemoEdit>
+                </Field>
+
+                <Field>
+                    <FieldLabel>@L["CreationTime"]</FieldLabel>
+                    <DateEdit TValue="DateTime" InputMode="DateInputMode.DateTime" @bind-Date="@FeedBackDto.CreationTime" ReadOnly>
+                    </DateEdit>
+                </Field>
+            }
+        </CardBody>
+        <CardFooter>
+            <SubmitButton Form="DetailsFeedBackForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+        </CardFooter>
+    </Form>
+</Card>
+
+@* ************************* Details MODAL ************************* *@

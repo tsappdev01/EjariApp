@@ -1,0 +1,216 @@
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@page "/{lang}/amenities/{slug}";
+
+<PageTitle>
+    @AmenityFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@AmenityFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+<!----page header----->
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@AmenityFrontEnd?.HeaderImage" alt="@AmenityFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @AmenityFrontEnd?.Title
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li><a >@L["Site:Amenities"]</a> </li>
+                            <li class="active">@AmenityFrontEnd?.Title</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!----page header----->
+<!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content ">
+    @if (AmenityFrontEnd != null && !AmenityFrontEnd.AmenityParagraphFrontEnd.IsNullOrEmpty())
+    {
+
+        int itemIndex = 0;
+        foreach (var item in AmenityFrontEnd.AmenityParagraphFrontEnd)
+        {
+            if (itemIndex % 2 == 0)
+            {
+                <!---image-box-section---->
+                <section class="image-box-section py-lg-5">
+                    <!--===============spacing==============-->
+                    <div class="pd_top_80"></div>
+                    <!--===============spacing==============-->
+                    <div class="auto-container">
+                        <div class="row align-items-center mob-order">
+                            <div class="col-xl-6 col-lg-12">
+                                <div class="title_all_box style_one dark_color">
+                                    <div class="title_sections ">
+                                        <div class="title text-uppercase text-primary-color mb-4">
+                                            @item?.Title
+                                            @if (item != null && !item.SubTitle.IsNullOrEmpty())
+                                            {
+                                                <br>
+                                                @item?.SubTitle
+                                            }
+                                        </div>
+                                        @((MarkupString)item.Description)
+                                        @if (!item.ButtonUrl.IsNullOrEmpty())
+                                        {
+                                            <div class="theme_btn_all color_one mt-4">
+                                                <a href="@item.ButtonUrl" target="_blank" rel="nofollow" class="theme-btn one">@L["Site:VisitWebsite"]</a>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-1"></div>
+                            <div class="col-xl-5 col-lg-12 mb-5 mb-lg-5 mb-xl-0">
+                                <div class="image_boxes style_three">
+                                    <div id="carouselExampleControls@(itemIndex)" class="carousel slide" data-bs-ride="carousel">
+                                        <div class="carousel-inner">
+                                            @if (item != null && !item.Medias.IsNullOrEmpty())
+                                            {
+                                                <div class="carousel-item active">
+                                                    <img src="@item.Medias[0].File" class="img-fluid" alt="@item?.Title">
+                                                </div>
+                                                @foreach (var media in item.Medias.Skip(1))
+                                                {
+                                                    <div class="carousel-item">
+                                                        <img src="@media.File" class="img-fluid" alt="@item?.Title">
+                                                    </div>
+                                                }
+                                            }
+
+                                        </div>
+                                        @if (item != null && !item.Medias.IsNullOrEmpty() && item.Medias.Count > 1)
+                                        {
+                                            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls@(itemIndex)" data-bs-slide="prev">
+                                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                <span class="visually-hidden">@L["Site:Previous"]</span>
+                                            </button>
+                                            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls@(itemIndex)" data-bs-slide="next">
+                                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                <span class="visually-hidden">@L["Site:Next"]</span>
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--===============spacing==============-->
+                    <div class="pd_bottom_80"></div>
+                    <!--===============spacing==============-->
+                </section>
+                <!---image-box-section-end---->
+            }
+            else
+            {
+                <!---image-box-section---->
+                <section class="image-box-section bg_light_1 py-lg-5">
+                    <!--===============spacing==============-->
+                    <div class="pd_top_80"></div>
+                    <!--===============spacing==============-->
+                    <div class="auto-container">
+                        <div class="row align-items-center">
+
+                            <div class="col-xl-5 col-lg-12 mb-5 mb-lg-5 mb-xl-0">
+                                <div class="image_boxes style_three">
+
+                                    <div id="carouselExampleControls@(itemIndex)" class="carousel slide" data-bs-ride="carousel">
+                                        <div class="carousel-inner">
+                                            @if (item != null && !item.Medias.IsNullOrEmpty())
+                                            {
+                                                <div class="carousel-item active">
+                                                    <img src="@item.Medias[0].File" class="img-fluid" alt="@item?.Title">
+                                                </div>
+                                                @foreach (var media in item.Medias.Skip(1))
+                                                {
+                                                    <div class="carousel-item">
+                                                        <img src="@media.File" class="img-fluid" alt="@item?.Title">
+                                                    </div>
+                                                }
+                                            }
+                                        </div>
+                                         @if (item != null && !item.Medias.IsNullOrEmpty() && item.Medias.Count > 1)
+                                        {
+                                            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls@(itemIndex)" data-bs-slide="prev">
+                                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                <span class="visually-hidden">Previous</span>
+                                            </button>
+                                            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls@(itemIndex)" data-bs-slide="next">
+                                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                <span class="visually-hidden">Next</span>
+                                            </button>
+                                        }
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="col-md-1"></div>
+
+                            <div class="col-xl-6 col-lg-12">
+                                <div class="title_all_box style_one dark_color">
+                                    <div class="title_sections ">
+                                        <div class="title text-uppercase text-primary-color mb-4">
+                                            @item?.Title
+                                            @if (item != null && !item.SubTitle.IsNullOrEmpty())
+                                            {
+                                                <br>
+                                                @item?.SubTitle
+                                            }
+                                        </div>
+
+                                        @((MarkupString)item.Description)
+                                        @if (!item.ButtonUrl.IsNullOrEmpty())
+                                        {
+                                            <div class="theme_btn_all color_one mt-4">
+                                                <a href="@item?.ButtonUrl" target="_blank" rel="nofollow" class="theme-btn one">@L["Site:VisitWebsite"]</a>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <!--===============spacing==============-->
+                    <div class="pd_bottom_80"></div>
+                    <!--===============spacing==============-->
+                </section>
+                <!---image-box-section-end---->
+            }
+            itemIndex = itemIndex + 1;
+        }
+    }
+</div>
+<!--===============PAGE CONTENT END==============-->

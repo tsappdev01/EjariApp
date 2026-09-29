@@ -1,0 +1,653 @@
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Pages.Site.NocForm
+@using DIP.Blazor.Shared
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@page "/{lang}/Ejari/Payment/{ReferenceNumber}";
+
+
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+
+
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @L["EjariPayment"]
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:Home:Ejari"]</li>
+                            <li class="active">@L["EjariPayment"]</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!----page header----->
+<!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content ">
+    <div class="container">
+        @if (Info?.ZzApplicationType == "NewURL")
+        {
+            <StepProgress Steps="@registrationSteps"
+                          CurrentStep="@currentStep"
+                          OnStepChanged="HandleStepChanged"
+                          AllowClickNavigation="true" />
+        }
+        else
+        {
+            <!---newsteller--->
+            <section class="top-steps">
+                <!--===============spacing==============-->
+                <div class="pd_top_80"></div>
+                <!--===============spacing==============-->
+                <div class="auto-container">
+                    <div class="row align-items-center py-3 payment-steps">
+                        <div class="col">
+                            <div class="stepname ">
+                                <div class="stepnum">1</div>
+                                <div class="steptitle">
+                                    <img src="assets/images/clipboard-list.svg">
+                                    <h4 class="fs-5">@L["Registration"]</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col p-0">
+                            <div class="stepname middle-step">
+                                <div class="stepnum">2</div>
+                                <div class="steptitle">
+                                    <img src="assets/images/clipboard-list.svg">
+                                    <h4 class="fs-5">@L["Details"]</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="stepname">
+                                <div class="stepnum">3</div>
+                                <div class="steptitle">
+                                    <img src="assets/images/clipboard-list.svg">
+                                    <h4 class="fs-5">@L["Document"]</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col p-0">
+                            <div class="stepname active middle-step">
+                                <div class="stepnum">4</div>
+                                <div class="steptitle">
+                                    <img src="assets/images/credit-card.svg">
+                                    <h4 class="fs-5">@L["PAYMENT"]</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="stepname">
+                                <div class="stepnum">5</div>
+                                <div class="steptitle">
+                                    <img src="assets/images/info-square.svg">
+                                    <h4 class="fs-5">@L["STATUS"]</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--===============spacing==============-->
+                <div class="pd_bottom_0"></div>
+                <!--===============spacing==============-->
+            </section>
+            <!---newsteller end--->
+        }
+    </div>
+    <section class="blog_post_section two_column style_three">
+        <!--===============spacing==============-->
+        <div class="pd_top_80"></div>
+        <!--===============spacing==============-->
+        @*when cancel the request*@
+        @if (hasCancel)
+        {
+            <div class="auto-container">
+
+                <div class="col-lg-12 py-3 px-0">
+                    <section class="creote-contact-box">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="alert alert-primary m-0 fs-6" role="alert">
+                                    @L["CancelledByUser"]
+                                </div>
+                            </div>
+
+
+                        </div>
+
+                    </section>
+                </div>
+
+
+            </div>
+        }
+        <div class="auto-container">
+
+            <div class="row align-items-center">
+                <div class="col-lg-12">
+                    <div class="title_all_box style_seven dark_color">
+                        <div class="title_sections">
+                            <div class="title fw-normal text-primary-color">@L["CustomerDetails"]</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <!--===============spacing==============-->
+                    <div class="pd_bottom_30"></div>
+                    <!--===============spacing==============-->
+                </div>
+
+                <div class="col-lg-12 py-3 payment-steps agent-details">
+                    <section class="creote-contact-box">
+                        <div class="row">
+                            <div class="col mb-xl-0">
+                                <div class="contact_box_content style_two ">
+                                    <div class="contact_box_inner color_one head-info">
+                                        <div class="text ">
+                                            <h3>@L["ReferenceNumber"]</h3>
+                                        </div>
+                                    </div>
+
+                                    <div class="contact_box_inner color_one info-text">
+                                        <div class="text">
+                                            <p>@ReferenceNumber</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div class="col mb-xl-0">
+                                <div class="contact_box_content style_two ">
+                                    <div class="contact_box_inner color_one head-info">
+                                        <div class="text ">
+                                            <h3>@L["PropertyCode"]</h3>
+                                        </div>
+                                    </div>
+
+                                    <div class="contact_box_inner color_one info-text">
+                                        <div class="text">
+                                            <p>@Info?.PropertyCode</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="contact_box_content style_two ">
+                                    <div class="contact_box_inner color_one head-info">
+                                        <div class="text ">
+                                            <h3>@L["TenantName"]</h3>
+                                        </div>
+                                    </div>
+
+                                    <div class="contact_box_inner color_one info-text">
+                                        <div class="text">
+                                            <p>@Info?.CompanyName</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div class="col mb-xl-0">
+                                <div class="contact_box_content style_two ">
+                                    <div class="contact_box_inner color_one head-info">
+                                        <div class="text ">
+                                            <h3>@L["MobileNumber"]</h3>
+                                        </div>
+                                    </div>
+
+                                    <div class="contact_box_inner color_one info-text">
+                                        <div class="text">
+                                            <p>@Info?.MobileNo</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="contact_box_content style_two ">
+                                    <div class="contact_box_inner color_one head-info">
+                                        <div class="text ">
+                                            <h3>@L["EmailId"]</h3>
+                                        </div>
+                                    </div>
+
+                                    <div class="contact_box_inner color_one info-text">
+                                        <div class="text">
+                                            <p>@Info?.Email</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="col-md-12">
+                    <!--===============spacing==============-->
+                    <div class="pd_top_80"></div>
+                    <!--===============spacing==============-->
+                </div>
+            </div>
+
+
+        </div>
+
+        <div class="auto-container">
+            <div class="row">
+
+                <div class="col-lg-7 left_side p-0">
+                    <div class="auto-container p-0">
+
+                        <div class="row align-items-center">
+                            <div class="col-lg-12 p-0">
+                                <div class="title_all_box style_seven dark_color">
+                                    <div class="title_sections">
+                                        <div class="title fw-normal text-primary-color">@L["ListOfSupportedBanks"]</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <!--===============spacing==============-->
+                                <div class="pd_bottom_30"></div>
+                                <!--===============spacing==============-->
+                            </div>
+
+                            <div class="col-lg-12 p-0">
+                                <section class="contact_form_box_all type_one">
+                                    <div class="row contact_form_box_inner remove-margin justify-content-center py-5">
+
+                                        <div class="col-md-8 d-flex align-items-center">
+                                            <p class="fs-5">
+                                                @L["PleaseCheckTheSupportedBanksForPayment"]
+                                            </p>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="theme_btn_all color_one">
+                                                <button target="_blank" rel="nofollow"
+                                                        class="theme-btn one support-toggler w-100">
+                                                    @L["SupportedBanks"]
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </section>
+                            </div>
+
+                            <div class="col-md-12">
+                                <!--===============spacing==============-->
+                                <div class="pd_bottom_30"></div>
+                                <!--===============spacing==============-->
+                            </div>
+                            <div class="row align-items-center">
+                                <div class="col-lg-12 p-0">
+                                    <div class="title_all_box style_seven dark_color">
+                                        <div class="title_sections">
+                                            <div class="title fw-normal text-primary-color">  @L["DirectBankTransfer"]</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <!--===============spacing==============-->
+                                    <div class="pd_bottom_30"></div>
+                                    <!--===============spacing==============-->
+                                </div>
+
+                                <div class="col-lg-12 p-0">
+                                    <section class="contact_form_box_all type_one">
+                                        <div class="row contact_form_box_inner remove-margin justify-content-center py-3">
+
+                                            <div class="row p-0">
+
+                                                <div class="col-md-12 flex-row mb-2">
+                                                    @* <h3 class="fw-500 fs-4 mr-2">@L["Name"]</h3>
+                                                    <p class="mb-0">Dubai Investments Park Developments Co. LLC</p> *@
+                                                    <h3 class="fw-500 fs-4 mr-2">Info:</h3>
+                                                    <p class="mb-0">Cheque Payment and Bank Transfer are not accepted only Online Payments are accepted for online application</p>
+                                                </div>
+                                                @* <div class="col-md-4 align-items-center flex-row mb-2">
+                                                    <h3 class="fw-500 fs-4 mr-2">@L["BankName"]</h3>
+                                                    <p class="mb-0">Emirates NBD Bank</p>
+                                                </div>
+
+                                                <div class="col-md-4 align-items-center flex-row mb-2">
+                                                    <h3 class="fw-500 fs-4 mr-2">@L["Branch"]</h3>
+                                                    <p class="mb-0">Deira Dubai</p>
+                                                </div>
+
+                                                <div class="col-md-4 align-items-center flex-row mb-2">
+                                                    <h3 class="fw-500 fs-4 mr-2">@L["AccountNo"]</h3>
+                                                    <p class="mb-0">1011040471601</p>
+                                                </div>
+
+                                                <div class="col-md-4 align-items-center flex-row mb-2">
+                                                    <h3 class="fw-500 fs-4 mr-2">@L["SwiftCode"]</h3>
+                                                    <p class="mb-0">EBILAEAD</p>
+                                                </div>
+
+                                                <div class="col-md-4 align-items-center flex-row mb-2">
+                                                    <h3 class="fw-500 fs-4 mr-2">@L["IBANNo"]</h3>
+                                                    <p class="mb-0">AE900260001011040471601</p>
+                                                </div> *@
+
+                                            </div>
+
+                                        </div>
+                                    </section>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* <div class="col-md-12">
+                        <!--===============spacing==============-->
+                        <div class="pd_bottom_30"></div>
+                        <!--===============spacing==============-->
+                    </div>
+
+
+                    <div class="col-lg-12 p-0">
+                        <div class="title_all_box style_seven dark_color">
+                            <div class="title_sections">
+                                <div class="title fw-normal text-primary-color">@L["UploadDepositSlip"]</div>
+                            </div>
+                        </div>
+                    </div> *@
+
+                    <div class="col-md-12">
+                        <!--===============spacing==============-->
+                        <div class="pd_bottom_30"></div>
+                        <!--===============spacing==============-->
+                    </div>
+
+                    @* <div class="col-lg-12 p-0">
+                        <section class="contact_form_box_all type_one">
+                            <div class="row contact_form_box_inner remove-margin justify-content-center py-5">
+
+                                <div class="col-md-7 d-flex align-items-center">
+
+                                    <ul>
+                                        <li>@L["PleaseUploadPaymentDepositSlip"]</li>
+                                        <li>@L["OnceYouProceedYouNotBeAbleToEditTheDetails"]</li>
+                                    </ul>
+                                </div>
+
+                                <div class="col-md-5">
+                                    <div class="theme_btn_all color_one">
+                                        <a class="d-block theme-btn one" href="@($"/{CultureInfo.CurrentCulture.Name}/Ejari/PayslipReason/{encryptedReferenceNumber}")">
+                                            @L["UploadDepositSlip"]
+                                        </a>
+                                        <input type='file' id="getFile" style="display:none">
+                                    </div>
+                                </div>
+
+                            </div>
+                        </section>
+                    </div> *@
+
+
+                    <div class="col-md-12">
+                        <!--===============spacing==============-->
+                        <div class="pd_bottom_30"></div>
+                        <!--===============spacing==============-->
+                    </div>
+                    @if (getPaymentHistory != null && getPaymentHistory.Count() > 0)
+                    {
+                        <div class="auto-container">
+                            <div class="row p-0">
+                                <div class="col-lg-12 p-0">
+                                    <div class="title_all_box style_seven dark_color">
+                                        <div class="title_sections">
+                                            <div class="title fw-normal text-primary-color">@L["PaymentHistory"]</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!--===============spacing==============-->
+                                <div class="pd_bottom_30"></div>
+                                <!--===============spacing==============-->
+
+                                <div class="col-lg-12 p-0">
+                                    <div class="fact-box acctablebox">
+                                        <table class="rwd-table acctable w-100 payment-details-tb">
+                                            <tbody>
+                                                <tr>
+                                                    <th>@L["BillRefNo"]</th>
+                                                    <th>@L["TransacationRefNo"]</th>
+                                                    <th>@L["TransacationDate"]</th>
+                                                    <th>@L["Amount"]</th>
+                                                    <th>@L["Status"]</th>
+                                                </tr>
+                                                @foreach (var ph in getPaymentHistory)
+                                                {
+                                                    <tr>
+                                                        <td data-th="Service Name" class="fw-bold">@ph.BillRef</td>
+                                                        <td data-th="Transacation-no">@ph.TranRefNo</td>
+                                                        <td data-th="Transacation date">@ph.TranDate</td>
+                                                        <td data-th="Amount">@ph.TranAmount.ToString("0.00")</td>
+                                                        <td data-th="Comment" class="wrapok">@ph.PayStatus</td>
+                                                    </tr>
+                                                }
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    }
+                    <div class="col-lg-12 p-0 mt-3">
+                        <section class="contact_form_box_all type_one">
+                            <div class="row alert alert-warning justify-content-center py-3">
+
+                                <div class="col-12 d-flex align-items-center">
+                                    <p class="fs-5 mb-0">
+                                        <ul>
+                                            <li>
+                                                @L["PleaseNoteApplicationWillBeProcessedOncePaymentIsSuccessful"]
+                                            </li>
+                                            <li>
+                                                @L["ForAnySupportOrQueriesPleaseContact"]<strong class="fw-500">@L["800DIPARK"]</strong> @L["OR"]<br> @L["SendEmailTo"] <strong class="fw-500">businesscentre@dipark.com / accounts@dipark.com</strong>
+                                            </li>
+                                        </ul>
+                                    </p>
+                                </div>
+
+                            </div>
+                        </section>
+                    </div>
+
+
+
+
+
+                    <div class="col-md-12">
+                        <!--===============spacing==============-->
+                        <div class="pd_bottom_30"></div>
+                        <!--===============spacing==============-->
+                    </div>
+                </div>
+
+                <div class="col-lg-5 right_side pd_top_10 p-0">
+                    <div class="auto-container border rounded_radius-5 box_shadow p-0">
+                        <div class="row">
+                            <div class="col-lg-12 p-0">
+                                <div class="head-confirm px-3 py-1">
+                                    <h3 class="fs-5 text-capitalize fw-500">@L["PaymentDetails"]</h3>
+                                </div>
+                                <div class="order-num px-3 py-2 d-none">
+                                    <p class="fs-6 mb-0">@L["OrderNo"]: <span class="fw-500">DIPNE7528</span></p>
+                                </div>
+                                <div class="fact-box acctablebox pt-0">
+                                    <table class="rwd-table acctable w-100 payment-details-tb">
+                                        <tbody>
+                                            <tr>
+                                                <th class="bg_light_4 text-center fw-500 fs-6">@L["Select"]</th>
+                                                <th class="bg_light_4 text-center fw-500 fs-6">@L["Description"]</th>
+                                                <th class="bg_light_4 text-center fw-500 fs-6">@L["Amount(AED)"]</th>
+                                                <th class="bg_light_4 text-center fw-500 fs-6">@L["VAT(AED)"]</th>
+                                                <th class="bg_light_4 text-center fw-500 fs-6">@L["TotalAmount(AED)"]</th>
+                                            </tr>
+
+
+                                            @if (Matrix != null)
+                                                @foreach (var m in Matrix)
+                                                {
+
+                                                    <tr class="bg_light_1">
+                                                        <td data-th="@L["Select"]">
+                                                            <span class="wpcf7-form-control-wrap your-name text-center d-flex justify-content-center">
+                                                                <input name="" type="checkbox" id="individual" checked disabled
+                                                                       @oninput="@((ChangeEventArgs args) => OnRadioChanged(args, m))" class="radio-s">
+                                                            </span>
+                                                        </td>
+                                                        <td data-th="@L["Description"]">@m.Name</td>
+                                                        <td data-th="@L["Amount(AED)"]">@m.TaxableAmount</td>
+                                                        <td data-th="@L["VAT(AED)"]">@m.VatAmount</td>
+                                                        <td data-th="@L["TotalAmount(AED)"]">@m.ChargeAmount</td>
+                                                    </tr>
+
+                                                }
+
+                                            <tr class="bg_light_1">
+                                                <td colspan="2" class="text-center">
+                                                    <span class="fw-500">@L["GrossTotalInAED"]</span>
+                                                </td>
+                                                <td colspan="3" class="text-center">
+                                                    @String.Format(CultureInfo.GetCultureInfo("en-US"), "{0:0.00}", @TotalAmount)
+                                                </td>
+                                            </tr>
+
+
+
+                                        </tbody>
+                                    </table>
+
+                                </div>
+                                @* PaymentMethodSelector *@
+
+                                <div class="alert alert-warning mb-0">
+
+                                    <h3 class="fs-6 fw-500">@L["PleaseNote"]:</h3>
+
+                                    <p>@L["EjariChargesIncludes"]</p>
+                                    <ul class="mr_top_15 font-italic px-4">
+                                        <li>
+                                            @L["GovernmentFeesOfAEDVATExempted"]
+                                        </li>
+                                        <li>
+                                            @L["ProcessingFeesOfAEDInclusiveVAT"]
+                                        </li>
+
+                                    </ul>
+                                    <p>
+                                        @L["OnceYouProceedYouWillNotBeAbleToEditTheDetails"]
+                                    </p>
+                                </div>
+
+                                <div class="row py-3 text-center payment-details-btns">
+                                    <div class="theme_btn_all color_one col-md-6">
+                                        <button onclick="@(() => CancelSubmit())" rel="nofollow" class="theme-btn two fs-5 w-100">@L["Cancel"]</button>
+                                    </div>
+                                    <div style="@(TotalAmount > 0 ? "" : "pointer-events: none;")" class="theme_btn_all color_one col-md-6">
+                                        <button rel="nofollow" class="theme-btn two fs-5 w-100" @onclick="async () => await onPaySubmit()">@L["Pay"]</button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <!--===============spacing==============-->
+                    <div class="pd_top_70"></div>
+                    <!--===============spacing==============-->
+                </div>
+
+
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_top_70"></div>
+        <!--===============spacing==============-->
+    </section>
+
+
+
+</div>
+<!--===============PAGE CONTENT END==============-->
+<!---============== wrapper_full =================-->
+<div id="banks" class="modal_popup modal_popup_support one">
+    <div class="modal-popup-inner">
+        <div class="close-modal"><i class="fa fa-times"></i></div>
+        <div class="modal_box">
+            <div class="row">
+
+                <div class="col-lg-12 col-md-12 about_company_inner p-4">
+                    <div class="abt_content">
+                        <h3 class="bg_light_4 text-white py-2 px-3 fw-normal rounded_radius-5 mb-4">@L["ListOfSupportedBanks"]</h3>
+                        <div class="list_item_box style_two style_list px-3">
+                            <ul class="list-inline">
+                                @foreach (var supportedBank in SupportedBankFrontEnds)
+                                {
+                                    <li class="list_items">
+                                        <small class="d-flex align-items-center">
+                                            <span class="icon_bx ">
+                                                <i class=" fa fa-check fs-5"></i>
+                                            </span>
+                                            <p class="fs-5 mb-1">@supportedBank.Title</p>
+                                        </small>
+                                    </li>
+                                }
+
+
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

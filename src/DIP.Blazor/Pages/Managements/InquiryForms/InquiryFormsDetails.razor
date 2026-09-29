@@ -1,0 +1,122 @@
+@page "/admin/inquiry-forms/details/{id}"
+
+@attribute [Authorize(DIPPermissions.InquiryForms.Default)]
+@using DIP.Blazor.Components
+@using DIP.InquiryForms
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IInquiryFormsAppService InquiryFormsAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+
+
+<PageHeader Title="@( $"{L["InquiryForms"]} {L["Details"]}")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+
+@* ************************* CREATE MODAL ************************* *@
+
+<Card>
+        <Form id="DetailsInquiryFormForm">
+            <CardBody>
+                @if (InquiryFormDto != null)
+            {
+                <Field>
+                    <FieldLabel>@L["CompanyName"]</FieldLabel>
+                    <TextEdit @bind-Text="@InquiryFormDto.CompanyName" ReadOnly>                           
+                    </TextEdit>
+                </Field>
+
+                <Field>
+                    <FieldLabel>@L["Name"]</FieldLabel>
+                    <TextEdit @bind-Text="@InquiryFormDto.Name" ReadOnly>
+                    </TextEdit>
+                </Field>
+
+                <Field>
+                    <FieldLabel>@L["Email"]</FieldLabel>
+                    <TextEdit @bind-Text="@InquiryFormDto.Email" Role="TextRole.Email" ReadOnly>
+                    </TextEdit>
+                </Field>
+
+                <Field>
+                    <FieldLabel>@L["Mobile"]</FieldLabel>
+                    <TextEdit @bind-Text="@InquiryFormDto.Mobile" ReadOnly>
+                    </TextEdit>
+                </Field>
+@* 
+                <Field>
+                    <FieldLabel>@L["Fax"]</FieldLabel>
+                    <TextEdit @bind-Text="@InquiryFormDto.Fax" ReadOnly>
+                    </TextEdit>
+                </Field> *@
+
+                <Field>
+                    <FieldLabel>@L["Phone"]</FieldLabel>
+                    <TextEdit @bind-Text="@InquiryFormDto.Phone" ReadOnly>
+                    </TextEdit>
+                </Field>
+
+                <Field>
+                    <FieldLabel>@L["InquiryType"]</FieldLabel>
+                    <TextEdit @bind-Text="@InquiryFormDto.InquiryType" ReadOnly>
+                    </TextEdit>
+                </Field>
+
+                <Field>
+                    <FieldLabel>@L["TradeLicensePlateOfIssue"]</FieldLabel>
+                    <TextEdit @bind-Text="@InquiryFormDto.TradeLicensePlateOfIssue" ReadOnly>
+                    </TextEdit>
+                </Field>
+
+                <Field>
+                    <FieldLabel>@L["BuyRent"]</FieldLabel> 
+                    <TextEdit @bind-Text="@InquiryFormDto.BuyRent" ReadOnly>
+                    </TextEdit>
+                </Field>
+
+                <Field>
+                    <FieldLabel>@L["SpaceInSquareFeet"]</FieldLabel>
+                    <NumericPicker TValue="double" @bind-Value="@InquiryFormDto.SpaceInSquareFeet" ReadOnly>
+                    </NumericPicker>
+                </Field>
+
+                <Field>
+                    <FieldLabel>@L["Comments"]</FieldLabel>
+                    <TextEdit @bind-Text="@InquiryFormDto.Comments" ReadOnly>
+                    </TextEdit>
+                </Field>
+
+                <Field>
+                    <FieldLabel>@L["CreationTime"]</FieldLabel>
+                    <DateEdit TValue="DateTime" InputMode="DateInputMode.DateTime" @bind-Date="@InquiryFormDto.CreationTime" ReadOnly>
+                    </DateEdit>
+                </Field>
+                    }
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="DetailsInquiryFormForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+            </CardFooter>
+        </Form>
+</Card>
+
+@* ************************* Details MODAL ************************* *@

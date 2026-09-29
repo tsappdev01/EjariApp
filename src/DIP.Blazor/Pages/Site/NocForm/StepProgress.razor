@@ -1,0 +1,80 @@
+﻿@* StepProgress.razor *@
+
+<section class="top-steps">
+    <div class="pd_top_80"></div>
+    <div class="mb-1">
+        <div class="row align-items-center m-0 py-3 payment-steps">
+            @for (int i = 0; i < Steps.Count; i++)
+            {
+                var step = Steps[i];
+                var index = i;
+                var isMiddleStep = i > 0 && i < Steps.Count - 1;
+
+                <div class="col @(isMiddleStep ? "p-0" : "")">
+                    <div class="stepname @(step.StepNumber == CurrentStep ? "active" : "") @(isMiddleStep ? "middle-step" : "")"
+                         @onclick="() => OnStepClick(step.StepNumber)">
+                        <div class="stepnum">@step.StepNumber</div>
+                        <div class="steptitle">
+                            <img src="@step.IconPath" alt="@step.Title">
+                            <h4 class="stepper_title">@step.Title</h4>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="pd_bottom_0"></div>
+</section>
+
+<style>
+    .stepname .steptitle img {
+        height: 20px !important;
+    }
+
+    .stepper_title {
+        font-size: 12px !important;
+    }
+</style>
+@code {
+    [Parameter]
+    public List<StepModel> Steps { get; set; } = new();
+
+    [Parameter]
+    public int CurrentStep { get; set; } = 1;
+
+    [Parameter]
+    public EventCallback<int> OnStepChanged { get; set; }
+
+    [Parameter]
+    public bool AllowClickNavigation { get; set; } = false;
+
+    private async Task OnStepClick(int stepNumber)
+    {
+        return;
+        if (AllowClickNavigation && stepNumber != CurrentStep)
+        {
+            CurrentStep = stepNumber;
+            await OnStepChanged.InvokeAsync(stepNumber);
+        }
+    }
+
+    public class StepModel
+    {
+        public int StepNumber { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string IconPath { get; set; } = string.Empty;
+        public bool IsCompleted { get; set; }
+    }
+
+    public static List<StepModel> GetRegistrationSteps()
+    {
+        List<StepModel> registrationSteps = [
+           new() { StepNumber = 1, Title = "Details", IconPath = "assets/images/clipboard-list.svg" },
+            new() { StepNumber = 2, Title = "Documents", IconPath = "assets/images/info-square.svg" },
+            new() { StepNumber = 3, Title = "Acknowledgement", IconPath = "assets/images/info-square.svg" },
+            new() { StepNumber = 4, Title = "Payment", IconPath = "assets/images/credit-card.svg" },
+            new() { StepNumber = 5, Title = "Certificate", IconPath = "assets/images/info-square.svg" }
+       ];
+        return registrationSteps;
+    }
+}

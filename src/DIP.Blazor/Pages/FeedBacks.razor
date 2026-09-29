@@ -1,0 +1,436 @@
+
+
+@page "/feed-backs"
+
+@attribute [Authorize(DIPPermissions.FeedBacks.Default)]
+@using DIP.FeedBacks
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IFeedBacksAppService FeedBacksAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["FeedBacks"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+        <Form id="FeedBackSearchForm" class="mb-3">
+            <Addons>
+                <Addon AddonType="AddonType.Body">
+                    <TextEdit @bind-Text="@Filter.FilterText"
+                              Autofocus="true"
+                              Placeholder="@L["Search"]">
+                    </TextEdit>
+                </Addon>
+                <Addon AddonType="AddonType.End">
+                    <SubmitButton Form="FeedBackSearchForm" Clicked="GetFeedBacksAsync">
+                        <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                    </SubmitButton>
+                </Addon>
+            </Addons>
+        </Form>
+    </CardBody>
+</Card>
+
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>
+        <DataGrid TItem="FeedBackDto"
+                  Data="FeedBackList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="FeedBackDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="FeedBackDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="FeedBackDto"
+                                          Visible="@CanEditFeedBack"
+                                          Clicked="async () => await OpenEditFeedBackModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="FeedBackDto"
+                                          Visible="@CanDeleteFeedBack"
+                                          Clicked="() => DeleteFeedBackAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+               
+              <DataGridColumn TItem="FeedBackDto"
+                      Field="Subject"
+                      Caption="@L["Subject"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="FeedBackDto"
+                      Field="CompanyName"
+                      Caption="@L["CompanyName"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="FeedBackDto"
+                      Field="PlotNo"
+                      Caption="@L["PlotNo"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="FeedBackDto"
+                      Field="PlotCategory"
+                      Caption="@L["PlotCategory"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="FeedBackDto"
+                      Field="ContactPersonName"
+                      Caption="@L["ContactPersonName"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="FeedBackDto"
+                      Field="EmailId"
+                      Caption="@L["EmailId"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="FeedBackDto"
+                      Field="MobileNumber"
+                      Caption="@L["MobileNumber"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="FeedBackDto"
+                      Field="Department"
+                      Caption="@L["Department"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="FeedBackDto"
+                      Field="CategoryName"
+                      Caption="@L["CategoryName"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="FeedBackDto"
+                      Field="Description"
+                      Caption="@L["Description"]">
+              </DataGridColumn>
+
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateFeedBackModal" Closing="@CreateFeedBackModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="CreateFeedBackForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewFeedBack"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateFeedBackModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewFeedBackValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewFeedBack"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Subject"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewFeedBack.Subject" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["CompanyName"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewFeedBack.CompanyName" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["PlotNo"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewFeedBack.PlotNo" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["PlotCategory"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewFeedBack.PlotCategory" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["ContactPersonName"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewFeedBack.ContactPersonName" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["EmailId"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewFeedBack.EmailId"  Role="TextRole.Email">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MobileNumber"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewFeedBack.MobileNumber" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Department"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewFeedBack.Department" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["CategoryName"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewFeedBack.CategoryName" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Description"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewFeedBack.Description" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateFeedBackModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateFeedBackForm" Clicked="CreateFeedBackAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditFeedBackModal" Closing="@EditFeedBackModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="EditFeedBackForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditFeedBackModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingFeedBackValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingFeedBack"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Subject"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingFeedBack.Subject" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["CompanyName"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingFeedBack.CompanyName" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["PlotNo"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingFeedBack.PlotNo" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["PlotCategory"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingFeedBack.PlotCategory" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["ContactPersonName"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingFeedBack.ContactPersonName" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["EmailId"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingFeedBack.EmailId"  Role="TextRole.Email">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MobileNumber"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingFeedBack.MobileNumber" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Department"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingFeedBack.Department" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["CategoryName"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingFeedBack.CategoryName" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Description"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingFeedBack.Description" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditFeedBackModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateFeedBackForm" Clicked="UpdateFeedBackAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>

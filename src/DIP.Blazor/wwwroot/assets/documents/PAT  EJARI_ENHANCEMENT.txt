@@ -1,0 +1,8 @@
+PAT : EJARI_ENHANCEMENT
+URL : https://dev.azure.com/TechSourcedxb 
+Vl8c2BIjUHpur9WeMG89mSOJgL74JVwrNXTxp0lugf13Asbtdd4RJQQJ99BGACAAAAAoI9rvAAASAZDO4SXF
+
+https://TechSourcedxb@dev.azure.com/TechSourcedxb/Ejari%20Enhancement%20Project/_git/Ejari%20Enhancement%20Project
+
+git remote add origin https://TechSourcedxb@dev.azure.com/TechSourcedxb/Ejari%20Enhancement%20Project/_git/Ejari%20Enhancement%20Project
+git push -u origin --all

@@ -1,0 +1,294 @@
+﻿@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@using DIP.Settings
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+
+@inject IDIPSettingAppService DIPSettingAppService
+@page "/{lang}/Ejari/NocDocuments/Upload/{ReferenceNumber}";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+    <style>
+        .btn-proceed {
+            background-color: #6F6259;
+            border-color: transparent;
+            color: white;
+            font-weight: 500;
+            padding: 12px 40px;
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 0px;
+            border-top-right-radius: 0px;
+            border-bottom-right-radius: 10px;
+        }
+
+        .btn-view {
+            /* width: 100%; */
+            text-align: center;
+            background-color: #6F6259;
+            border-color: transparent;
+            color: white;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-bottom-right-radius: 4px;
+            border-bottom-left-radius: 4px;
+        }
+
+        .custom-button {
+        }
+
+        .btn-border-bottom-unset {
+            border-bottom-left-radius: unset !important;
+            border-bottom-right-radius: unset !important;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            border: none;
+            border-radius: 8px;
+            color: #856404;
+        }
+
+        .alert-icon {
+            color: #ffc107;
+            flex-shrink: 0;
+        }
+
+        .progress-icon {
+            color: #6c757d;
+            animation: spin 2s linear infinite;
+        }
+
+        @@keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .progress {
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            font-size: 0.875rem;
+        }
+    </style>
+</HeadContent>
+
+
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            NOC Application Documents
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:Home:Ejari"]</li>
+                            <li class="active">NOC Application Documents</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white">
+    <div class="container py-4">
+        <StepProgress Steps="@registrationSteps"
+                      CurrentStep="@currentStep"
+                      OnStepChanged="HandleStepChanged"
+                      AllowClickNavigation="true" />
+
+        <!-- Document Upload Section -->
+        <div class="form-section mb-3">
+            <div class="py-3">
+                <h5 class="mb-0 fs-2 fw-normal" style="color:#6F6259">Document Upload</h5>
+            </div>
+
+
+            <!-- Guidelines -->
+            <div class="mb-3">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="px-3 py-3 rounded-2" style="background-color: #C7DCD5;color: #37757A">
+                            System shall support document formats (PDF)
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="px-3 py-3 rounded-2" style="background-color: #CEE1FF;color: #4D6EA6">
+                            System shall enforce file size limits (max 5MB per
+                            document)
+                        </div>
+                    </div>
+                    @* <div class="col-md-12">
+                        <div class="px-3 py-3 rounded-2" style="background-color: #FFF2CC;color: #8D7A3E">
+                            System shall allow multiple document uploads per application. Following are the
+                            accepting documents for forms
+
+                        </div>
+                    </div> *@
+                </div>
+            </div>
+
+            <!-- Documents -->
+            <div class="py-3">
+                <h6 class="mb-0 fs-2 fw-normal" style="color:#6F6259">Documents:</h6>
+            </div>
+            <div class="p-2 p-md-4 mb-3 rounded-2" style="background-color: #EEEEEE;border: 1px solid #DEE2E6;">
+                <div class="row g-3">
+                    @if (DocumentsGrid != null)
+                        @foreach (var doc in DocumentsGrid)
+                        {
+                            <div class="col-md-6">
+                                @* @if (doc.ZSystemVerified)
+                                {
+                                    <div class="px-3 py-3 rounded-2" style="background-color: #C7DCD5;color: #37757A">
+                                        File uploaded and verified.
+                                    </div>
+                                } *@
+                                <FileUploadComponent OnUploadStarted=@(() => OnUploadStarted(doc))
+                                                     OnUploadCompleted=@((NocUploadResult result) => OnUploadCompleted(doc, result))
+                                                     FileUrl="@($"{MimeTypes.MimeTypeMap.GetAttachmentPath()}/UploadEjariFiles/{ReferenceNumber}/{doc.DocName}_{doc.Id}/{doc.AttachmentName}")"
+                                                     LabelName="@(doc.DocName)"
+                                                     IsUploading="@(doc.Uploading)"
+                                                     IsUploaded="@(doc.IsUploaded != null && doc.IsUploaded.Value && !string.IsNullOrEmpty(doc.DMSDocument))"
+                                                     FileName="@(doc.AttachmentName)"
+                                                     DiVerificationFailed="@(doc.ZAttemptCount > 0 && !doc.attempt && !doc.ZSystemVerified)"
+                                                     DocumentVerified="@(doc.ZSystemVerified)"
+                                                     IsMandatory="@(doc.IsMandatory ?? false)"
+                                                     encryptedReferenceNumber="@encryptedReferenceNumber"
+                                                     DocumentId="@(EncryptionHelper.EncryptUrlSafe(doc.Id.ToString()))"
+                                                     DocumentCode="@(doc.DocumentCode)"
+                                                     ErrorMessageUpload="@(doc.ErrorMessageUpload)"
+                                                     specialDocumentValidateTc="@(InvalidAttempt > 2 && (tenancyContractValidation.TenantEmailStatus == 1 || tenancyContractValidation.TenantPhoneStatus == 1))"
+                                                     DocumentStatusType="@(doc.DocumentStatusType)" />
+                                @* @if (doc.ZAttemptCount > 0 && !doc.attempt && !doc.ZSystemVerified)
+                                {
+                                    <p class="text-danger">Verification failed. Please upload a valid document.</p>
+                                } *@
+                            </div>
+
+                        }
+                </div>
+            </div>
+
+            <!-- Error section -->
+            @* @if (!string.IsNullOrEmpty(ErrorMessageMissingDocuments))
+            {
+                <div class="mb-3">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <div class="px-3 py-3 rounded-2 text-danger" style="background-color: #FFF2CC;color: #8D7A3E">
+                                Please upload all mandatory files to proceed.<br />
+                                @ErrorMessageMissingDocuments
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            } *@
+
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+                <button type="button" onclick="@(handleBackAction)" class="btn-proceed">Back</button>
+                @if (ButtonDisable)
+                {
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <div class="px-3 py-3 rounded-2 text-warning" style="background-color: #FFF2CC;color: #8D7A3E">
+                                Request in progress. Please do not close or refresh the page.
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <button type="button" disabled="@ButtonDisable" onclick="@(OnProcced)" class="btn-proceed">Proceed</button>
+                }
+            </div>
+
+        </div>
+    </div>
+
+
+    <Modal @ref="modalRef"
+           Closing="OnModalClosing"
+           CloseOnEscapeKey="false"
+           CloseOnOutsideClick="false">
+        <ModalContent Centered>
+            <ModalHeader>
+                <ModalTitle Class="text-center">Validation In Progress</ModalTitle>
+            </ModalHeader>
+            <ModalBody>
+                <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+                    <svg class="alert-icon me-2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+                    </svg>
+                    <div>
+                        Request in progress. Please do not close or refresh the page.
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <svg class="progress-icon mb-3" width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M40 7.99998V18H38.836M38.836 18C37.5083 14.7162 35.1286 11.9658 32.0699 10.1797C29.0112 8.3936 25.4464 7.6728 21.9341 8.13026C18.4217 8.58771 15.1604 10.1976 12.6613 12.7075C10.1621 15.2175 8.56631 18.4857 8.124 22M38.836 18H30M8 40V30H9.162M9.162 30C10.4916 33.2818 12.8719 36.0301 15.9303 37.8146C18.9887 39.5991 22.5525 40.319 26.0638 39.8617C29.5751 39.4044 32.8356 37.7957 35.3349 35.2874C37.8343 32.7791 39.4313 29.5129 39.876 26M9.162 30H18" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    @if (ProgressValue == 100)
+                    {
+                        <div>
+                            Please Wait...
+                        </div>
+                    }
+                    else
+                    {
+                        <div>
+                            @(progresseddocumentVerification)/@(totalCountdocumentVerification) documents processed
+                        </div>
+                        <div class="progress mb-2" style="height: 8px;">
+                            <div class="progress-bar" role="progressbar" style="width: @(ProgressValue)%; background: linear-gradient(90deg, #8b7355, #6d5d4b);" aria-valuenow="@ProgressValue" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="progress-text fw-semibold text-muted small">
+                            Processing... @ProgressValue%
+                        </div>
+                    }
+                </div>
+            </ModalBody>
+        </ModalContent>
+    </Modal>
+</div>

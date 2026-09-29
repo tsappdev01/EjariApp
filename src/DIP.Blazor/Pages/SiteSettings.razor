@@ -1,0 +1,813 @@
+
+
+@page "/site-settings"
+
+@attribute [Authorize(DIPPermissions.SiteSettings.Default)]
+@using DIP.SiteSettings
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject ISiteSettingsAppService SiteSettingsAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["SiteSettings"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+        <Form id="SiteSettingSearchForm" class="mb-3">
+            <Addons>
+                <Addon AddonType="AddonType.Body">
+                    <TextEdit @bind-Text="@Filter.FilterText"
+                              Autofocus="true"
+                              Placeholder="@L["Search"]">
+                    </TextEdit>
+                </Addon>
+                <Addon AddonType="AddonType.End">
+                    <SubmitButton Form="SiteSettingSearchForm" Clicked="GetSiteSettingsAsync">
+                        <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                    </SubmitButton>
+                </Addon>
+            </Addons>
+        </Form>
+    </CardBody>
+</Card>
+
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>
+        <DataGrid TItem="SiteSettingDto"
+                  Data="SiteSettingList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="SiteSettingDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="SiteSettingDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="SiteSettingDto"
+                                          Visible="@CanEditSiteSetting"
+                                          Clicked="async () => await OpenEditSiteSettingModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="SiteSettingDto"
+                                          Visible="@CanDeleteSiteSetting"
+                                          Clicked="() => DeleteSiteSettingAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+               
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="FaceBookLink"
+                      Caption="@L["FaceBookLink"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="TwitterLink"
+                      Caption="@L["TwitterLink"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="InstagramLink"
+                      Caption="@L["InstagramLink"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="YouTubeLink"
+                      Caption="@L["YouTubeLink"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="LinkedinLink"
+                      Caption="@L["LinkedinLink"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="FireDepartmentPhone"
+                      Caption="@L["FireDepartmentPhone"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="Emergency1Phone"
+                      Caption="@L["Emergency1Phone"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="Emergency2Phone"
+                      Caption="@L["Emergency2Phone"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="PolicePost"
+                      Caption="@L["PolicePost"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="DipEmail"
+                      Caption="@L["DipEmail"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="Phone"
+                      Caption="@L["Phone"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="POBox"
+                      Caption="@L["POBox"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="OfficeLocationEn"
+                      Caption="@L["OfficeLocationEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="OfficeLocationAr"
+                      Caption="@L["OfficeLocationAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="SiteLink"
+                      Caption="@L["SiteLink"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="PbLocation"
+                      Caption="@L["PbLocation"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="WorkDays"
+                      Caption="@L["WorkDays"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="WorkHours"
+                      Caption="@L["WorkHours"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="RamadanWorkDays"
+                      Caption="@L["RamadanWorkDays"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="RamadanWorkHours"
+                      Caption="@L["RamadanWorkHours"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="FridayWorkHours"
+                      Caption="@L["FridayWorkHours"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="ClosedDay1"
+                      Caption="@L["ClosedDay1"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="SiteSettingDto"
+                      Field="ClosedDay2"
+                      Caption="@L["ClosedDay2"]">
+              </DataGridColumn>
+
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateSiteSettingModal" Closing="@CreateSiteSettingModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="CreateSiteSettingForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewSiteSetting"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateSiteSettingModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewSiteSettingValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewSiteSetting"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["FaceBookLink"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.FaceBookLink" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TwitterLink"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.TwitterLink" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["InstagramLink"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.InstagramLink" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["YouTubeLink"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.YouTubeLink" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["LinkedinLink"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.LinkedinLink" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["FireDepartmentPhone"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.FireDepartmentPhone" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Emergency1Phone"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.Emergency1Phone" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Emergency2Phone"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.Emergency2Phone" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["PolicePost"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.PolicePost" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DipEmail"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.DipEmail" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Phone"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.Phone" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["POBox"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.POBox" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["OfficeLocationEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.OfficeLocationEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["OfficeLocationAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.OfficeLocationAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SiteLink"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.SiteLink" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["PbLocation"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.PbLocation" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["WorkDays"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.WorkDays" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["WorkHours"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.WorkHours" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["RamadanWorkDays"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.RamadanWorkDays" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["RamadanWorkHours"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.RamadanWorkHours" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["FridayWorkHours"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.FridayWorkHours" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["ClosedDay1"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.ClosedDay1" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["ClosedDay2"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSiteSetting.ClosedDay2" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateSiteSettingModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateSiteSettingForm" Clicked="CreateSiteSettingAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditSiteSettingModal" Closing="@EditSiteSettingModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="EditSiteSettingForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditSiteSettingModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingSiteSettingValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingSiteSetting"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["FaceBookLink"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.FaceBookLink" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TwitterLink"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.TwitterLink" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["InstagramLink"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.InstagramLink" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["YouTubeLink"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.YouTubeLink" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["LinkedinLink"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.LinkedinLink" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["FireDepartmentPhone"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.FireDepartmentPhone" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Emergency1Phone"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.Emergency1Phone" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Emergency2Phone"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.Emergency2Phone" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["PolicePost"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.PolicePost" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DipEmail"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.DipEmail" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Phone"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.Phone" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["POBox"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.POBox" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["OfficeLocationEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.OfficeLocationEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["OfficeLocationAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.OfficeLocationAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SiteLink"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.SiteLink" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["PbLocation"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.PbLocation" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["WorkDays"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.WorkDays" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["WorkHours"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.WorkHours" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["RamadanWorkDays"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.RamadanWorkDays" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["RamadanWorkHours"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.RamadanWorkHours" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["FridayWorkHours"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.FridayWorkHours" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["ClosedDay1"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.ClosedDay1" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["ClosedDay2"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSiteSetting.ClosedDay2" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditSiteSettingModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateSiteSettingForm" Clicked="UpdateSiteSettingAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>

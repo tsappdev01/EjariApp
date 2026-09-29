@@ -1,0 +1,672 @@
+﻿@using System.Collections.Generic
+@using System.Globalization
+@* FileUploadComponent.razor *@
+
+<div class="upload-container  @(uploadContainerClass)">
+    <label class="label text-muted text-uppercase">
+        @(LabelName)
+        @if (IsMandatory)
+        {
+            <span class="text-danger pe-1">*</span>
+        }
+    </label>
+    <!-- Processing Overlay -->
+    @if (LoadingEnable)
+    {
+        <div class="processing-overlay">
+            <div class="processing-content">
+                <span class="processing-text">Processing</span>
+                <div class="loading-dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
+    }
+
+    <!-- File Input -->
+    <div class="file-input-wrapper">
+        <InputFile OnChange="HandleFileUpload"
+                   id="@InputId"
+                   class="file-input"
+                   accept=".pdf,application/pdf" />
+        <!--.png,.jpg,.jpeg,.gif,.svg,image/png,image/jpeg,image/gif,image/svg+xml,-->
+        <label for="@(DocumentStatusType == 0 | ReplaceButtonEnable ? InputId : string.Empty)" class="upload-content @(uploadContentLabelClass)">
+            <div class="file-info">
+                <!-- Check Icon (shown when uploaded) -->
+                @switch (DocumentStatusType)
+                {
+                    case 1 | 7:
+                        <div class="check-icon">
+                            <svg viewBox="0 0 24 24">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                        break;
+                    case 4:
+                        <div class="info-icon">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none"
+                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="16" x2="12" y2="12" />
+                                <circle cx="12" cy="8" r="1" />
+                            </svg>
+                        </div>
+                        break;
+                    case 2:
+                        <div class="verified-fail-icon">
+                            <svg viewBox="0 0 24 24" width="24" height="24"
+                                 fill="none" stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                            </svg>
+                        </div>
+                        break;
+                    case 5:
+                        <div class="verified-fail-icon">
+                            <svg viewBox="0 0 24 24" width="24" height="24"
+                                 fill="none" stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                            </svg>
+                        </div>
+                        break;
+                    default:
+                        break;
+                }
+
+                @if (new[] { 0 }.Contains(DocumentStatusType))
+                {
+                    <!-- Upload Icon (shown before upload) -->
+                    <div class="btn btn-replace d-flex justify-content-end">
+                        <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        Upload File
+                    </div>
+                }
+
+                <div class="file-details">
+                    <div class="file-name">@FileName</div>
+                    @switch (DocumentStatusType)
+                    {
+                        case 7:
+                            <div class="file-status">Document verified.</div>
+                            break;
+                        case 2:
+                            <div class="diverification-status">Verification failed. Please upload a valid document.</div>
+                            break;
+                        case 4:
+                            <div class="diifo-status">The uploaded document will be verified manually.</div>
+                            break;
+                        case 5:
+                            <div class="diverification-status">
+                                @( string.IsNullOrEmpty(ErrorMessageUpload) ? "The upload document is invalid. Please upload a valid Tenancy Contract." :ErrorMessageUpload)
+                            </div>
+                            break;
+                        case 1:
+                            <div class="file-status">Upload complete</div>
+                            break;
+                        case 3:
+                            <div class="diverification-status">@(ErrorMessageUpload ?? string.Empty)</div>
+                            break;
+                        default:
+                            @* <div class="diverification-status">@(ErrorMessageUpload ?? string.Empty)</div> *@
+                            break;
+                    }
+                </div>
+            </div>
+
+            <div class="button-group">
+
+                @if (ReplaceButtonEnable)
+                {
+                    <button type="button" class="btn btn-replace" @onclick="HandleReplaceClick" @onclick:stopPropagation="true">
+                        @if (IsUploaded)
+                        {
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                            </svg>
+                            @("Replace")
+                        }
+                        else
+                        {
+                            <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            @("Upload File")
+                        }
+
+                        
+                    </button>
+                }
+                @if (ViewButtonEnable && (DocumentId != "0" && !string.IsNullOrEmpty(DocumentId)) && IsUploaded)
+                {
+                    <a class="btn btn-view"
+                           target="_blank"
+                           href="@($"/api/PdfViewer/GetPdf?referenceNumber={Uri.EscapeDataString(encryptedReferenceNumber)}&documentId={Uri.EscapeDataString(DocumentId)}")">
+                        @* href="@($" /{CultureInfo.CurrentCulture.Name}/Ejari/NocDocumentView/{encryptedReferenceNumber}/{DocumentId}")" target="_blank" @onclick:stopPropagation="true" *@
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        View
+                    </a>
+                }
+            </div>
+        </label>
+    </div>
+</div>
+
+<style>
+    .upload-container {
+        position: relative;
+        border: 2px solid #d1d5db;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+        .upload-container:hover {
+            border-color: #7a6b5d;
+        }
+
+        .upload-container.uploaded {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+
+        .upload-container.diverified {
+            border-color: #ff0a0a;
+            background: #fdecec;
+        }
+
+        .upload-container.attemptinfoContainer {
+            border-color: #ff0a0a;
+            background: #d5ecff;
+        }
+
+        .upload-container.documentverified {
+            border-color: #37757A;
+            background: #C7DCD5;
+        }
+
+        .upload-container.uploading {
+            border-color: #7a6b5d;
+        }
+
+    .file-input-wrapper {
+        position: relative;
+    }
+
+    .file-input {
+        display: none;
+    }
+
+    .upload-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        background: white;
+        cursor: pointer;
+        transition: background 0.2s;
+        position: relative;
+        z-index: 1;
+    }
+
+    .upload-container.uploaded .upload-content {
+        background: #ecfdf5;
+        cursor: default;
+    }
+
+    .upload-content:hover:not(.uploaded-state) {
+        background: #f9fafb;
+    }
+
+    .upload-content:hover:not(.diverified-state) {
+        background: #f9fafb;
+    }
+
+    .upload-content:hover:not(.attemptinfo-state) {
+        background: #f9fafb;
+    }
+
+    .file-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .check-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #10b981;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .info-icon {
+        color: aliceblue;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #2196F3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .verified-fail-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #ff0000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .verified-fail-icon svg {
+            width: 14px;
+            height: 14px;
+            stroke: white;
+            stroke-width: 3;
+            fill: none;
+        }
+
+    .check-icon svg {
+        width: 14px;
+        height: 14px;
+        stroke: white;
+        stroke-width: 3;
+        fill: none;
+    }
+
+    .upload-icon {
+        width: 24px;
+        height: 24px;
+        color: #7a6b5d;
+        flex-shrink: 0;
+    }
+
+    .file-details {
+        flex: 1;
+        min-width: 0;
+        text-transform: uppercase !important;
+    }
+
+    .file-name {
+        font-size: 14px;
+        font-weight: 500;
+        color: #1f2937;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .file-status {
+        font-size: 12px;
+        color: #10b981;
+        margin-top: 2px;
+    }
+
+    .diverification-status {
+        font-size: 12px;
+        color: #ff0000;
+        margin-top: 2px;
+    }
+
+    .diifo-status {
+        font-size: 12px;
+        color: #2196f3;
+        margin-top: 2px;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        text-decoration: none;
+    }
+
+    .btn-replace {
+        background: #f3f4f6;
+        color: #4b5563;
+    }
+
+        .btn-replace:hover {
+            background: #e5e7eb;
+            transform: translateY(-1px);
+        }
+
+    .btn-view {
+        background: linear-gradient(135deg, #7a6b5d 0%, #8b7d6f 100%);
+        color: white;
+    }
+
+        .btn-view:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(122, 107, 93, 0.3);
+        }
+
+    .btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .processing-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(122, 107, 93, 0.95) 0%, rgba(139, 125, 111, 0.95) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        backdrop-filter: blur(4px);
+    }
+
+    .processing-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .processing-text {
+        color: white;
+        font-size: 14px;
+        font-weight: 600;
+        animation: fadeInOut 2s ease-in-out infinite;
+    }
+
+    @@keyframes fadeInOut {
+        0%, 100% {
+            opacity: 0.6;
+        }
+
+        50% {
+            opacity: 1;
+        }
+    }
+
+    .loading-dots {
+        display: flex;
+        gap: 6px;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+        background: white;
+        border-radius: 50%;
+        animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+        .dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+    @@keyframes bounce {
+        0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: 0.5;
+        }
+
+        30% {
+            transform: translateY(-8px);
+            opacity: 1;
+        }
+    }
+
+    .progress-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: white;
+        width: 0%;
+        animation: progress 2s ease-in-out forwards;
+    }
+
+    .label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #7a6b5d;
+        margin-bottom: 12px;
+        display: block;
+        background-color: #eeeeee !important;
+        padding: 6px 12px !important;
+    }
+
+    @@keyframes progress {
+        0% {
+            width: 0%;
+        }
+
+        100% {
+            width: 100%;
+        }
+    }
+</style>
+
+@code {
+
+    protected override void OnParametersSet()
+    {
+        DocumentStatusTypeAssignValues();
+    }
+
+    [Parameter]
+    public int DocumentStatusType { get; set; }
+    [Parameter]
+    public bool ViewButtonEnable { get; set; }
+    [Parameter]
+    public bool ReplaceButtonEnable { get; set; }
+    [Parameter]
+    public bool LoadingEnable { get; set; }
+
+    [Parameter]
+    public string ErrorMessageUpload { get; set; }
+
+    [Parameter]
+    public bool specialDocumentValidateTc { get; set; }
+    [Parameter]
+    public string DocumentCode { get; set; }
+
+    [Parameter]
+    public EventCallback OnUploadStarted { get; set; }
+
+    [Parameter]
+    public EventCallback<NocUploadResult> OnUploadCompleted { get; set; }
+
+    [Parameter]
+    public string FileUrl { get; set; } = "";
+    [Parameter]
+
+    public bool IsMandatory { get; set; } = false;
+    [Parameter]
+    public string LabelName { get; set; } = "Document*";
+    [Parameter]
+    public string encryptedReferenceNumber { get; set; }
+    [Parameter]
+    public string DocumentId { get; set; }
+    [Parameter]
+    public bool IsUploading { get; set; } = false;
+
+    [Parameter]
+    public bool IsUploaded { get; set; } = false;
+    [Parameter]
+    public bool DiVerificationFailed { get; set; } = false;
+    [Parameter]
+    public bool DocumentVerified { get; set; } = false;
+
+    [Parameter]
+    public string FileName { get; set; } = "Choose File";
+
+    [Inject]
+    private IJSRuntime JSRuntime { get; set; }
+
+    private string uploadContainerClass { get; set; } = string.Empty;
+    private string uploadContentLabelClass { get; set; } = string.Empty;
+
+
+    private void DocumentStatusTypeAssignValues()
+    {
+        switch (DocumentStatusType)
+        {
+            case 0:
+                uploadContainerClass = string.Empty;
+                uploadContentLabelClass = string.Empty;
+                LoadingEnable = false;
+                ReplaceButtonEnable = false;
+                ViewButtonEnable = false;
+                break;
+            case 1:
+                uploadContainerClass = "uploaded";
+                uploadContentLabelClass = "uploaded-state";
+                LoadingEnable = false;
+                ReplaceButtonEnable = true;
+                ViewButtonEnable = string.IsNullOrEmpty(DocumentId) ? false : true;
+                break;
+            case 2:
+                uploadContainerClass = "diverified";
+                uploadContentLabelClass = "diverified-state";
+                LoadingEnable = false;
+                ReplaceButtonEnable = true;
+                ViewButtonEnable = true;
+                break;
+            case 3:
+                uploadContainerClass = "diverified";
+                uploadContentLabelClass = "diverified-state";
+                LoadingEnable = false;
+                ReplaceButtonEnable = true;
+                ViewButtonEnable = string.IsNullOrEmpty(DocumentId) ? false : true;
+                break;
+            case 4:
+                uploadContainerClass = "attemptinfoContainer"; //to do
+                uploadContentLabelClass = "attemptinfo-state"; //todo
+                LoadingEnable = false;
+                ReplaceButtonEnable = true;
+                ViewButtonEnable = string.IsNullOrEmpty(DocumentId) ? false : true;
+                break;
+            case 5:
+                uploadContainerClass = "diverified";
+                uploadContentLabelClass = "diverified-state";
+                LoadingEnable = false;
+                ReplaceButtonEnable = true;
+                ViewButtonEnable = string.IsNullOrEmpty(DocumentId) ? false : true;
+                break;
+            case 6:
+                uploadContainerClass = "diverified";
+                uploadContentLabelClass = "diverified-state";
+                LoadingEnable = false;
+                ReplaceButtonEnable = true;
+                ViewButtonEnable = string.IsNullOrEmpty(DocumentId) ? false : true;
+                break;
+            case 7:
+                uploadContainerClass = "documentverified";
+                uploadContentLabelClass = "";
+                LoadingEnable = false;
+                ReplaceButtonEnable = true;
+                ViewButtonEnable = string.IsNullOrEmpty(DocumentId) ? false : true;
+                break;
+            case 8:
+                uploadContainerClass = "uploading";
+                uploadContentLabelClass = "";
+                LoadingEnable = true;
+                ReplaceButtonEnable = false;
+                ViewButtonEnable = false;
+                break;
+            default:
+                uploadContainerClass = string.Empty;
+                uploadContentLabelClass = string.Empty;
+                LoadingEnable = false;
+                ReplaceButtonEnable = false;
+                ViewButtonEnable = false;
+                break;
+        }
+    }
+
+    private string InputId { get; set; } = Guid.NewGuid().ToString();
+
+    private const long MaxFileSizeBytes = 5000 * 1024; // 5 MB
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        await OnUploadStarted.InvokeAsync();
+
+        // Instant rejection from metadata only - no bytes are read for oversized files.
+        if (e.File.Size > MaxFileSizeBytes)
+        {
+            await OnUploadCompleted.InvokeAsync(new NocUploadResult { Success = false, ErrorCode = "FileTooLarge" });
+            return;
+        }
+
+        // The browser reads the file and POSTs it directly over HTTP; the SignalR
+        // circuit never carries the file bytes.
+        NocUploadResult result;
+        try
+        {
+            var fields = new Dictionary<string, string>
+            {
+                ["encryptedReferenceNumber"] = encryptedReferenceNumber ?? string.Empty,
+                ["encryptedDocumentId"] = DocumentId ?? string.Empty,
+                ["documentCode"] = DocumentCode ?? string.Empty,
+            };
+            result = await JSRuntime.InvokeAsync<NocUploadResult>(
+                "uploadNocDocument", InputId, "/api/NocDocumentUpload/Upload", fields, 30000);
+        }
+        catch (Exception)
+        {
+            result = null;
+        }
+
+        await OnUploadCompleted.InvokeAsync(result ?? new NocUploadResult { Success = false, ErrorCode = "Network" });
+    }
+
+    private async Task HandleReplaceClick()
+    {
+        // Trigger the file input click using JavaScript
+        await JSRuntime.InvokeVoidAsync("triggerFileInput", InputId);
+    }
+}

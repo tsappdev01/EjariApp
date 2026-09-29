@@ -1,0 +1,228 @@
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared
+@using DIP.Helper
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@page "/{lang}/Ejari/PayslipReason/{ReferenceNumber}";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+
+
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @L["PaySlipReason"]
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:Home:Ejari"]</li>
+                            <li class="active">@L["PaySlipReason"]</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+         <!----page header----->
+         <!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content ">
+
+    <!---newsteller--->
+    <section class="top-steps">
+        <!--===============spacing==============-->
+        <div class="pd_top_80"></div>
+        <!--===============spacing==============-->
+        <div class="auto-container">
+            <div class="row align-items-center m-0 py-3 payment-steps">
+                <div class="col">
+                    <div class="stepname ">
+                        <div class="stepnum">1</div>
+                        <div class="steptitle">
+                            <img src="assets/images/clipboard-list.svg">
+                            <h4 class="fs-6">@L["Registration"]</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col p-0">
+                    <div class="stepname middle-step">
+                        <div class="stepnum">2</div>
+                        <div class="steptitle">
+                            <img src="assets/images/clipboard-list.svg">
+                            <h4 class="fs-6">@L["Details"]</h4>
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="col p-0">
+                    <div class="stepname active middle-step">
+                        <div class="stepnum">4</div>
+                        <div class="steptitle">
+                            <img src="assets/images/credit-card.svg">
+                            <h4 class="fs-6">@L["PaymentSlipReasons"]</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stepname">
+                        <div class="stepnum">5</div>
+                        <div class="steptitle">
+                            <img src="assets/images/info-square.svg">
+                            <h4 class="fs-6">@L["STATUS"]</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_bottom_0"></div>
+        <!--===============spacing==============-->
+    </section>
+
+
+
+    <section class="blog_post_section two_column style_three py-3">
+        <!--===============spacing==============-->
+        <div class="col-md-12">
+            <!--===============spacing==============-->
+            <div class="pd_bottom_30"></div>
+            <!--===============spacing==============-->
+        </div>
+        <!--===============spacing==============-->
+
+        <div class="auto-container p-0">
+
+            <div class="row align-items-center">
+                <div class="col-lg-12">
+                    <div class="title_all_box style_seven">
+                        <div class="title_sections">
+                            <div class="title fw-normal text-primary-color">@L["UploadPaymentDepositSlipAndSubmit"]</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <!--===============spacing==============-->
+                    <div class="pd_bottom_30"></div>
+                    <!--===============spacing==============-->
+                </div>
+
+                <div class="col-lg-12 py-3 payment-steps">
+
+                    <section class="creote-contact-box">
+                        <div class="row">
+
+                               <div class="col-md-12 mt-0 p-0">
+                                <div class="alert alert-dark mb-0" role="alert">
+                                    @L["ReasonForUploadingPaymentDepositSlip"]
+                                </div>
+                            </div>
+
+
+            
+                     
+                        </div>
+
+                        <div class="row m-0">
+                           
+                            @if (lstDictsReasons != null && lstDictsReasons.Count()>0)
+                            {
+                                <InputRadioGroup @bind-Value="@ReasonUploadingPayment">
+
+                                    @foreach (var(dictReason, index) in lstDictsReasons.WithIndex()) 
+                                    {
+                                        <span class="wpcf7-form-control-wrap your-name radio-bs">
+                                            <InputRadio Value="@dictReason.Key" 
+                                                  
+                                                       
+                                                         /> @dictReason.Value
+                                        </span>
+
+                                    }
+
+
+
+                                </InputRadioGroup>
+                            }
+                               
+                            @if(hasError)
+                            {
+                                <div class="pd_top_20"></div>
+
+                                <div class="alert alert-danger" role="alert">@ValidateMessage </div>
+
+                            }
+                        </div>
+
+                    </section>
+             
+                </div>
+       
+                <section class="blog_post_section two_column style_three">
+
+                    <div class="col-md-12">
+                        <!--===============spacing==============-->
+                        <!--===============spacing==============-->
+                    </div>
+                    <div class="col-lg-4 right_side pd_top_10 mt-3 mt-lg-0">
+                        <div class="auto-container p-0  rounded_radius-5">
+
+                            <div class="row p-lg-3 text-center">
+                                <div class="theme_btn_all color_one col-md-6 mb-3 mb-lg-0">
+                                    <button rel="nofollow" class="theme-btn two fs-5 w-100" @onclick="async ()=> await OnCancelClick()" >@L["Cancel"]</button>
+                                </div>
+                                <div class="theme_btn_all color_one col-md-6">
+                                    <button rel="nofollow" class="theme-btn two fs-5 w-100" @onclick="async ()=> await OnSubmit()">@L["Submit"]</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="col-md-12">
+                    <!--===============spacing==============-->
+                    <div class="pd_bottom_30"></div>
+                    <!--===============spacing==============-->
+                </div>
+
+
+            </div>
+
+
+        </div>
+    </section>
+
+
+
+</div>        <!--===============PAGE CONTENT END==============-->
+      

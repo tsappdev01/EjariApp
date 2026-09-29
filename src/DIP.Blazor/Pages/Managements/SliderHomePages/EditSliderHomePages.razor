@@ -1,0 +1,385 @@
+@page "/admin/slider-home-pages/edit/{id}"
+@page "/admin/slider-home-pages/create"
+
+@attribute [Authorize(DIPPermissions.SliderHomePages.Default)]
+@using DIP.Blazor.Components
+@using DIP.SliderHomePages
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject ISliderHomePagesAppService SliderHomePagesAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+
+
+<PageHeader Title="@( $"{L[Id.IsNullOrEmpty()? "Create":"Update"]} {L["SliderHomePages"]}")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+<Card>
+    @if (Id.IsNullOrEmpty())
+    {
+        <Form id="CreateSliderHomePageForm">
+           
+            <CardBody>
+                <Tabs SelectedTab="@SelectedCreateTab" SelectedTabChanged="@OnSelectedCreateTabChanged">
+                    <Items>
+                        <Tab Name="create-tab-english">@L["English"]</Tab>
+                        <Tab Name="create-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                        <Validations @ref="@NewSliderHomePageValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@NewSliderHomePage"
+                                 ValidateOnLoad="false">
+                            <TabPanel Name="create-tab-english">
+
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewSliderHomePage.TitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                 <Validation>
+                                <Field>
+                                    <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                                    <MemoEdit @bind-Text="@NewSliderHomePage.DescriptionEn" Rows="3">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </MemoEdit>
+                                   @* <CustomRichTextEditor ContentChanged="@CreatingDescriptionEnOnContentChanged"></CustomRichTextEditor>*@
+                                </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["ButtonTitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewSliderHomePage.ButtonTitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["ButtonUrlEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewSliderHomePage.ButtonUrlEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                                 
+                                <Field>
+                                    <FieldLabel>@L["Image"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker  Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List">
+                                                 </FilePicker>
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia()">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+ 
+                                    @if (!SliderImage.IsNullOrEmpty() && !SliderImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(SliderImage)};base64,{Convert.ToBase64String(SliderImageContent)}"))"></div>
+                                    }
+
+                                </Field>                                
+                                
+                                    <Field>
+                                        <FieldLabel>@L["YoutubeUrl"]</FieldLabel>
+
+                                        <TextEdit @bind-Text="@NewSliderHomePage.YoutubeUrl">
+                                        </TextEdit>
+                                </Field>                               
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@NewSliderHomePage.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@NewSliderHomePage.IsActive">@L["IsActive"]</Check>
+                                </Field>
+                            </TabPanel>
+                            <TabPanel Name="create-tab-arabic">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewSliderHomePage.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@NewSliderHomePage.DescriptionAr" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                      @*  <CustomRichTextEditor ContentChanged="@CreatingDescriptionArOnContentChanged"></CustomRichTextEditor>*@
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["ButtonTitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewSliderHomePage.ButtonTitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["ButtonUrlAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewSliderHomePage.ButtonUrlAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                            </TabPanel>
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="CreateSliderHomePageForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="CreateSliderHomePageForm" Clicked="async()=> await CreateSliderHomePageAsync()" />
+
+            </CardFooter>
+            @if (ImageOrYoutubeError)
+            {
+                <div class="alert alert-danger alert-dismissible">
+                    <h4>@L["Message:OperationFailed"]</h4>
+                    <h5>@L["Message:ImageOrYoutubeRequired"]</h5>
+                </div>
+            }
+        </Form>
+    }
+    else
+    {
+        <Form id="EditSliderHomePageForm">
+            <CardBody>
+                <Tabs SelectedTab="@SelectedEditTab" SelectedTabChanged="@OnSelectedEditTabChanged">
+                    <Items>
+                        <Tab Name="edit-tab-english">@L["English"]</Tab>
+                        <Tab Name="edit-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                        <Validations @ref="@EditingSliderHomePageValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@EditingSliderHomePage"
+                                 ValidateOnLoad="false">
+                            <TabPanel Name="edit-tab-english">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingSliderHomePage.TitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                 <Validation>
+                                <Field>
+                                    <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                                    <MemoEdit @bind-Text="@EditingSliderHomePage.DescriptionEn" Rows="3">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </MemoEdit>
+                                    @*<CustomRichTextEditor InitValue="@EditingSliderHomePage.DescriptionEn" ContentChanged="@CreatingDescriptionEnOnContentChanged"></CustomRichTextEditor>*@
+                                </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["ButtonTitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingSliderHomePage.ButtonTitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["ButtonUrlEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingSliderHomePage.ButtonUrlEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                
+                                <Field>
+                                    <FieldLabel>@L["Image"]</FieldLabel>
+                                    
+                                        <Row>
+                                            <Column ColumnSize="ColumnSize.Is11">
+                                                <FilePicker Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List" />
+                                            </Column>
+                                            <Column ColumnSize="ColumnSize.Is1">
+                                                <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia()">@L["Reset"]</Button>
+                                            </Column>
+                                        </Row>
+                                        @if (SliderImageNewUpload && !SliderImage.IsNullOrEmpty() && !SliderImageContent.IsNullOrEmpty())
+                                        {
+                                            <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(SliderImage)};base64,{Convert.ToBase64String(SliderImageContent)}"))"></div>
+                                        }
+                                        else
+                                        {
+                                            if (!SliderImage.IsNullOrEmpty())
+                                            {
+                                                <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"{MimeTypes.MimeTypeMap.GetAttachmentPath()}/sliderHome/{SliderImage}"))"></div>
+                                            }
+                                        }
+                                  
+                                </Field>
+                               
+
+                               
+                                    <Field>
+                                        <FieldLabel>@L["YoutubeUrl"]</FieldLabel>
+                                        <TextEdit @bind-Text="EditingSliderHomePage.YoutubeUrl">
+                                        </TextEdit>
+                                      
+                                    </Field>
+                               
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@EditingSliderHomePage.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@EditingSliderHomePage.IsActive">@L["IsActive"]</Check>
+                                </Field>
+
+                            </TabPanel>
+                            <TabPanel Name="edit-tab-arabic">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingSliderHomePage.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@EditingSliderHomePage.DescriptionAr" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                        @*<CustomRichTextEditor InitValue="@EditingSliderHomePage.DescriptionEn" ContentChanged="@CreatingDescriptionArOnContentChanged"></CustomRichTextEditor>*@
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["ButtonTitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingSliderHomePage.ButtonTitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["ButtonUrlAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingSliderHomePage.ButtonUrlAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                            </TabPanel>
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="EditSliderHomePageForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="EditSliderHomePageForm" Clicked="async()=> await UpdateSliderHomePageAsync()" />
+            </CardFooter>
+            @if (ImageOrYoutubeError)
+            {
+                <div class="alert alert-danger alert-dismissible">
+                    <h4>@L["Message:OperationFailed"]</h4>
+                    <h5>@L["Message:ImageOrYoutubeRequired"]</h5>
+                </div>
+            }
+        </Form>
+
+    }
+
+</Card>
+
+
+

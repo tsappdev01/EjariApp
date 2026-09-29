@@ -1,0 +1,175 @@
+﻿@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@using DIP.Settings
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@inject IDIPSettingAppService DIPSettingAppService
+@page "/{lang}/Ejari/Renewal";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            Ejari Renewal
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:Home:Ejari"]</li>
+                            <li class="active"> Ejari Renewal</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!----page header----->
+<!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content ">
+
+    <!--feature-->
+    <section class="feature-section py-lg-5">
+        <!--===============spacing==============-->
+        <div class="pd_top_20"></div>
+        <!--===============spacing==============-->
+        <div class="container">
+            <div class="row justify-content-center">
+
+
+
+                <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
+                    <div class="login_left_side p-2 p-lg-5 border rounded_radius-5 bg_light_1">
+
+                        <div class="col-sm-12 text-center mb-4">
+                            <h2>
+                                Ejari Renewal
+                            </h2>
+                        </div>
+
+                        <div class="login_content_box">
+                            <div class="login_forms_box my-3">
+
+
+                                <div class="tab-content" id="pills-tabContent">
+                                    <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+
+                                        @if (@hasForgetError)
+                                        {
+                                            <div class="alert alert-danger" role="alert">
+                                                @RegisterMessageError
+                                            </div>
+                                        }
+                                        <EditForm EditContext="EditContextRenewal" OnValidSubmit="OnClickRenewal" OnInvalidSubmit="OnInvalid" class="login-register-form login">
+                                            <DataAnnotationsValidator></DataAnnotationsValidator>
+                                            <p class="form-row ">
+                                                <label for="username">Ejari Contract No :<span class="required">*</span></label>
+                                                <input @bind-value="@RenewalDTO.EjariContractNo" autocomplete="off" name="EjariContractNo" id="EjariContractNo"
+                                                       aria-required="true" aria-invalid="false">
+                                                <ValidationMessage For="@(() => RenewalDTO.EjariContractNo)" />
+                                            </p>
+                                            <p class="form-row  ">
+                                                <label for="password">Email Address (Tenant/Landlord):<span class="required">*</span></label>
+                                                <input @bind-value="@RenewalDTO.EmailAddress" autocomplete="off" type="text"
+                                                       aria-required="true" aria-invalid="false">
+
+                                                <ValidationMessage For="@(() => RenewalDTO.EmailAddress)" />
+
+                                            </p>
+                                            <br />
+                                            <p class="mb-5">
+                                                <MathCaptcha OnCaptchaVerified="(result) => OnSuccessCaptchaRenewal(result)" />
+                                                <ValidationMessage For="@(() => RenewalDTO.Captcha)" />
+                                            </p>
+                                            <p class="form-row mt-4 mb-2 text-center">
+                                                <button type="submit" disabled="@DisableButton" name="login" value="Log in" class="fs-6">Proceed</button>
+                                            </p>
+
+                                            <p class="w-100 text-center">
+                                                If the provided details are valid, you will be receive an email with reference code and pass code to proceed.
+                                            </p>
+
+                                        </EditForm>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                </div>
+                <div class="pd_top_20"></div>
+
+                <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
+                    <div class="login_left_side p-2 p-lg-5 border rounded_radius-5 bg_light_1">
+
+                        <div class="col-sm-12 text-center mb-4">
+                            <h2>
+                                @L["LoginToNocEjari"]
+                            </h2>
+                        </div>
+
+                        <div class="login_content_box">
+                            <div class="login_forms_box my-3">
+
+
+                                <div class="tab-content" id="pills-tabContent">
+                                    <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+
+                                        <p class="form-row mt-4 mb-2 text-center">
+                                            <button @onclick="async () => await NavigatToLogin()" type="submit" name="login" value="Log in" class="fs-6">@L["GoToLogin"]</button>
+                                        </p>
+                                    </div>
+                                    <br />
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                </div>
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_bottom_50"></div>
+        <!--===============spacing==============-->
+    </section>
+    <!---feature end-->
+
+
+</div>
+<!--===============PAGE CONTENT END==============-->

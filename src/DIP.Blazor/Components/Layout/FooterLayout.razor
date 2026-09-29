@@ -1,0 +1,257 @@
+﻿@using System.Globalization;
+<!-- footer-area-start -->
+@inherits DIPComponentBase
+
+<div class="footer_area" id="footer_contents">
+    @* <FooterLayout></FooterLayout> *@
+    <div class="footer_widgets_wrap" style="position: relative; overflow: hidden; background: url(assets/images/logoicon-white-1.svg) #6f6259; background-size: 50px;">
+        <!--===============spacing==============-->
+        <div class="pd_top_80"></div>
+        <!--===============spacing==============-->
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-sm-12 col-md-6 col-lg-6 col-xl-3">
+                    <div class="footer_widgets about_company light_color">
+                        <div class="about_company_inner">
+                            <div class="footer_logo">
+                                <a  target="_blank" rel="nofollow">
+                                    <img src="assets/images/logo-white-1.svg" class="img-fluid" alt="DIP" />
+                                </a>
+                                <!--===============spacing==============-->
+                                <div class="pd_bottom_30"></div>
+                                <!--===============spacing==============-->
+                            </div>
+                            <div class="content_box">
+                                <p>
+                                    @L["Site:Footer:FooterDescription"]
+                                </p>
+                            </div>
+                            <div class="mt-4">
+                                <div class="social_media_v_one">
+                                    <ul>
+                                        @if (@SiteSettingFrontEnd != null && !@SiteSettingFrontEnd.FaceBookLink.IsNullOrEmpty())
+                                        {
+                                            <li>
+                                                <a href="@SiteSettingFrontEnd?.FaceBookLink">
+                                                    <span class="fa fa-facebook"></span>
+                                                    <small>@L["Site:Footer:Facebook"]</small>
+                                                </a>
+                                            </li>
+                                        }
+                                        @if (@SiteSettingFrontEnd != null && !@SiteSettingFrontEnd.TwitterLink.IsNullOrEmpty())
+                                        {
+                                            <li>
+                                                <a href="@SiteSettingFrontEnd?.TwitterLink">
+                                                    <svg width="16" height="16" viewBox="0 0 300 300" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                                                        <path fill="" stroke="none" d="M178.57 127.15 290.27 0h-26.46l-97.03 110.38L89.34 0H0l117.13 166.93L0 300.25h26.46l102.4-116.59 81.8 116.59h89.34M36.01 19.54H76.66l187.13 262.13h-40.66"></path>
+                                                    </svg>
+                                                    <small>@L["Site:Footer:Twitter"]</small>
+                                                </a>
+                                            </li>
+                                        }
+                                        @if (@SiteSettingFrontEnd != null &&!@SiteSettingFrontEnd.InstagramLink.IsNullOrEmpty())
+                                        {
+                                            <li>
+                                                <a href="@SiteSettingFrontEnd?.InstagramLink">
+                                                    <span class="fa fa-instagram"></span>
+                                                    <small>@L["Site:Footer:Instagram"]</small>
+                                                </a>
+                                            </li>
+                                        }
+                                        @if (@SiteSettingFrontEnd != null && !@SiteSettingFrontEnd.LinkedinLink.IsNullOrEmpty())
+                                        {
+                                            <li>
+                                                <a href="@SiteSettingFrontEnd?.LinkedinLink">
+                                                    <span class="fa fa-linkedin"></span>
+                                                    <small>@L["Site:Footer:LinkedIn"]</small>
+                                                </a>
+                                            </li>
+                                        }
+                                        @if (@SiteSettingFrontEnd != null && !@SiteSettingFrontEnd.YouTubeLink.IsNullOrEmpty())
+                                        {
+                                            <li>
+                                                <a href="@SiteSettingFrontEnd?.YouTubeLink">
+                                                    <span class="fa fa-youtube"></span>
+                                                    <small>@L["Site:Footer:Youtube"]</small>
+                                                </a>
+                                            </li>
+                                        }
+
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12 col-md-3 col-lg-3 col-xl">
+                    <div class="footer_widgets wid_tit style_one">
+                        <div class="fo_wid_title">
+                            <h2>@L["Site:Footer:Company"]</h2>
+                        </div>
+                    </div>
+                    <!--===============spacing==============-->
+                    <div class="pd_bottom_25"></div>
+                    <!--===============spacing==============-->
+                    <div class="footer_widgets clearfix navigation_foo light_color style_one">
+                        <div class="navigation_foo_box">
+                            <div class="navigation_foo_inner">
+
+                                <ul class="menu">
+                                    <li><a href="@($"/{CultureInfo.CurrentCulture.Name}/about-us/our-profile")">@L["Site:Footer:AboutUs"]</a></li>
+                                    @*<li><a href="eservices.html">@L["Site:Footer:E-Services"]</a></li>*@
+                                    <li><a href="@($"/{CultureInfo.CurrentCulture.Name}/zones")">@L["Site:Footer:Zones"]</a></li>
+                                    <li><a href="@($"/{CultureInfo.CurrentCulture.Name}/amenities")">@L["Site:Footer:Amenities"]</a></li>
+                                </ul>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12 col-md-3 col-lg-3 col-xl">
+                    <div class="footer_widgets wid_tit style_one">
+                        <div class="fo_wid_title">
+                            <h2>@L["Site:Footer:UsefulLinks"]</h2>
+                        </div>
+                    </div>
+                    <!--===============spacing==============-->
+                    <div class="pd_bottom_25"></div>
+                    <!--===============spacing==============-->
+                    <div class="footer_widgets clearfix navigation_foo light_color style_one">
+                        <div class="navigation_foo_box">
+                            <div class="navigation_foo_box">
+                                <div class="navigation_foo_inner">
+
+                                    <ul class="menu">
+                                        <li><a href="@($"/{CultureInfo.CurrentCulture.Name}/media-center/upcoming-events")">@L["Site:Footer:Events"]</a></li>
+                                        <li><a href="@($"/{CultureInfo.CurrentCulture.Name}/directory")">@L["Site:Footer:Directory"]</a></li>
+                                        <li><a href="@($"/{CultureInfo.CurrentCulture.Name}/contact-us")">@L["Site:Footer:ContactUs"]</a></li>
+                                        <li><a href="@($"/{CultureInfo.CurrentCulture.Name}/sitemap")">@L["Site:Footer:Sitemap"]</a></li>
+                                    </ul>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12 col-md-6 col-lg-6 col-xl-3">
+                    <div class="footer_widgets wid_tit style_one">
+                        <div class="fo_wid_title">
+                            <h2>@L["Site:Footer:EmergencyNumber"]</h2>
+                        </div>
+                    </div>
+                    <!--===============spacing==============-->
+                    <div class="pd_bottom_25"></div>
+                    <!--===============spacing==============-->
+                    <div class="footer_widgets clearfix navigation_foo light_color style_one">
+                        <div class="navigation_foo_box">
+                            <div class="navigation_foo_inner">
+
+                                <ul class="menu">
+                                    @if (@SiteSettingFrontEnd != null &&!@SiteSettingFrontEnd.FireDepartmentPhone.IsNullOrEmpty())
+                                    {
+                                        <li><a href="tel:@SiteSettingFrontEnd?.FireDepartmentPhone"><p>@L["Site:Footer:FireDepartment"]</p>  <span>@SiteSettingFrontEnd?.FireDepartmentPhone</span></a></li>
+
+                                    }
+                                    @if (@SiteSettingFrontEnd != null &&!@SiteSettingFrontEnd.Emergency1Phone.IsNullOrEmpty())
+                                    {
+                                        <li><a href="tel:@SiteSettingFrontEnd?.Emergency1Phone"><p>@L["Site:Footer:Emergency1"]</p>  <span>@SiteSettingFrontEnd?.Emergency1Phone</span></a></li>
+                                    }
+                                    @if (@SiteSettingFrontEnd != null && !@SiteSettingFrontEnd.Emergency2Phone.IsNullOrEmpty())
+                                    {
+                                        <li><a href="tel:@SiteSettingFrontEnd?.Emergency2Phone"><p>@L["Site:Footer:Emergency2"]</p>  <span>@SiteSettingFrontEnd?.Emergency2Phone</span></a></li>
+                                    } 
+                                    @if (@SiteSettingFrontEnd != null && !@SiteSettingFrontEnd.PolicePost.IsNullOrEmpty())
+                                    {
+                                        <li><a href="tel:@SiteSettingFrontEnd?.PolicePost"><p>@L["Site:Footer:PolicePost"]</p>  <span>@SiteSettingFrontEnd?.PolicePost</span></a></li>
+                                    }
+                                </ul>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12 col-md-6 col-lg-6 col-xl-3">
+                    <div class="footer_widgets wid_tit style_one">
+                        <div class="fo_wid_title">
+                            <h2>@L["Site:Footer:GetInTouch"]</h2>
+                        </div>
+                    </div>
+                    <!--===============spacing==============-->
+                    <div class="pd_bottom_25"></div>
+                    <!--===============spacing==============-->
+                    <div class="footer_contact_list type_two">
+                        <a href="mailto:@SiteSettingFrontEnd?.DipEmail" class="color_white d-flex align-items-center">
+                            <span class="color_white footer-contact-icon">
+                                <i class="fa fa-envelope"></i>
+                            </span>
+                            @SiteSettingFrontEnd?.DipEmail
+                        </a>
+                    </div>
+                    <!--===============spacing==============-->
+                    <div class="pd_bottom_15"></div>
+                    <!--===============spacing==============-->
+                    <div class="footer_contact_list type_two">
+                        <a href="tel:@SiteSettingFrontEnd?.Phone" class="color_white d-flex align-items-center">
+                            <span class="color_white footer-contact-icon">
+                                <i class="fa fa-phone"></i>
+                            </span>
+                            @SiteSettingFrontEnd?.Phone
+                        </a>
+                    </div>
+                    <!--===============spacing==============-->
+                    <div class="pd_bottom_15"></div>
+                    <!--===============spacing==============-->
+                    <div class="footer_contact_list type_two">
+                        <a  class="color_white d-flex align-items-center">
+                            <span class="color_white footer-contact-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </span>
+                            @SiteSettingFrontEnd?.POBox
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_bottom_50"></div>
+        <!--===============spacing==============-->
+    </div>
+    <div class="dip-footer-copyright">
+
+        <div class="auto-container">
+            <div class="row align-items-center">
+
+                <div class="col-lg-6 col-md-12 col-sm-12 text-md-end">
+                    <!--===============spacing==============-->
+                    <div class="pd_top_10"></div>
+                    <!--===============spacing==============-->
+                    <div class="footer_copy_content_right">
+                     <ul>
+                            <li><a href="@($"/{CultureInfo.CurrentCulture.Name}/privacy-policy")">@L["Site:Footer:PrivacyPolicy"]</a></li>
+                            <li><a href="@($"/{CultureInfo.CurrentCulture.Name}/terms-of-use")">@L["Site:Footer:TermsOfUse"]</a></li>
+                        </ul>
+                    </div>
+                    <!--===============spacing==============-->
+                    <div class="pd_bottom_10"></div>
+                    <!--===============spacing==============-->
+                </div>
+                <div class="col-lg-6 col-md-12 col-sm-12">
+                    <!--===============spacing==============-->
+                    <div class="pd_top_10"></div>
+                    <!--===============spacing==============-->
+                    <div class="footer_copy_content">
+                        @DateTime.Now.Year <a>@L["Site:Footer:DubaiInvestmentsPark"]</a>&nbsp; @L["Site:Footer:AllRightsReserved"]
+                    </div>
+                    <!--===============spacing==============-->
+                    <div class="pd_bottom_10"></div>
+                    <!--===============spacing==============-->
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

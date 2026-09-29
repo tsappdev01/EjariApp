@@ -1,0 +1,542 @@
+
+
+@page "/zones"
+
+@attribute [Authorize(DIPPermissions.Zones.Default)]
+@using DIP.Zones
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IZonesAppService ZonesAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["Zones"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+        <Form id="ZoneSearchForm" class="mb-3">
+            <Addons>
+                <Addon AddonType="AddonType.Body">
+                    <TextEdit @bind-Text="@Filter.FilterText"
+                              Autofocus="true"
+                              Placeholder="@L["Search"]">
+                    </TextEdit>
+                </Addon>
+                <Addon AddonType="AddonType.End">
+                    <SubmitButton Form="ZoneSearchForm" Clicked="GetZonesAsync">
+                        <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                    </SubmitButton>
+                </Addon>
+            </Addons>
+        </Form>
+    </CardBody>
+</Card>
+
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>
+        <DataGrid TItem="ZoneDto"
+                  Data="ZoneList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="ZoneDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="ZoneDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="ZoneDto"
+                                          Visible="@CanEditZone"
+                                          Clicked="async () => await OpenEditZoneModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="ZoneDto"
+                                          Visible="@CanDeleteZone"
+                                          Clicked="() => DeleteZoneAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+               
+              <DataGridColumn TItem="ZoneDto"
+                      Field="TitleEn"
+                      Caption="@L["TitleEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="ZoneDto"
+                      Field="TitleAR"
+                      Caption="@L["TitleAR"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="ZoneDto"
+                      Field="MetaTitleEn"
+                      Caption="@L["MetaTitleEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="ZoneDto"
+                      Field="MetaDescriptionEn"
+                      Caption="@L["MetaDescriptionEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="ZoneDto"
+                      Field="MetaTitleAr"
+                      Caption="@L["MetaTitleAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="ZoneDto"
+                      Field="MetaDescriptionAr"
+                      Caption="@L["MetaDescriptionAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="ZoneDto"
+                      Field="Slug"
+                      Caption="@L["Slug"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="ZoneDto"
+                      Field="SummaryEn"
+                      Caption="@L["SummaryEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="ZoneDto"
+                      Field="SummaryAr"
+                      Caption="@L["SummaryAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="ZoneDto"
+                      Field="Image"
+                      Caption="@L["Image"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="ZoneDto"
+                      Field="HeaderImage"
+                      Caption="@L["HeaderImage"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="ZoneDto"
+                      Field="Order"
+                      Caption="@L["Order"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="ZoneDto"
+                      Field="IsFeature"
+                      Caption="@L["IsFeature"]">
+                    <DisplayTemplate>
+                        @if (context.IsFeature)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+
+
+              <DataGridColumn TItem="ZoneDto"
+                      Field="IsActive"
+                      Caption="@L["IsActive"]">
+                    <DisplayTemplate>
+                        @if (context.IsActive)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+
+
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateZoneModal" Closing="@CreateZoneModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="CreateZoneForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewZone"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateZoneModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewZoneValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewZone"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewZone.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAR"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewZone.TitleAR" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewZone.MetaTitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewZone.MetaDescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewZone.MetaTitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewZone.MetaDescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Slug"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewZone.Slug" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewZone.SummaryEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewZone.SummaryAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Image"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewZone.Image" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewZone.HeaderImage" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@NewZone.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewZone.IsFeature">@L["IsFeature"]</Check>
+                    </Field>
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewZone.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateZoneModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateZoneForm" Clicked="CreateZoneAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditZoneModal" Closing="@EditZoneModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="EditZoneForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditZoneModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingZoneValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingZone"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingZone.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAR"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingZone.TitleAR" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingZone.MetaTitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingZone.MetaDescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingZone.MetaTitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingZone.MetaDescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Slug"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingZone.Slug" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingZone.SummaryEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingZone.SummaryAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Image"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingZone.Image" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingZone.HeaderImage" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@EditingZone.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingZone.IsFeature">@L["IsFeature"]</Check>
+                    </Field>
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingZone.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditZoneModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateZoneForm" Clicked="UpdateZoneAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>

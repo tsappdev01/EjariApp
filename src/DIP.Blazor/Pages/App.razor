@@ -1,0 +1,42 @@
+@using Microsoft.Extensions.Options
+@using Microsoft.Extensions.Localization
+@using Volo.Abp.AspNetCore.Components.Web.LeptonXTheme;
+@using global::Localization.Resources.AbpUi
+@using Volo.Abp.AspNetCore.Components.Web.LeptonXTheme.Components.ApplicationLayout
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Routing
+@inject IOptions<AbpRouterOptions> RouterOptions
+@inject IOptions<LeptonXThemeBlazorOptions> LayoutOptions
+@*TODO: Inject here options for Layout*@
+
+@inject IStringLocalizer<AbpUiResource> UiLocalizer
+<CascadingAuthenticationState>
+    <Router AppAssembly="RouterOptions.Value.AppAssembly"
+            AdditionalAssemblies="RouterOptions.Value.AdditionalAssemblies">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@LayoutOptions.Value.Layout">
+                <NotAuthorized>
+                    @if (context.User?.Identity?.IsAuthenticated == false)
+                    {
+                        <RedirectToLogin/>
+                    }
+                    else
+                    {
+                        @* Temporary removed since it makes a flicker effect on page refresh *@
+                        @* <ErrorView
+                            Title="@UiLocalizer["403Message"]"
+                            HttpStatusCode="403"
+                            Message="@UiLocalizer["403MessageDetail"]"/> *@
+                    }
+                </NotAuthorized>
+            </AuthorizeRouteView>
+        </Found>
+        <NotFound>
+           
+                <ErrorView
+                    Title="@UiLocalizer["404Message"]"
+                    HttpStatusCode="404"
+                    Message="@UiLocalizer["404MessageDetail"]"/>
+            
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>

@@ -1,0 +1,381 @@
+@page "/admin/page-info-sections/edit/{id}"
+@page "/admin/page-info-sections/create"
+@attribute [Authorize(DIPPermissions.PageInfoSections.Default)]
+@using DIP.Blazor.Components
+@using DIP.PageInfoSections
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IPageInfoSectionsAppService PageInfoSectionsAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+
+
+<PageHeader Title="@( $"{L[Id.IsNullOrEmpty()? "Create":"Update"]} {L["PageInfoSections"]}")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+@* ************************* SEARCH ************************* *@
+
+<Card>
+    @if (Id.IsNullOrEmpty())
+    {
+
+        <Form id="CreatePageInfoSectionForm">
+            <CardBody>
+                <Tabs SelectedTab="@SelectedCreateTab" SelectedTabChanged="@OnSelectedCreateTabChanged">
+                    <Items>
+                        <Tab Name="create-tab-english">@L["English"]</Tab>
+                        <Tab Name="create-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                        <Validations @ref="@NewPageInfoSectionValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@NewPageInfoSection"
+                                 ValidateOnLoad="false">
+
+                            <TabPanel Name="create-tab-english">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewPageInfoSection.TitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SubTitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewPageInfoSection.SubTitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryEn"]</FieldLabel>
+                                        <MemoEdit Rows="3" @bind-Text="@NewPageInfoSection.SummaryEn" >
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                                    <CustomRichTextEditor ContentChanged="@CreatingDescriptionEnOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionEnValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionEnRequired"]
+                                    </div>
+                                }
+                                <Field>
+                                    <FieldLabel>@L["PageSectionMedia"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia()">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (!PageInfoSectionImage.IsNullOrEmpty() && !PageInfoSectionImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(PageInfoSectionImage)};base64,{Convert.ToBase64String(PageInfoSectionImageContent)}"))"></div>
+                                    }
+                                </Field>
+                                @if (ImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:ImageRequired"]
+                                    </div>
+                                }
+
+                                <Field>
+                                    <FieldLabel>@L["PageInfo"]</FieldLabel>
+                                    <Select TValue="Guid" @bind-SelectedValue="@NewPageInfoSection.PageInfoId">
+                                        @foreach (var pageInfo in PageInfosCollection)
+                                        {
+                                            <SelectItem TValue="Guid" Value="@pageInfo.Id">
+                                                @pageInfo.DisplayName
+                                            </SelectItem>
+                                        }
+                                    </Select>
+                                </Field>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@NewPageInfoSection.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@NewPageInfoSection.IsActive">@L["IsActive"]</Check>
+                                </Field>
+                            </TabPanel>
+                            <TabPanel Name="create-tab-arabic">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewPageInfoSection.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SubTitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewPageInfoSection.SubTitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryAr"]</FieldLabel>
+                                        <MemoEdit Rows="3" @bind-Text="@NewPageInfoSection.SummaryAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                                    <CustomRichTextEditor ContentChanged="@CreatingDescriptionArOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionArValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionArRequired"]
+                                    </div>
+                                }
+                            </TabPanel>
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="CreatePageInfoSectionForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="CreatePageInfoSectionForm" Clicked="async()=> await CreatePageInfoSectionAsync()" />
+            </CardFooter>
+        </Form>
+    }
+    else
+    {
+
+        <Form id="EditPageInfoSectionForm">
+            <CardBody>
+                <Tabs SelectedTab="@SelectedEditTab" SelectedTabChanged="@OnSelectedEditTabChanged">
+                    <Items>
+                        <Tab Name="edit-tab-english">@L["English"]</Tab>
+                        <Tab Name="edit-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+
+                        <Validations @ref="@EditingPageInfoSectionValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@EditingPageInfoSection"
+                                 ValidateOnLoad="false">
+                            <TabPanel Name="edit-tab-english">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingPageInfoSection.TitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SubTitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingPageInfoSection.SubTitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryEn"]</FieldLabel>
+                                        <MemoEdit Rows="3" @bind-Text="@EditingPageInfoSection.SummaryEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                                    <CustomRichTextEditor InitValue="@EditingPageInfoSection.DescriptionEn" ContentChanged="@EditingDescriptionEnOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionEnValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionEnRequired"]
+                                    </div>
+                                }
+                                <Field>
+                                    <FieldLabel>@L["PageSectionMedia"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia()">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (PageInfoSectionImageNewUpload && !PageInfoSectionImage.IsNullOrEmpty() && !PageInfoSectionImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(PageInfoSectionImage)};base64,{Convert.ToBase64String(PageInfoSectionImageContent)}"))"></div>
+                                    }
+                                    else
+                                    {
+                                        if (!PageInfoSectionImage.IsNullOrEmpty())
+                                        {
+                                            <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"{MimeTypes.MimeTypeMap.GetAttachmentPath()}/pageInfoSection/{PageInfoSectionImage}"))"></div>
+                                        }
+                                    }
+                                </Field>
+                                @if (ImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:ImageRequired"]
+                                    </div>
+                                }
+                                <Field>
+                                    <FieldLabel>@L["PageInfo"]</FieldLabel>
+                                    <Select TValue="Guid" @bind-SelectedValue="@EditingPageInfoSection.PageInfoId">
+                                        @foreach (var pageInfo in PageInfosCollection)
+                                        {
+                                            <SelectItem TValue="Guid" Value="@pageInfo.Id">
+                                                @pageInfo.DisplayName
+                                            </SelectItem>
+                                        }
+                                    </Select>
+                                </Field>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@EditingPageInfoSection.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@EditingPageInfoSection.IsActive">@L["IsActive"]</Check>
+                                </Field>
+                            </TabPanel>
+                            <TabPanel Name="edit-tab-arabic">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingPageInfoSection.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SubTitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingPageInfoSection.SubTitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryAr"]</FieldLabel>
+                                        <MemoEdit Rows="3" @bind-Text="@EditingPageInfoSection.SummaryAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                                    <CustomRichTextEditor  InitValue="@EditingPageInfoSection.DescriptionAr" ContentChanged="@EditingDescriptionArOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionArValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionArRequired"]
+                                    </div>
+                                }
+                            </TabPanel>
+
+
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="EditPageInfoSectionForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="EditPageInfoSectionForm" Clicked="async()=> await UpdatePageInfoSectionAsync()" />
+            </CardFooter>
+
+        </Form>
+    }
+
+    @* ************************* EDIT MODAL ************************* *@
+</Card>

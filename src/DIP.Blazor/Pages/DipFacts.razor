@@ -1,0 +1,344 @@
+
+
+@page "/dip-facts"
+
+@attribute [Authorize(DIPPermissions.DipFacts.Default)]
+@using DIP.DipFacts
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IDipFactsAppService DipFactsAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["DipFacts"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+        <Form id="DipFactSearchForm" class="mb-3">
+            <Addons>
+                <Addon AddonType="AddonType.Body">
+                    <TextEdit @bind-Text="@Filter.FilterText"
+                              Autofocus="true"
+                              Placeholder="@L["Search"]">
+                    </TextEdit>
+                </Addon>
+                <Addon AddonType="AddonType.End">
+                    <SubmitButton Form="DipFactSearchForm" Clicked="GetDipFactsAsync">
+                        <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                    </SubmitButton>
+                </Addon>
+            </Addons>
+        </Form>
+    </CardBody>
+</Card>
+
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>
+        <DataGrid TItem="DipFactDto"
+                  Data="DipFactList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="DipFactDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="DipFactDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="DipFactDto"
+                                          Visible="@CanEditDipFact"
+                                          Clicked="async () => await OpenEditDipFactModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="DipFactDto"
+                                          Visible="@CanDeleteDipFact"
+                                          Clicked="() => DeleteDipFactAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+               
+              <DataGridColumn TItem="DipFactDto"
+                      Field="Image"
+                      Caption="@L["Image"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="DipFactDto"
+                      Field="TitleAr"
+                      Caption="@L["TitleAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="DipFactDto"
+                      Field="TitleEn"
+                      Caption="@L["TitleEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="DipFactDto"
+                      Field="DescriptionAr"
+                      Caption="@L["DescriptionAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="DipFactDto"
+                      Field="DescriptionEn"
+                      Caption="@L["DescriptionEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="DipFactDto"
+                      Field="Order"
+                      Caption="@L["Order"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="DipFactDto"
+                      Field="IsActive"
+                      Caption="@L["IsActive"]">
+                    <DisplayTemplate>
+                        @if (context.IsActive)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+
+
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateDipFactModal" Closing="@CreateDipFactModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="CreateDipFactForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewDipFact"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateDipFactModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewDipFactValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewDipFact"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Image"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewDipFact.Image" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewDipFact.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewDipFact.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewDipFact.DescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewDipFact.DescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@NewDipFact.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewDipFact.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateDipFactModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateDipFactForm" Clicked="CreateDipFactAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditDipFactModal" Closing="@EditDipFactModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="EditDipFactForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditDipFactModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingDipFactValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingDipFact"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Image"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingDipFact.Image" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingDipFact.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingDipFact.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingDipFact.DescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingDipFact.DescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@EditingDipFact.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingDipFact.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditDipFactModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateDipFactForm" Clicked="UpdateDipFactAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>

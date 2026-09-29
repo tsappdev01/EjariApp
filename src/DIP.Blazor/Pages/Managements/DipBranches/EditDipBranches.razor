@@ -1,0 +1,338 @@
+
+
+@page "/admin/dip-branches/edit/{id}"
+@page "/admin/dip-branches/create"
+@attribute [Authorize(DIPPermissions.DipBranches.Default)]
+@using DIP.DipBranches
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IDipBranchesAppService DipBranchesAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+
+<PageHeader Title="@( $"{L[Id.IsNullOrEmpty()? "Create":"Update"]} {L["DipBranches"]}")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+
+@* ************************* CREATE MODAL ************************* *@
+
+
+<Card>
+    @if (Id.IsNullOrEmpty())
+    {
+        <Form id="CreateDipBranchForm">
+            <CardBody>
+                <Tabs SelectedTab="@SelectedCreateTab" SelectedTabChanged="@OnSelectedCreateTabChanged">
+                    <Items>
+                        <Tab Name="create-tab-english">@L["English"]</Tab>
+                        <Tab Name="create-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content> 
+                        <Validations @ref="@NewDipBranchValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewDipBranch"
+                            ValidateOnLoad="false">
+
+                            <TabPanel Name="create-tab-english">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewDipBranch.TitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SubTitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewDipBranch.SubTitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Phone"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewDipBranch.Phone">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["AlternativePhone"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewDipBranch.AlternativePhone">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Email"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewDipBranch.Email" Role="TextRole.Email">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["AlternativeEmail"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewDipBranch.AlternativeEmail" Role="TextRole.Email">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@NewDipBranch.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@NewDipBranch.IsActive">@L["IsActive"]</Check>
+                                </Field>
+                            </TabPanel>
+
+
+                            <TabPanel Name="create-tab-arabic">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewDipBranch.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+
+
+
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SubTitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewDipBranch.SubTitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                            </TabPanel>
+
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="CreateDipBranchForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="CreateDipBranchForm" Clicked="async()=> await CreateDipBranchAsync()" />
+            </CardFooter>
+        </Form>
+    }
+
+    @* ************************* EDIT MODAL ************************* *@
+    else
+    {
+        <Form id="EditDipBranchForm">
+            <CardBody>
+                <Tabs SelectedTab="@SelectedEditTab" SelectedTabChanged="@OnSelectedEditTabChanged">
+                    <Items>
+                        <Tab Name="edit-tab-english">@L["English"]</Tab>
+                        <Tab Name="edit-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                <Validations @ref="@EditingDipBranchValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingDipBranch"
+                            ValidateOnLoad="false">
+                     
+                <TabPanel Name="edit-tab-english">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingDipBranch.TitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SubTitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingDipBranch.SubTitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Phone"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingDipBranch.Phone">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["AlternativePhone"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingDipBranch.AlternativePhone">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Email"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingDipBranch.Email" Role="TextRole.Email">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["AlternativeEmail"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingDipBranch.AlternativeEmail" Role="TextRole.Email">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@EditingDipBranch.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@EditingDipBranch.IsActive">@L["IsActive"]</Check>
+                                </Field>
+
+                    </TabPanel>
+    
+                   
+                 <TabPanel Name="edit-tab-arabic">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingDipBranch.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+
+
+
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SubTitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingDipBranch.SubTitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                     </TabPanel>
+
+
+
+
+                 
+                    
+                    
+                </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="EditDipBranchForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="EditDipBranchForm" Clicked="async()=> await UpdateDipBranchAsync()" />
+            </CardFooter>
+         
+        </Form>
+    }
+  </Card>

@@ -1,0 +1,460 @@
+
+
+@page "/amenities"
+
+@attribute [Authorize(DIPPermissions.Amenities.Default)]
+@using DIP.Amenities
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IAmenitiesAppService AmenitiesAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["Amenities"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+        <Form id="AmenitySearchForm" class="mb-3">
+            <Addons>
+                <Addon AddonType="AddonType.Body">
+                    <TextEdit @bind-Text="@Filter.FilterText"
+                              Autofocus="true"
+                              Placeholder="@L["Search"]">
+                    </TextEdit>
+                </Addon>
+                <Addon AddonType="AddonType.End">
+                    <SubmitButton Form="AmenitySearchForm" Clicked="GetAmenitiesAsync">
+                        <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                    </SubmitButton>
+                </Addon>
+            </Addons>
+        </Form>
+    </CardBody>
+</Card>
+
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>
+        <DataGrid TItem="AmenityDto"
+                  Data="AmenityList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="AmenityDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="AmenityDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="AmenityDto"
+                                          Visible="@CanEditAmenity"
+                                          Clicked="async () => await OpenEditAmenityModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="AmenityDto"
+                                          Visible="@CanDeleteAmenity"
+                                          Clicked="() => DeleteAmenityAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+               
+              <DataGridColumn TItem="AmenityDto"
+                      Field="TitleEn"
+                      Caption="@L["TitleEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="AmenityDto"
+                      Field="TitleAr"
+                      Caption="@L["TitleAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="AmenityDto"
+                      Field="MetaTitleEn"
+                      Caption="@L["MetaTitleEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="AmenityDto"
+                      Field="MetaDescriptionEn"
+                      Caption="@L["MetaDescriptionEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="AmenityDto"
+                      Field="MetaTitleAr"
+                      Caption="@L["MetaTitleAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="AmenityDto"
+                      Field="MetaDescriptionAr"
+                      Caption="@L["MetaDescriptionAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="AmenityDto"
+                      Field="Slug"
+                      Caption="@L["Slug"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="AmenityDto"
+                      Field="HeaderImage"
+                      Caption="@L["HeaderImage"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="AmenityDto"
+                      Field="Image"
+                      Caption="@L["Image"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="AmenityDto"
+                      Field="Order"
+                      Caption="@L["Order"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="AmenityDto"
+                      Field="IsActive"
+                      Caption="@L["IsActive"]">
+                    <DisplayTemplate>
+                        @if (context.IsActive)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+
+
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateAmenityModal" Closing="@CreateAmenityModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="CreateAmenityForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewAmenity"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateAmenityModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewAmenityValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewAmenity"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewAmenity.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewAmenity.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewAmenity.MetaTitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewAmenity.MetaDescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewAmenity.MetaTitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewAmenity.MetaDescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Slug"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewAmenity.Slug" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewAmenity.HeaderImage" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Image"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewAmenity.Image" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@NewAmenity.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewAmenity.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateAmenityModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateAmenityForm" Clicked="CreateAmenityAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditAmenityModal" Closing="@EditAmenityModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="EditAmenityForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditAmenityModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingAmenityValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingAmenity"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingAmenity.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingAmenity.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingAmenity.MetaTitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingAmenity.MetaDescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingAmenity.MetaTitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingAmenity.MetaDescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Slug"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingAmenity.Slug" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingAmenity.HeaderImage" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Image"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingAmenity.Image" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@EditingAmenity.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingAmenity.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditAmenityModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateAmenityForm" Clicked="UpdateAmenityAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>

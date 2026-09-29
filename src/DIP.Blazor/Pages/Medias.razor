@@ -1,0 +1,383 @@
+
+
+@page "/medias"
+
+@attribute [Authorize(DIPPermissions.Medias.Default)]
+@using DIP.Medias
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IMediasAppService MediasAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["Medias"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+        <Form id="MediaSearchForm" class="mb-3">
+            <Addons>
+                <Addon AddonType="AddonType.Body">
+                    <TextEdit @bind-Text="@Filter.FilterText"
+                              Autofocus="true"
+                              Placeholder="@L["Search"]">
+                    </TextEdit>
+                </Addon>
+                <Addon AddonType="AddonType.End">
+                    <SubmitButton Form="MediaSearchForm" Clicked="GetMediasAsync">
+                        <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                    </SubmitButton>
+                </Addon>
+            </Addons>
+        </Form>
+    </CardBody>
+</Card>
+
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>
+        <DataGrid TItem="MediaWithNavigationPropertiesDto"
+                  Data="MediaList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="MediaWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="MediaWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="MediaWithNavigationPropertiesDto"
+                                          Visible="@CanEditMedia"
+                                          Clicked="async () => await OpenEditMediaModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="MediaWithNavigationPropertiesDto"
+                                          Visible="@CanDeleteMedia"
+                                          Clicked="() => DeleteMediaAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+               
+              <DataGridColumn TItem="MediaWithNavigationPropertiesDto"
+                      Field="Media.TitleEn"
+                      Caption="@L["TitleEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="MediaWithNavigationPropertiesDto"
+                      Field="Media.TitleAr"
+                      Caption="@L["TitleAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="MediaWithNavigationPropertiesDto"
+                      Field="Media.File"
+                      Caption="@L["File"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="MediaWithNavigationPropertiesDto"
+                      Field="Media.Order"
+                      Caption="@L["Order"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="MediaWithNavigationPropertiesDto"
+                      Field="Media.IsActive"
+                      Caption="@L["IsActive"]">
+                    <DisplayTemplate>
+                        @if (context.Media.IsActive)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+
+
+              <DataGridColumn TItem="MediaWithNavigationPropertiesDto"
+                      Field="ZoneParagraph.TitleEn"
+                      Caption="@L["ZoneParagraph"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="MediaWithNavigationPropertiesDto"
+                      Field="AmenityParagraph.TitleEn"
+                      Caption="@L["AmenityParagraph"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="MediaWithNavigationPropertiesDto"
+                      Field="MediaGallery.TitleEn"
+                      Caption="@L["MediaGallery"]">
+              </DataGridColumn>
+
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateMediaModal" Closing="@CreateMediaModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="CreateMediaForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewMedia"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateMediaModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewMediaValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewMedia"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewMedia.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewMedia.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["File"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewMedia.File" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@NewMedia.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewMedia.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["ZoneParagraph"]</FieldLabel>
+                        <Select TValue="Guid?" @bind-SelectedValue="@NewMedia.ZoneParagraphId">
+                            <SelectItem TValue="Guid?" Value="null"></SelectItem>
+                            @foreach (var zoneParagraph in ZoneParagraphsCollection)
+                            {
+                                <SelectItem TValue="Guid?" Value="@zoneParagraph.Id">
+                                    @zoneParagraph.DisplayName
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+
+
+                    <Field>
+                        <FieldLabel>@L["AmenityParagraph"] </FieldLabel>
+                        <Autocomplete Data="@AmenityParagraphsCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid?"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id )"
+                                      SearchChanged="@GetAmenityParagraphCollectionLookupAsync"
+                                      @bind-SelectedValue="@NewMedia.AmenityParagraphId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+
+
+                    <Field>
+                        <FieldLabel>@L["MediaGallery"]</FieldLabel>
+                        <Select TValue="Guid?" @bind-SelectedValue="@NewMedia.MediaGalleryId">
+                            <SelectItem TValue="Guid?" Value="null"></SelectItem>
+                            @foreach (var mediaGallery in MediaGalleriesCollection)
+                            {
+                                <SelectItem TValue="Guid?" Value="@mediaGallery.Id">
+                                    @mediaGallery.DisplayName
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateMediaModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateMediaForm" Clicked="CreateMediaAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditMediaModal" Closing="@EditMediaModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="EditMediaForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditMediaModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingMediaValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingMedia"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingMedia.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingMedia.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["File"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingMedia.File" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@EditingMedia.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingMedia.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["ZoneParagraph"]</FieldLabel>
+                        <Select TValue="Guid?" @bind-SelectedValue="@EditingMedia.ZoneParagraphId">
+                            <SelectItem TValue="Guid?" Value="null"></SelectItem>
+                            @foreach (var zoneParagraph in ZoneParagraphsCollection)
+                            {
+                                <SelectItem TValue="Guid?" Value="@zoneParagraph.Id">
+                                    @zoneParagraph.DisplayName
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+
+
+                    <Field>
+                        <FieldLabel>@L["AmenityParagraph"] </FieldLabel>
+                        <Autocomplete Data="@AmenityParagraphsCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid?"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id )"
+                                      SearchChanged="@GetAmenityParagraphCollectionLookupAsync"
+                                      @bind-SelectedValue="@EditingMedia.AmenityParagraphId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+
+
+                    <Field>
+                        <FieldLabel>@L["MediaGallery"]</FieldLabel>
+                        <Select TValue="Guid?" @bind-SelectedValue="@EditingMedia.MediaGalleryId">
+                            <SelectItem TValue="Guid?" Value="null"></SelectItem>
+                            @foreach (var mediaGallery in MediaGalleriesCollection)
+                            {
+                                <SelectItem TValue="Guid?" Value="@mediaGallery.Id">
+                                    @mediaGallery.DisplayName
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditMediaModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateMediaForm" Clicked="UpdateMediaAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>

@@ -1,0 +1,181 @@
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@page "/{lang}/about-us/our-profile";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+<!----page header----->
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @PageInfoFrontEnd?.Title
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:AboutUs"]</li>
+                            <li class="active">@L["Site:DipProfile"]</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!----page header----->
+<!--===============PAGE CONTENT==============-->
+<!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content ">
+    <!---image-box-section---->
+    <section class="image-box-section py-lg-5 bg_light_1">
+        <!--===============spacing==============-->
+        <div class="pd_top_80"></div>
+        <!--===============spacing==============-->
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-xl-6 col-lg-12 order-lg-1 order-md-2 order-sm-2 order-2">
+                    <div class="title_all_box style_one dark_color">
+                        <div class="title_sections ">
+                            <div class="title text-uppercase text-primary-color mb-4">@PageInfoFrontEnd?.PageInfoArticleTilte</div>
+                            @((MarkupString)PageInfoFrontEnd?.Description)
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-1"></div>
+                <div class="col-xl-5 col-lg-12 mb-5 mb-lg-5 mb-xl-0 order-lg-2 order-md-1 order-sm-1 order-1">
+                    <div class="image_boxes style_three">
+                        <img src="@PageInfoFrontEnd?.Image" class="img-fluid" alt="@PageInfoFrontEnd?.PageInfoArticleTilte" />
+                        <div class="video_box">
+                            <a href="@PageInfoFrontEnd?.YouTubeUrl" class="lightbox-image">
+                                <i class="fa fa-play"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_bottom_80"></div>
+        <!--===============spacing==============-->
+    </section>
+    <!---image-box-section-end---->
+    @if (PageInfoFrontEnd != null && !PageInfoFrontEnd.PageInfoSections.IsNullOrEmpty())
+    {
+        foreach (var singlePageSection in PageInfoFrontEnd.PageInfoSections)
+        {
+            <section class="image-box-section py-lg-5">
+                <!--===============spacing==============-->
+                <div class="pd_top_80"></div>
+                <!--===============spacing==============-->
+                <div class="auto-container">
+                    <div class="row">
+                        <div class="col-xl-12 col-lg-12 mb-5 mb-lg-5 mb-xl-0">
+                            <img src="@singlePageSection?.PageSectionMedia" class="img-fluid" alt="DIP">
+                        </div>
+
+                    </div>
+                </div>
+                <!--===============spacing==============-->
+                <div class="pd_bottom_80"></div>
+                <!--===============spacing==============-->
+            </section>
+
+        }
+
+    }
+
+</div>
+
+
+    @if (!DipFactList.IsNullOrEmpty())
+    {
+        <section class="funfact-section bg_light_1 py-lg-5">
+            <!--===============spacing==============-->
+            <div class="pd_bottom_80"></div>
+            <!--===============spacing==============-->
+            <div class="auto-container">
+                <div class="row">
+                    <div class="col-lg-3 d-flex align-items-center">
+                        <div class="title_all_box style_seven dark_color  d-flex align-items-center">
+                            <div class="title_sections">
+                                <div class="title text-uppercase text-primary-color"> @L["Site:Home:DIP"]<br> @L["Site:Home:FACTS"]</div>
+                                <p class="mb-0">
+                                    @L["Site:Home:DIPFactsDescription"]
+                                </p>
+                            </div>
+                            <!--===============spacing==============-->
+                            <div class="mr_bottom_50"></div>
+                            <!--===============spacing==============-->
+                        </div>
+                    </div>
+
+                    <div class="col-lg-9">
+                        <div class="section__counter four_column">
+                            <div class="grid_show_case grid_layout clearfix" style="position: relative; height: 231.219px;">
+                                @{
+                                    int index = 0;
+                                    foreach (var dipFact in DipFactList)
+                                    {
+                                        <div class="grid_box _card" style="position: absolute; left: @($"{index*25}%;") top: 0px;">
+                                            <div class="counter-block style_one count-box counted">
+                                                <div class="icon_box  ">
+                                                    <div class="icon">
+                                                        <img src="@dipFact.Image" class="img-fluid svg_image" alt="@dipFact.Title" />
+                                                    </div>
+                                                    <div class="coun_ter">
+                                                        <span class="count-text" data-speed="1500" data-stop="100">@dipFact.Title</span>
+                                                        <!-- <small>%</small> -->
+                                                    </div>
+                                                </div>
+                                                <div class="content_box">
+                                                    <h6>@dipFact.Description</h6>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        index++;
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--===============spacing==============-->
+            <div class="pd_bottom_70"></div>
+            <!--===============spacing==============-->
+        </section>
+    }
+
+
+<!--===============PAGE CONTENT END==============-->
+<!--===============PAGE CONTENT END==============-->

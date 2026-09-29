@@ -1,0 +1,317 @@
+
+
+@page "/major-industries"
+
+@attribute [Authorize(DIPPermissions.MajorIndustries.Default)]
+@using DIP.MajorIndustries
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IMajorIndustriesAppService MajorIndustriesAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["MajorIndustries"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+        <Form id="MajorIndustrySearchForm" class="mb-3">
+            <Addons>
+                <Addon AddonType="AddonType.Body">
+                    <TextEdit @bind-Text="@Filter.FilterText"
+                              Autofocus="true"
+                              Placeholder="@L["Search"]">
+                    </TextEdit>
+                </Addon>
+                <Addon AddonType="AddonType.End">
+                    <SubmitButton Form="MajorIndustrySearchForm" Clicked="GetMajorIndustriesAsync">
+                        <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                    </SubmitButton>
+                </Addon>
+            </Addons>
+        </Form>
+    </CardBody>
+</Card>
+
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>
+        <DataGrid TItem="MajorIndustryWithNavigationPropertiesDto"
+                  Data="MajorIndustryList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="MajorIndustryWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="MajorIndustryWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="MajorIndustryWithNavigationPropertiesDto"
+                                          Visible="@CanEditMajorIndustry"
+                                          Clicked="async () => await OpenEditMajorIndustryModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="MajorIndustryWithNavigationPropertiesDto"
+                                          Visible="@CanDeleteMajorIndustry"
+                                          Clicked="() => DeleteMajorIndustryAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+               
+              <DataGridColumn TItem="MajorIndustryWithNavigationPropertiesDto"
+                      Field="MajorIndustry.TitleEn"
+                      Caption="@L["TitleEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="MajorIndustryWithNavigationPropertiesDto"
+                      Field="MajorIndustry.TitleAr"
+                      Caption="@L["TitleAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="MajorIndustryWithNavigationPropertiesDto"
+                      Field="MajorIndustry.Image"
+                      Caption="@L["Image"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="MajorIndustryWithNavigationPropertiesDto"
+                      Field="MajorIndustry.Order"
+                      Caption="@L["Order"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="MajorIndustryWithNavigationPropertiesDto"
+                      Field="MajorIndustry.IsActive"
+                      Caption="@L["IsActive"]">
+                    <DisplayTemplate>
+                        @if (context.MajorIndustry.IsActive)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+
+
+              <DataGridColumn TItem="MajorIndustryWithNavigationPropertiesDto"
+                      Field="Zone.TitleEn"
+                      Caption="@L["Zone"]">
+              </DataGridColumn>
+
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateMajorIndustryModal" Closing="@CreateMajorIndustryModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="CreateMajorIndustryForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewMajorIndustry"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateMajorIndustryModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewMajorIndustryValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewMajorIndustry"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewMajorIndustry.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewMajorIndustry.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Image"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewMajorIndustry.Image" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@NewMajorIndustry.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewMajorIndustry.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["Zone"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@NewMajorIndustry.ZoneId">
+                            @foreach (var zone in ZonesCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@zone.Id">
+                                    @zone.DisplayName
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateMajorIndustryModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateMajorIndustryForm" Clicked="CreateMajorIndustryAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditMajorIndustryModal" Closing="@EditMajorIndustryModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="EditMajorIndustryForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditMajorIndustryModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingMajorIndustryValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingMajorIndustry"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingMajorIndustry.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingMajorIndustry.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Image"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingMajorIndustry.Image" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@EditingMajorIndustry.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingMajorIndustry.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["Zone"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@EditingMajorIndustry.ZoneId">
+                            @foreach (var zone in ZonesCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@zone.Id">
+                                    @zone.DisplayName
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditMajorIndustryModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateMajorIndustryForm" Clicked="UpdateMajorIndustryAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>

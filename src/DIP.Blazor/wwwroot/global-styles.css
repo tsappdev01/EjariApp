@@ -1,0 +1,20 @@
+/* Your Global Styles */
+
+:root .lpx-theme-dim, :root .lpx-theme-dark {
+    --lpx-logo: url('/images/logo/leptonx/logo-light.png');
+    --lpx-logo-icon: url('/images/logo/leptonx/logo-light-thumbnail.png');
+}
+
+:root .lpx-theme-light {
+    --lpx-logo: url('/images/logo/leptonx/logo-dark.png');
+    --lpx-logo-icon: url('/images/logo/leptonx/logo-dark-thumbnail.png');
+}
+
+.b-is-autocomplete.b-is-autocomplete-multipleselection > input.form-control {
+    margin: 0;
+}
+
+.b-is-autocomplete.b-is-autocomplete-multipleselection > .badge,
+.b-is-autocomplete.b-is-autocomplete-multipleselection > .badge .badge-close {
+    background: #6f6259 !important;
+}

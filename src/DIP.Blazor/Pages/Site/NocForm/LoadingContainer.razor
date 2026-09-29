@@ -1,0 +1,155 @@
+﻿@* LoadingContainer.razor *@
+
+<div class="loading-container">
+    <div class="loading-content">
+        <span class="loading-text">@LoadingText</span>
+        <div class="loading-dots">
+            <svg width="60" height="10" viewBox="0 0 60 10" xmlns="http://www.w3.org/2000/svg">
+                <circle class="dot dot-1" cx="5" cy="5" r="4" fill="#ffffff" />
+                <circle class="dot dot-2" cx="25" cy="5" r="4" fill="#ffffff" />
+                <circle class="dot dot-3" cx="45" cy="5" r="4" fill="#ffffff" />
+            </svg>
+        </div>
+    </div>
+</div>
+
+<style>
+    .loading-container {
+        width: 100%;
+        height: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #8b7355 0%, #6d5d4b 100%);
+        border-radius: 8px;
+        padding: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .loading-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .loading-text {
+        color: white;
+        font-size: 12px;
+        font-weight: 600;
+        animation: fadeInOut 2s ease-in-out infinite;
+    }
+
+    @@keyframes fadeInOut {
+        0%, 100% {
+            opacity: 0.6;
+        }
+
+        50% {
+            opacity: 1;
+        }
+    }
+
+    .loading-dots {
+        display: flex;
+        align-items: center;
+        height: 40px;
+    }
+
+        .loading-dots svg {
+            display: block;
+        }
+
+    .dot {
+        animation: bounce 1.4s infinite ease-in-out both;
+        transform-origin: center;
+    }
+
+    .dot-1 {
+        animation-delay: 0s;
+    }
+
+    .dot-2 {
+        animation-delay: 0.2s;
+    }
+
+    .dot-3 {
+        animation-delay: 0.4s;
+    }
+
+    @@keyframes bounce {
+        0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: 0.5;
+        }
+
+        30% {
+            transform: translateY(-8px);
+            opacity: 1;
+        }
+    }
+</style>
+
+@code {
+    [Parameter]
+    public string LoadingText { get; set; } = "Uploading";
+}
+
+@* Usage Examples:
+
+1. Basic Usage:
+<LoadingContainer />
+
+2. Custom Text:
+<LoadingContainer LoadingText="Processing" />
+
+3. Conditional Display:
+@if (isLoading)
+{
+    <LoadingContainer LoadingText="Loading Data" />
+}
+
+4. In a Page:
+@page "/upload"
+
+<h3>File Upload</h3>
+
+@if (isUploading)
+{
+    <LoadingContainer LoadingText="Uploading" />
+}
+else
+{
+    <button class="btn btn-primary" @onclick="StartUpload">Upload File</button>
+}
+
+@code {
+    private bool isUploading = false;
+
+    private async Task StartUpload()
+    {
+        isUploading = true;
+        StateHasChanged();
+        
+        // Your upload logic here
+        await Task.Delay(3000);
+        
+        isUploading = false;
+        StateHasChanged();
+    }
+}
+
+5. Different Loading States:
+@if (isUploading)
+{
+    <LoadingContainer LoadingText="Uploading" />
+}
+else if (isProcessing)
+{
+    <LoadingContainer LoadingText="Processing" />
+}
+else if (isValidating)
+{
+    <LoadingContainer LoadingText="Validating" />
+}
+
+*@

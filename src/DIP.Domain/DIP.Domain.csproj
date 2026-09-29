@@ -1,0 +1,57 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<Import Project="..\..\common.props" />
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<RootNamespace>DIP</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\DIP.Domain.Shared\DIP.Domain.Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="DotLiquid" Version="2.3.18" />
+		<PackageReference Include="HtmlAgilityPack" Version="1.11.72" />
+
+		<PackageReference Include="System.ServiceModel.Duplex" Version="6.0.0" />
+
+		<PackageReference Include="System.ServiceModel.Federation" Version="8.1.2" />
+
+		<PackageReference Include="System.ServiceModel.Http" Version="8.1.2" />
+
+		<PackageReference Include="System.ServiceModel.NetTcp" Version="8.1.2" />
+
+		<PackageReference Include="System.ServiceModel.Primitives" Version="8.1.2" />
+
+		<PackageReference Include="System.ServiceModel.Security" Version="6.0.*" />
+
+		<PackageReference Include="Volo.Abp.Emailing" Version="9.0.4" />
+		<PackageReference Include="Volo.Abp.Caching" Version="9.0.4" />
+		<PackageReference Include="Volo.Abp.PermissionManagement.Domain.Identity" Version="9.0.4" />
+		<PackageReference Include="Volo.Abp.OpenIddict.Pro.Domain" Version="9.0.4" />
+		<PackageReference Include="Volo.Abp.PermissionManagement.Domain.OpenIddict" Version="9.0.4" />
+		<PackageReference Include="Volo.Abp.BackgroundJobs.Domain" Version="9.0.4" />
+		<PackageReference Include="Volo.Abp.AuditLogging.Domain" Version="9.0.4" />
+		<PackageReference Include="Volo.Abp.FeatureManagement.Domain" Version="9.0.4" />
+		<PackageReference Include="Volo.Abp.SettingManagement.Domain" Version="9.0.4" />
+		<PackageReference Include="Volo.Abp.BlobStoring.Database.Domain" Version="9.0.4" />
+		<PackageReference Include="Volo.Abp.Identity.Pro.Domain" Version="9.0.4" />
+		<PackageReference Include="Volo.Abp.LanguageManagement.Domain" Version="9.0.4" />
+		<PackageReference Include="Volo.Saas.Domain" Version="9.0.4" />
+		<PackageReference Include="Volo.Abp.TextTemplateManagement.Domain" Version="9.0.4" />
+		<PackageReference Include="Volo.Abp.Commercial.SuiteTemplates" Version="9.0.4" />
+		<PackageReference Include="Volo.Abp.Gdpr.Domain" Version="9.0.4" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Connected Services\StgDipService\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Connected Services\StgDipService\" />
+	</ItemGroup>
+
+</Project>

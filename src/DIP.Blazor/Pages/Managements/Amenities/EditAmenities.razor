@@ -1,0 +1,381 @@
+@page "/admin/amenities/edit/{id}"
+@page "/admin/amenities/create/"
+
+@attribute [Authorize(DIPPermissions.Amenities.Default)]
+@using DIP.Amenities
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IAmenitiesAppService AmenitiesAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+
+
+<PageHeader Title="@( $"{L[Id.IsNullOrEmpty()? "Create":"Update"]} {L["Amenities"]}")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+
+
+
+<Card>
+    @if (Id.IsNullOrEmpty())
+    {
+        <Form id="CreateAmenityForm">
+            <CardBody>
+                <Tabs SelectedTab="@SelectedCreateTab" SelectedTabChanged="@OnSelectedCreateTabChanged">
+                    <Items>
+                        <Tab Name="create-tab-english">@L["English"]</Tab>
+                        <Tab Name="create-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+
+                        <Validations @ref="@NewAmenityValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@NewAmenity"
+                                 ValidateOnLoad="false">
+
+                            <TabPanel Name="create-tab-english">
+                                <Validation >
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                                        <TextEdit TextExpression="@(()=>NewAmenity.TitleEn)" TextChanged="@OnTitleEnChanged">
+                                            <Feedback>                                              
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Slug"] *</FieldLabel>
+                                        <TextEdit @bind-Text="@NewAmenity.Slug">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewAmenity.MetaTitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewAmenity.MetaDescriptionEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                                <Field>
+                                    <FieldLabel>@L["Image"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(true)">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (!AmenityImage.IsNullOrEmpty() && !AmenityImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(AmenityImage)};base64,{Convert.ToBase64String(AmenityImageContent)}"))"></div>
+                                    }
+                                </Field>
+                                @if (ImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:ImageRequired"]
+                                    </div>
+                                }
+                                <Field>
+                                    <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="HeaderImageChanged" Upload="OnHeaderImageUpload" ShowMode="FilePickerShowMode.List" />
+                                            </Column>
+                                            <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(false)">@L["Reset"]</Button>
+                                            </Column>
+                                            </Row>
+                                            @if (!AmenityHeaderImage.IsNullOrEmpty() && !AmenityHeaderImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(AmenityHeaderImage)};base64,{Convert.ToBase64String(AmenityHeaderImageContent)}"))"></div>
+                                    }
+                                </Field>
+                                @if (HeaderImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:HeaderImageRequired"]
+                                    </div>
+                                }
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@NewAmenity.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@NewAmenity.IsActive">@L["IsActive"]</Check>
+                                </Field>
+                            </TabPanel>
+
+                            <TabPanel Name="create-tab-arabic">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"] *</FieldLabel>
+                                        <TextEdit @bind-Text="@NewAmenity.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewAmenity.MetaTitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewAmenity.MetaDescriptionAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                            </TabPanel>
+                        </Validations>
+
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="CreateAmenityForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="CreateAmenityForm" Clicked="async()=> await CreateAmenityAsync()" />
+            </CardFooter>
+        </Form>
+    }
+    else
+    {
+        <Form id="EditAmenityForm">
+            <CardBody>
+                <Tabs SelectedTab="@SelectedEditTab" SelectedTabChanged="@OnSelectedEditTabChanged">
+                    <Items>
+                        <Tab Name="edit-tab-english">@L["English"]</Tab>
+                        <Tab Name="edit-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+
+                        <Validations @ref="@EditingAmenityValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@EditingAmenity"
+                                 ValidateOnLoad="false">
+                            <TabPanel Name="edit-tab-english">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                                        <TextEdit Text="@EditingAmenity.TitleEn" TextExpression="@(()=>EditingAmenity.TitleEn)" TextChanged="@OnTitleEnChanged">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Slug"] *</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingAmenity.Slug">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingAmenity.MetaTitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingAmenity.MetaDescriptionEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                                                <Field>
+                                    <FieldLabel>@L["Image"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(true)">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (AmenityImageNewUpload && !AmenityImage.IsNullOrEmpty() && !AmenityImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(AmenityImage)};base64,{Convert.ToBase64String(AmenityImageContent)}"))"></div>
+                                    }
+                                    else
+                                    {
+                                        if (!AmenityImage.IsNullOrEmpty())
+                                        {
+                                            <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"{MimeTypes.MimeTypeMap.GetAttachmentPath()}/amenity/{AmenityImage}"))"></div>
+                                        }
+                                    }
+                                </Field>
+                                @if (ImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:ImageRequired"]
+                                    </div>
+                                }
+
+                                <Field>
+                                    <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="HeaderImageChanged" Upload="OnHeaderImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(false)">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (AmenityHeaderImageNewUpload && !AmenityHeaderImage.IsNullOrEmpty() && !AmenityHeaderImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(AmenityHeaderImage)};base64,{Convert.ToBase64String(AmenityHeaderImageContent)}"))"></div>
+                                    }
+                                    else
+                                    {
+                                        if (!AmenityHeaderImage.IsNullOrEmpty())
+                                        {
+                                            <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"{MimeTypes.MimeTypeMap.GetAttachmentPath()}/amenity/{AmenityHeaderImage}"))"></div>
+                                        }
+                                    }
+                                </Field>
+                                @if (HeaderImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:HeaderImageRequired"]
+                                    </div>
+                                }
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@EditingAmenity.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@EditingAmenity.IsActive">@L["IsActive"]</Check>
+                                </Field>
+                            </TabPanel>
+
+                            <TabPanel Name="edit-tab-arabic">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"] *</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingAmenity.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingAmenity.MetaTitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingAmenity.MetaDescriptionAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                            </TabPanel>
+
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="EditAmenityForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="EditAmenityForm" Clicked="async()=> await UpdateAmenityAsync()" />
+            </CardFooter>
+        </Form>
+
+    }
+
+</Card>
+

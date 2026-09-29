@@ -1,0 +1,262 @@
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@page "/{lang}/about-us/our-values";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+<!----page header----->
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @PageInfoFrontEnd?.Title
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:AboutUs"]</li>
+                            <li class="active"> @PageInfoFrontEnd?.Title</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!----page header----->
+<!--===============PAGE CONTENT==============-->
+<!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content ">
+    <!---image-box-section---->
+    <section class="image-box-section py-lg-5">
+        <!--===============spacing==============-->
+        <div class="pd_top_80"></div>
+        <!--===============spacing==============-->
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-xl-7 col-lg-12">
+                    <div class="title_all_box style_one dark_color">
+                        <div class="title_sections ">
+                            <div class="title text-uppercase text-primary-color mb-4">@PageInfoFrontEnd?.PageInfoArticleTilte<br>@PageInfoFrontEnd?.PageInfoArticleSubtitle</div>
+                     
+                        </div>
+                        <p class="fs-4 lh-base">
+                            @((MarkupString)PageInfoFrontEnd?.Description)
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-1"></div>
+                <div class="col-xl-4 col-lg-12 mb-5 mb-lg-5 mb-xl-0">
+                    <div class="image_boxes style_three">
+                        <img src="@PageInfoFrontEnd?.Image" class="img-fluid" alt="@PageInfoFrontEnd?.PageInfoArticleTilte">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_bottom_80"></div>
+        <!--===============spacing==============-->
+    </section>
+
+
+    <section class="feature-section bg_light_1 py-lg-5">
+        <!--===============spacing==============-->
+        <div class="pd_top_80 d-md-block"></div>
+        <!--===============spacing==============-->
+        <div class="auto-container">
+            <div class="row">
+
+                @if (@PageInfoFrontEndCorporate != null)
+                {
+
+                    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 mb-30">
+                        <div class="icon_box_new_box type_two mb-lg-0 h-100">
+                            <span class="borders"></span>
+                            <div class="icon_box">
+                                <img src="@PageInfoFrontEndCorporate.Image" class="img-fluid svg_image" alt="icon png">
+
+                            </div>
+                            <div class="content">
+                                <h2>
+                                    <a  class="text-uppercase">@PageInfoFrontEndCorporate.Title</a>
+                                </h2>
+                                <p>
+                                    @((MarkupString)PageInfoFrontEndCorporate?.Description)
+
+
+                                </p>
+
+                            </div>
+                        </div>
+                    </div>
+                }
+
+
+                @if (@PageInfoFrontEndEnvironment != null)
+                {
+
+                    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 mb-30">
+                        <div class="icon_box_new_box type_two mb-lg-0 h-100">
+                            <span class="borders"></span>
+                            <div class="icon_box">
+                                <img src="@PageInfoFrontEndEnvironment.Image" class="img-fluid svg_image" alt="@PageInfoFrontEndEnvironment.Title">
+
+                            </div>
+                            <div class="content">
+                                <h2>
+                                    <a class="text-uppercase">@PageInfoFrontEndEnvironment.Title</a>
+                                </h2>
+                                <p>
+                                    @((MarkupString)PageInfoFrontEndEnvironment?.Description)
+
+
+                                </p>
+
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @if (@PageInfoFrontEndCommunity != null)
+                {
+
+                    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 mb-30">
+                        <div class="icon_box_new_box type_two mb-lg-0 h-100">
+                            <span class="borders"></span>
+                            <div class="icon_box">
+                                <img src="@PageInfoFrontEndCommunity?.Image" class="img-fluid svg_image" alt="@PageInfoFrontEndCommunity?.Title">
+
+                            </div>
+                            <div class="content">
+                                <h2>
+                                    <a class="text-uppercase">@PageInfoFrontEndCommunity?.Title</a>
+                                </h2>
+                                <p>
+                                    @((MarkupString)PageInfoFrontEndCommunity?.Description)
+
+
+                                </p>
+
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @if (@PageInfoFrontEndIntegration != null)
+                {
+
+                    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 mb-30">
+                        <div class="icon_box_new_box type_two mb-lg-0 h-100">
+                            <span class="borders"></span>
+                            <div class="icon_box">
+                                <img src="@PageInfoFrontEndIntegration?.Image" class="img-fluid svg_image" alt="@PageInfoFrontEndIntegration?.Title">
+
+                            </div>
+                            <div class="content">
+                                <h2>
+                                    <a class="text-uppercase">@PageInfoFrontEndIntegration?.Title</a>
+                                </h2>
+                                <p>
+                                    @((MarkupString)PageInfoFrontEndIntegration?.Description)
+
+
+                                </p>
+
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                
+
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_bottom_80"></div>
+        <!--===============spacing==============-->
+    </section>
+
+
+@*     <section class="feature-section py-lg-5">
+        <!--===============spacing==============-->
+        <div class="pd_top_80"></div>
+        <!--===============spacing==============-->
+        <div class="auto-container">
+            <div class="row">
+
+
+                @if (@PageInfoFrontEndVision != null)
+                {
+                    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                        <div class="icon_box_new_box type_two mb-lg-0 h-100 shadow-none after-none before-none p-0">
+                            <span class="borders"></span>
+                            <div class="icon_box">
+                                <img src="@PageInfoFrontEndVision?.Image" class="img-fluid svg_image" alt="@PageInfoFrontEndVision?.Title">
+
+                            </div>
+                            <div class="content">
+                                <h2>
+                                    <a class="text-uppercase">@PageInfoFrontEndVision?.Title</a>
+                                </h2>
+                                <p class="pe-lg-5"> @((MarkupString)PageInfoFrontEndVision?.Description)</p>
+
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (@PageInfoFrontEndMission != null)
+                {
+                    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                        <div class="icon_box_new_box type_two mb-lg-0 h-100 shadow-none after-none before-none p-0">
+                            <span class="borders"></span>
+                            <div class="icon_box">
+                                <img src="@PageInfoFrontEndMission?.Image" class="img-fluid svg_image" alt="@PageInfoFrontEndMission?.Title">
+
+                            </div>
+                            <div class="content">
+                                <h2>
+                                    <a class="text-uppercase">@PageInfoFrontEndMission?.Title</a>
+                                </h2>
+                                <p class="pe-lg-5"> @((MarkupString)PageInfoFrontEndMission?.Description)</p>
+
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="pd_bottom_80"></div>
+    </section> *@
+    <!---image-box-section-end---->
+
+</div>
+<!--===============PAGE CONTENT END==============-->

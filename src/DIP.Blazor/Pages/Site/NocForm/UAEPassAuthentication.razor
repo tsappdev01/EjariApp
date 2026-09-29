@@ -1,0 +1,318 @@
+@using DIP.Blazor.Components.Layout
+@using DIP.EServices
+@using DIP.SoapServices
+@using Microsoft.AspNetCore.WebUtilities
+@using System.Linq
+@using DIP.UaePassService
+@using Microsoft.Extensions.Caching.Distributed
+@using Newtonsoft.Json
+@using Microsoft.Extensions.Logging
+@inherits DIPComponentBase
+@layout CustomLayout
+
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@inject NavigationManager NavigationManager
+@inject IUaePassClient UaePassClient
+@inject IJSRuntime JS
+@inject IDistributedCache Cache
+
+@page "/{lang}/Ejari/NocDeclaration/UAEPassAuthentication"
+
+<HeadContent>
+    <style>
+            .header_area {
+                display: none !important;
+            }
+
+            .footer_area {
+                display: none !important;
+            }
+
+            .uaepass-login-card {
+                max-width: 720px;
+                margin: 2rem auto;
+            }
+
+            .uaepass-login-btn {
+                display: inline-block;
+                width: 220px;
+                height: 48px;
+                background: url('/assets/images/UAEPASS_Sign_in.png') center center no-repeat;
+                background-size: contain;
+            }
+
+            .uaepass-login-message {
+                color: #6b6b6b;
+            }
+
+            .auth-status-container {
+                min-height: 200px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+    </style>
+</HeadContent>
+
+<div class="container py-4">
+    <div id="content" class="site-content ">
+        <div class="container d-flex justify-content-center p-5 uaepass-login-card" style="display:block;">
+            <div class="message-card w-100">
+                <div class="card-body text-center p-5">
+
+                    @if (_isLoading)
+                    {
+                        <div class="auth-status-container">
+                            <div class="spinner-border text-primary mb-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <h2 class="h4 fw-semibold">Authenticating...</h2>
+                            <p class="uaepass-login-message">Please wait while we verify your UAE Pass credentials.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        @if (!string.IsNullOrEmpty(_errorMessage))
+                        {
+                            <div class="alert alert-danger mb-4 py-3" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                @_errorMessage
+                            </div>
+                            if (!uaepasslogout) // Only show try again message if it's not a logout scenario
+                            {
+                                <p class="uaepass-login-message mb-4">
+                                    Please try logging in again to continue with your declaration.
+                                </p>
+                                <h1 class="h3 fw-semibold mb-3"> Try Again with UAE Pass</h1>
+                            }
+                        }
+                        else
+                        {
+                            <p class="uaepass-login-message mb-4">
+                                Redirecting to UAE Pass for authentication...
+                            </p>
+                            @* <h1 class="h3 fw-semibold mb-3"> Login with UAE Pass</h1> *@
+                        }
+
+                        @if (uaepasslogout)
+                        {
+                            <button class="btn btn-outline-secondary" @onclick="OnLogoutClicked" title="Logout UAE Pass">
+                                Logout UAE Pass
+                            </button>
+                            @* <a href="@_uaepassLogoutRedirectionLink" class="icon light uaepass-login-btn" title="Logout UAE Pass"></a> *@
+                        }
+                        else if (!string.IsNullOrEmpty(_uaepassLoginRedirectionLink))
+                        {
+                            <a href="@_uaepassLoginRedirectionLink" class="icon light uaepass-login-btn" title="Login with UAE Pass"></a>
+                        }
+                        else
+                        {
+                            <div class="text-secondary mt-3">Something went wrong while preparing the login. Please try again later or contact support.</div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Lang { get; set; } = "en";
+    private string _uaepassLoginRedirectionLink = string.Empty;
+    private string _uaepassLogoutRedirectionLink = string.Empty;
+    private bool uaepasslogout = false;
+    private bool _isLoading = false;
+    private string _errorMessage = string.Empty;
+    [Inject]
+    public required INOCServiceWrapper NOCService { get; set; }
+    private bool firstRenderInitial = false;
+
+    Dictionary<string, Microsoft.Extensions.Primitives.StringValues>? query;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        query = QueryHelpers.ParseQuery(uri.Query);
+
+        if (!firstRenderInitial)
+        {
+            // Check for error from UAE Pass redirection
+            if (query.TryGetValue("error", out var error))
+            {
+                query.TryGetValue("error_description", out var errorDescription);
+                _errorMessage = MapUaePassError(error.FirstOrDefault(), errorDescription.FirstOrDefault());
+                await BuildRedirectionLink(query);
+                return;
+            }
+
+            // Check for authorization code from UAE Pass
+            if (query.TryGetValue("code", out var code) && !string.IsNullOrEmpty(code))
+            {
+                await HandleUaePassCallback(code.FirstOrDefault(), query);
+                return;
+            }
+
+            // Default: Build redirection link if no code or error is present (initial landing)
+            await BuildRedirectionLink(query);
+        }
+        firstRenderInitial = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+    }
+
+    private async Task BuildRedirectionLink(IDictionary<string, Microsoft.Extensions.Primitives.StringValues> query)
+    {
+        // Priority to 'token' or 'Token' if 'state' is not used
+        var oldToken = query.TryGetValue("state", out var s) ? s.FirstOrDefault() ?? string.Empty : string.Empty;
+
+        string landlord = string.Empty;
+        if (!string.IsNullOrEmpty(oldToken))
+        {
+            try
+            {
+                var cacheData = await Cache.GetStringAsync(oldToken);
+                if (!string.IsNullOrEmpty(cacheData))
+                {
+                    var declarationCache = JsonConvert.DeserializeObject<UAEpassLoginCacheDTO>(cacheData);
+                    landlord = declarationCache?.EncryptedRefNo ?? string.Empty;
+                }
+            }
+            catch { /* Ignore cache read errors during link rebuild */ }
+        }
+
+        // Use standard logic: Generate new cache ID and populate it
+        string cacheId = Guid.NewGuid().ToString();
+        UAEpassLoginCacheDTO declarationCacheDTO = new()
+        {
+            EncryptedRefNo = landlord
+        };
+
+        await Cache.SetStringAsync(cacheId, JsonConvert.SerializeObject(declarationCacheDTO),
+                     new DistributedCacheEntryOptions
+                     {
+                         AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
+                     });
+
+        _uaepassLoginRedirectionLink = UaePassClient.GetuaepassloginRedirectionLink(cacheId);
+        _uaepassLogoutRedirectionLink = UaePassClient.GetuaepasslogoutRedirectionLink(landlord);
+    }
+
+    private async Task HandleUaePassCallback(string code, IDictionary<string, Microsoft.Extensions.Primitives.StringValues> query)
+    {
+        _isLoading = true;
+        try
+        {
+            var token = query.TryGetValue("state", out var s) ? s.FirstOrDefault() ?? string.Empty : string.Empty;
+
+            var tokenResponse = await UaePassClient.GetAccessTokenByAuthorizationCodeAsync(code, token);
+            if (tokenResponse != null && !string.IsNullOrEmpty(tokenResponse.AccessToken))
+            {
+                var userInfo = await UaePassClient.GetUserInfoAsync(tokenResponse.AccessToken);
+                if (userInfo != null)
+                {
+
+                    string landlord = string.Empty;
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        var cacheData = await Cache.GetStringAsync(token);
+                        if (!string.IsNullOrEmpty(cacheData))
+                        {
+                            var declarationCache = JsonConvert.DeserializeObject<UAEpassLoginCacheDTO>(cacheData);
+                            landlord = declarationCache?.EncryptedRefNo ?? string.Empty;
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(landlord))
+                    {
+                        string refnumber = await NOCService.VerifiedDeclarationLandlordAsync(landlord);
+
+                        if (string.IsNullOrEmpty(refnumber) || string.IsNullOrEmpty(userInfo.Email) || string.IsNullOrEmpty(userInfo.Uuid) || string.IsNullOrEmpty(userInfo.Idn))
+                        {
+                            _errorMessage = "We couldn't verify your account information. Please try again or contact support for assistance.";
+                        }
+
+                        bool isAuthorizedPerson = await NOCService.LandlordUAEPassEmailVerificationAsync(refnumber, userInfo.Email, userInfo.Uuid, userInfo.Idn);
+
+                        if (!isAuthorizedPerson)
+                        {
+                            uaepasslogout = true; // Show logout option if user is not authorized
+                            _errorMessage = $"Your UAE PASS account({userInfo.Email}) doesn't have permission to sign this document. Try logging out and signing in with the right UAE PASS account to proceed.";
+                            return;
+                        }
+
+                        Guid cacheId = Guid.NewGuid();
+                        await Cache.SetStringAsync(cacheId.ToString(), JsonConvert.SerializeObject(userInfo),
+                          new DistributedCacheEntryOptions
+                          {
+                              AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
+                          });
+
+                        NavigationManager.NavigateTo($"/{Lang}/Ejari/NocDeclaration/{landlord}?UAEPassAuthorized=true&UAEPassAuthorizedToken={cacheId}");
+                    }
+                    else
+                    {
+                        _errorMessage = "We couldn't retrieve your session information. Please try starting the process again.";
+                    }
+                }
+                else
+                {
+                    _errorMessage = "Unable to retrieve your profile information. Please try again or contact support.";
+                }
+            }
+            else
+            {
+                _errorMessage = "Authentication failed. Please check your UAE Pass app and try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "UAE Pass callback error during authentication flow.");
+            _errorMessage = "A technical error occurred during authentication. Please try again later.";
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+            if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                await BuildRedirectionLink(query);
+            }
+        }
+    }
+
+    private string MapUaePassError(string errorCode, string errorDescription = null)
+    {
+        // Check for cancellation in description first (as per UAE Pass technical quirks)
+        if (!string.IsNullOrEmpty(errorDescription) &&
+            (errorDescription.Contains("Cancelled", StringComparison.OrdinalIgnoreCase) ||
+             errorDescription.Contains("Canceled", StringComparison.OrdinalIgnoreCase)))
+        {
+            return "User cancelled the login";
+        }
+
+        return errorCode switch
+        {
+            "invalid_request" => "There was a problem with the authentication request. Please try again.",
+            "access_denied" => "User cancelled the login",
+            "cancelledOnApp" => "User cancelled the login",
+            "server_error" => "The UAE Pass service is currently experiencing issues. Please try again later.",
+            "temporarily_unavailable" => "The UAE Pass service is temporarily unavailable. Please try again later.",
+            _ => "An unexpected error occurred during authentication. Please try again."
+        };
+    }
+
+    private void OnLogoutClicked()
+    {
+        if (!string.IsNullOrEmpty(_uaepassLogoutRedirectionLink))
+        {
+            // Navigate to logout URL; force a full page load for external redirect
+            NavigationManager.NavigateTo(_uaepassLogoutRedirectionLink, forceLoad: true);
+        }
+    }
+}

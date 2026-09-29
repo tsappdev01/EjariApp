@@ -1,0 +1,722 @@
+
+
+@page "/last-eventss"
+
+@attribute [Authorize(DIPPermissions.LastEventss.Default)]
+@using DIP.LastEventss
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject ILastEventssAppService LastEventssAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["LastEventss"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+        <Form id="LastEventsSearchForm" class="mb-3">
+            <Addons>
+                <Addon AddonType="AddonType.Body">
+                    <TextEdit @bind-Text="@Filter.FilterText"
+                              Autofocus="true"
+                              Placeholder="@L["Search"]">
+                    </TextEdit>
+                </Addon>
+                <Addon AddonType="AddonType.End">
+                    <SubmitButton Form="LastEventsSearchForm" Clicked="GetLastEventssAsync">
+                        <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                    </SubmitButton>
+                </Addon>
+            </Addons>
+        </Form>
+    </CardBody>
+</Card>
+
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>
+        <DataGrid TItem="LastEventsDto"
+                  Data="LastEventsList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="LastEventsDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="LastEventsDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="LastEventsDto"
+                                          Visible="@CanEditLastEvents"
+                                          Clicked="async () => await OpenEditLastEventsModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="LastEventsDto"
+                                          Visible="@CanDeleteLastEvents"
+                                          Clicked="() => DeleteLastEventsAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+               
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="TitleAr"
+                      Caption="@L["TitleAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="TitleEn"
+                      Caption="@L["TitleEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="MetaTitleAr"
+                      Caption="@L["MetaTitleAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="MetaTitleEn"
+                      Caption="@L["MetaTitleEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="MetaDescriptionEn"
+                      Caption="@L["MetaDescriptionEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="MetaDescriptionAr"
+                      Caption="@L["MetaDescriptionAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="IsFeatured"
+                      Caption="@L["IsFeatured"]">
+                    <DisplayTemplate>
+                        @if (context.IsFeatured)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+
+
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="Slug"
+                      Caption="@L["Slug"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="Image"
+                      Caption="@L["Image"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="HeaderImage"
+                      Caption="@L["HeaderImage"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="DescriptionAr"
+                      Caption="@L["DescriptionAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="DescriptionEn"
+                      Caption="@L["DescriptionEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="SummaryEn"
+                      Caption="@L["SummaryEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="SummaryAr"
+                      Caption="@L["SummaryAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="Order"
+                      Caption="@L["Order"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="StartDate"
+                      Caption="@L["StartDate"]">
+                  <DisplayTemplate>
+                        @context.StartDate.ToShortDateString()
+                  </DisplayTemplate>
+              </DataGridColumn>
+
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="EndDate"
+                      Caption="@L["EndDate"]">
+                  <DisplayTemplate>
+                        @context.EndDate.ToShortDateString()
+                  </DisplayTemplate>
+              </DataGridColumn>
+
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="IsActive"
+                      Caption="@L["IsActive"]">
+                    <DisplayTemplate>
+                        @if (context.IsActive)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+
+
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="LocationAr"
+                      Caption="@L["LocationAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="LastEventsDto"
+                      Field="LocationEn"
+                      Caption="@L["LocationEn"]">
+              </DataGridColumn>
+
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateLastEventsModal" Closing="@CreateLastEventsModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="CreateLastEventsForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewLastEvents"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateLastEventsModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewLastEventsValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewLastEvents"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewLastEvents.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewLastEvents.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewLastEvents.MetaTitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewLastEvents.MetaTitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewLastEvents.MetaDescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewLastEvents.MetaDescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewLastEvents.IsFeatured">@L["IsFeatured"]</Check>
+                    </Field>
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Slug"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewLastEvents.Slug" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Image"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewLastEvents.Image" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewLastEvents.HeaderImage" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewLastEvents.DescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewLastEvents.DescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewLastEvents.SummaryEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewLastEvents.SummaryAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@NewLastEvents.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["StartDate"]</FieldLabel>
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.DateTime" @bind-Date="@NewLastEvents.StartDate">
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["EndDate"]</FieldLabel>
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.DateTime" @bind-Date="@NewLastEvents.EndDate">
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewLastEvents.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["LocationAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewLastEvents.LocationAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["LocationEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewLastEvents.LocationEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateLastEventsModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateLastEventsForm" Clicked="CreateLastEventsAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditLastEventsModal" Closing="@EditLastEventsModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="EditLastEventsForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditLastEventsModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingLastEventsValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingLastEvents"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingLastEvents.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingLastEvents.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingLastEvents.MetaTitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingLastEvents.MetaTitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingLastEvents.MetaDescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingLastEvents.MetaDescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingLastEvents.IsFeatured">@L["IsFeatured"]</Check>
+                    </Field>
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Slug"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingLastEvents.Slug" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Image"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingLastEvents.Image" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingLastEvents.HeaderImage" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingLastEvents.DescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingLastEvents.DescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingLastEvents.SummaryEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingLastEvents.SummaryAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@EditingLastEvents.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["StartDate"]</FieldLabel>
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.DateTime" @bind-Date="@EditingLastEvents.StartDate">
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["EndDate"]</FieldLabel>
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.DateTime" @bind-Date="@EditingLastEvents.EndDate">
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingLastEvents.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["LocationAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingLastEvents.LocationAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["LocationEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingLastEvents.LocationEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditLastEventsModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateLastEventsForm" Clicked="UpdateLastEventsAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>

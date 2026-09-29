@@ -1,0 +1,366 @@
+﻿@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@using DIP.Settings
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+
+@inject IDIPSettingAppService DIPSettingAppService
+@page "/{lang}/Ejari/NocDashboard/{ReferenceNumber}";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+    <style>
+        .btn-proceed {
+            background-color: #6F6259;
+            border-color: transparent;
+            color: white;
+            font-weight: 500;
+            padding: 12px 40px;
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 0px;
+            border-top-right-radius: 0px;
+            border-bottom-right-radius: 10px;
+        }
+
+            .btn-proceed:hover {
+                background-color: #5a6268;
+                border-color: #545b62;
+                color: white;
+            }
+
+        /* Skeleton Loading Styles */
+        .skeleton {
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s ease-in-out infinite;
+            border-radius: 4px;
+        }
+
+        @@keyframes skeleton-loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .skeleton-text {
+            height: 20px;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-title {
+            height: 16px;
+            width: 60%;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-value {
+            height: 24px;
+            width: 80%;
+        }
+    </style>
+</HeadContent>
+
+
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            NOC Dashboard
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:Home:Ejari"]</li>
+                            <li class="active">NOC Dashboard</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container py-4">
+    <StepProgress Steps="@registrationSteps"
+                  CurrentStep="@currentStep"
+                  OnStepChanged="HandleStepChanged"
+                  AllowClickNavigation="true" />
+    <div id="content" class="site-content ">
+        <div class="form-section mb-3">
+            @if (Info == null)
+            {
+                <!-- Skeleton Loading -->
+                <div class="p-2 p-md-4 rounded-2" style="background-color: #EEEEEE;border: 1px solid #DEE2E6;">
+                    <div class="row g-4">
+                        @for (int i = 0; i < 11; i++)
+                        {
+                            <div class="col-md-4">
+                                <div class="skeleton skeleton-title"></div>
+                                <div class="skeleton skeleton-value"></div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Actual Data -->
+                <div class="p-2 p-md-4 rounded-2" style="background-color: #EEEEEE;border: 1px solid #DEE2E6;">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="fs-5 fw-semibold mb-1" style="color:#6F6259">Reference Number</div>
+                            @if (Info.RefNo != null)
+                            {
+                                <div class="fs-4" style="color:#4A4E56">@Info.RefNo.ToString()</div>
+                            }
+                            else
+                            {
+                                <div class="skeleton skeleton-value"></div>
+                            }
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="fs-5 fw-semibold mb-1" style="color:#6F6259">Property Code (Plot No)</div>
+                            @if (Info.PropertyCode != null)
+                            {
+                                <div class="fs-4" style="color:#4A4E56">@Info.PropertyCode.ToString()</div>
+                            }
+                            else
+                            {
+                                <div class="skeleton skeleton-value"></div>
+                            }
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="fs-5 fw-semibold mb-1" style="color:#6F6259">Property Type</div>
+                            @if (Details?.PropertyCategoryName != null)
+                            {
+                                <div class="fs-4" style="color:#4A4E56">@Details.PropertyCategoryName</div>
+                            }
+                            else
+                            {
+                                <div class="skeleton skeleton-value"></div>
+                            }
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="fs-5 fw-semibold mb-1" style="color:#6F6259">Tenant Name</div>
+                            @if (!string.IsNullOrEmpty(Info.CompanyName))
+                            {
+                                <div class="fs-4" style="color:#4A4E56">@Info.CompanyName</div>
+                            }
+                            else
+                            {
+                                <div class="skeleton skeleton-value"></div>
+                            }
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="fs-5 fw-semibold mb-1" style="color:#6F6259">Mobile Number</div>
+                            @if (Info.MobileNo != null)
+                            {
+                                <div class="fs-4" style="color:#4A4E56">@Info.MobileNo.ToString()</div>
+                            }
+                            else
+                            {
+                                <div class="skeleton skeleton-value"></div>
+                            }
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="fs-5 fw-semibold mb-1" style="color:#6F6259">User Type</div>
+                            @if (!string.IsNullOrEmpty(Info.TypeName))
+                            {
+                                <div class="fs-4" style="color:#4A4E56">@Info.TypeName</div>
+                            }
+                            else
+                            {
+                                <div class="skeleton skeleton-value"></div>
+                            }
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="fs-5 fw-semibold mb-1" style="color:#6F6259">License / ID Type</div>
+                            @if (!string.IsNullOrEmpty(Info.TradeLicenseType))
+                            {
+                                <div class="fs-4" style="color:#4A4E56">@Info.TradeLicenseType</div>
+                            }
+                            else
+                            {
+                                <div class="skeleton skeleton-value"></div>
+                            }
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="fs-5 fw-semibold mb-1" style="color:#6F6259">
+                                @(
+                                    !string.IsNullOrWhiteSpace(Info.TradeLicenseType)
+                                    ? (Info.TradeLicenseType.Equals("Emirates ID", StringComparison.OrdinalIgnoreCase)
+                                    ? "Emirates ID"
+                                    : Info.TradeLicenseType + " Number")
+                                    : string.Empty
+                                    )
+                            </div>
+                            @if (Info.TradeLicenseNo != null)
+                            {
+                                <div class="fs-4" style="color:#4A4E56">@Info.TradeLicenseNo.ToString()</div>
+                            }
+                            else
+                            {
+                                <div class="skeleton skeleton-value"></div>
+                            }
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="fs-5 fw-semibold mb-1" style="color:#6F6259">
+                                @(string.IsNullOrWhiteSpace(Info.TradeLicenseType)
+                                    ? string.Empty
+                                    : Info.TradeLicenseType.Equals("Emirates ID", StringComparison.OrdinalIgnoreCase)
+                                    ? "Emirates ID"
+                                    : Info.TradeLicenseType) Expiry date
+                            </div>
+                            @if (Info.TLExpiryDate != null)
+                            {
+                                <div class="fs-4" style="color:#4A4E56">@Info.TLExpiryDate.Value.ToString("dd/MM/yyyy")</div>
+                            }
+                            else
+                            {
+                                <div class="skeleton skeleton-value"></div>
+                            }
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="fs-5 fw-semibold mb-1" style="color:#6F6259">License Issuer</div>
+                            @if (!string.IsNullOrEmpty(Info.TradeLicenseIssuerName))
+                            {
+                                <div class="fs-4" style="color:#4A4E56">@Info.TradeLicenseIssuerName</div>
+                            }
+                            else
+                            {
+                                <div class="skeleton skeleton-value"></div>
+                            }
+                        </div>
+
+                        <div class="col-md-8">
+                            <div class="fs-5 fw-semibold mb-1" style="color:#6F6259">Status</div>
+                            @if (!string.IsNullOrEmpty(StatusMessage))
+                            {
+                                <div class="fs-4" style="color:#4A4E56">@StatusMessage</div>
+                            }
+                            else
+                            {
+                                <div class="skeleton skeleton-value"></div>
+                            }
+                        </div>
+                        <div class="col-md-12">
+                            @if (StatusName == "DocReview")
+                            {
+                                <p>Note: @StatusNotes</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mt-4">
+                <!-- Error section -->
+                @if (!string.IsNullOrEmpty(Errormessage))
+                {
+                    <div class="mb-3">
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <div class="px-3 py-3 rounded-2 text-danger" style="background-color: #FFF2CC;color: #8D7A3E">
+                                    @Errormessage
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (((Info?.ZExpired ?? false) && (StatusName == "Completed")))
+                {
+                    @* <button onclick="@HandleRenewProcess" class="btn-proceed">Initiate Renewal</button> *@
+                    <a href="@($"/{CultureInfo.CurrentCulture.Name}/Ejari/Renewal")" class="btn-proceed">Initiate Renewal</a>
+                }
+                else
+                {
+
+                    @if (StatusName == "Verified")
+                    {
+                        <a href="@($"/{CultureInfo.CurrentCulture.Name}/Ejari/NocBasicForm/{encryptedReferenceNumber}")" class="btn-proceed">Make New NOC Application</a>
+                    }
+                    else if (StatusName == "Upload")
+                    {
+                        @if (Info?.ZzApplicationType == "NewURL")
+                        {
+                            <a href="@($"/{CultureInfo.CurrentCulture.Name}/Ejari/NocDocuments/Upload/{encryptedReferenceNumber}")" class="btn-proceed">Upload Your New NOC Application Documents</a>
+                        }
+                        else
+                        {
+                            <a href="@($"/{CultureInfo.CurrentCulture.Name}/Ejari/Uploads/{encryptedReferenceNumber}")" class="btn-proceed">Upload Your New NOC Application Documents</a>
+                        }
+
+                    }
+                    else if (StatusName == "Submitted")
+                    {
+                        <a href="@($"/{CultureInfo.CurrentCulture.Name}/Ejari/Status/{encryptedReferenceNumber}")" class="btn-proceed">View Status</a>
+                    }
+                    else if (StatusName == "ApplicantAcknowledgement")
+                    {
+                        <a href="@($"/{CultureInfo.CurrentCulture.Name}/Ejari/NocAcknowledgement/{encryptedReferenceNumber}")" class="btn-proceed">Acknowledge Information</a>
+                    }
+                    else if (StatusName == "PendingAuth")
+                    {
+                        @* <a href="@($"/{CultureInfo.CurrentCulture.Name}/Ejari/NocSummary/{encryptedReferenceNumber}")" class="btn-proceed">Go to NOC Application Summary</a> *@
+
+                        <p class="m-0 text-danger">* The application is being reviewed by landlord, once approved you will be able to pay.</p>
+                    }
+                    else if (StatusName == "Payment" || StatusName == "PaymentProcess")
+                    {
+                        <a href="@($"/{CultureInfo.CurrentCulture.Name}/Ejari/Payment/{encryptedReferenceNumber}")" class="btn-proceed">Click to pay</a>
+                    }
+                    else if (StatusName == "UnderReview")
+                    {
+                        <p class="m-0" style="color: #4A4E56;">* The application is currently being reviewed by the Dubai Investments Park team. Once approved, you will be able to proceed with the payment.</p>
+                    }
+                    @* else
+                    {
+                        @if (!(Info?.ZzApplicationTypeField == "NewURL"))
+                        {
+                            <a href="@($"/{CultureInfo.CurrentCulture.Name}/Ejari/Status/{encryptedReferenceNumber}")" class="btn-proceed">View Status</a>
+                        }
+                    } *@
+                }
+            </div>
+        </div>
+    </div>
+</div>

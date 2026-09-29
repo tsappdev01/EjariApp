@@ -1,0 +1,61 @@
+﻿@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@using DIP.Settings
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@inject IDIPSettingAppService DIPSettingAppService
+@page "/{lang}/Ejari/NocDocumentView/{ReferenceNumber}/{DocumentId}";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+    <style>
+        .header_area {
+            display: none !important;
+        }
+
+        .footer_area {
+            display: none !important;
+        }
+
+        .sticky-services {
+            display: none !important;
+        }
+
+        .chtbtn_hod {
+            display: none !important;
+        }
+
+        .whatsapp-cta {
+            display: none !important;
+        }
+    </style>
+</HeadContent>
+<iframe src="@DataUrl"
+        width="100%"
+        height="100vh"
+        style="border: 1px solid #e5e7eb; border-radius: 0.5rem;height:100vh;"
+        title="NOC PDF Document">
+    <p>
+        Your browser does not support PDF viewing.
+        <a class="btn btn-noc" href="@DataUrl" download="@(ReferenceNumber + ".pdf")">
+            <i class="bi bi-download"></i> Download NOC Form
+        </a> instead.
+    </p>
+</iframe>

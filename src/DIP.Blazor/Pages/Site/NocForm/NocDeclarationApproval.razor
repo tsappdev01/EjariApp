@@ -1,0 +1,191 @@
+﻿@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@using DIP.Settings
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+
+@inject IDIPSettingAppService DIPSettingAppService
+@page "/{lang}/Ejari/NocDeclaration/Approval";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+    <style>
+
+            .uae-logo {
+                color: #999;
+                font-size: 14px;
+            }
+
+            .message-card {
+                background: white;
+                border-radius: 16px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                max-width: 500px;
+            }
+
+            .icon {
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 40px;
+                margin: 0 auto;
+                animation: scaleIn 0.5s ease-out 0.3s both;
+            }
+
+                .icon.success {
+                    background: #d4edda;
+                    color: #28a745;
+                }
+
+                .icon.error {
+                    background: #f8d7da;
+                    color: #dc3545;
+                }
+
+                .icon.warning {
+                    background: #ffeeba;
+                    color: #d39e00;
+                }
+
+    </style>
+</HeadContent>
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            Declaration
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:Home:Ejari"]</li>
+                            <li class="active">Declaration</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container py-4">
+    <div id="content" class="site-content ">
+        <div class="container d-flex justify-content-center p-5" id="successContainer" style="display: block;">
+            <div class="message-card">
+                <div class="card-body text-center p-5">
+
+                    @if (InvalidAttempt == 0)
+                    {
+                        <div class="skeleton skeleton-value"></div>
+                    }
+                    else if (InvalidAttempt == 3)
+                    {
+                        <div class="icon success mb-4">✓</div>
+                    }
+                    else if (InvalidAttempt == 2 || InvalidAttempt == 1 || InvalidAttempt == 5 || InvalidAttempt == 6 || InvalidAttempt ==  7)
+                    {
+                        <div class="icon warning mb-4">!</div>
+                    }
+                    else
+                    {
+                        <div class="icon error mb-4">✕</div>
+                    }
+                    @if (InvalidAttempt == 0)
+                    {
+                        <div class="skeleton skeleton-value"></div>
+                    }
+                    else if (!(InvalidAttempt == 2))
+                    {
+                        <h1 class="h3 fw-semibold mb-3">
+                            @(InvalidAttempt == 3 ? "Thank you for your confirmation!" :
+                                                    InvalidAttempt == 1 ?
+                                                    "Your UAE PASS signature is not qualified" : InvalidAttempt == 5 ? "Session expired" :
+                                                    InvalidAttempt == 6 || InvalidAttempt == 7 ? "" : " Signing Attempt Failed!")
+                        </h1>
+                    }
+
+
+                    @switch (InvalidAttempt)
+                    {
+                        case 0:
+                            @* <div class="skeleton skeleton-value"></div> *@
+                            <div></div>
+                            break;
+                        case 1:
+                            <p class="text-muted mb-4">
+                                Your UAE PASS signature is not qualified. Please upgrade your account following instructions in the UAE PASS app to obtain a Qualified Signature
+                            </p>
+                            break;
+                        case 2:
+                            <p class="text-muted mb-4">
+                                User cancelled the signing process
+                            </p>
+                            break;
+                        case 3:
+                            <p class="text-muted mb-4">
+                                Your digital signature has been successfully verified through UAE Pass.Your signed document has been submitted successfully.
+                            </p>
+                            break;
+                        case 4:
+                            <p class="text-muted mb-4">
+                                We encountered an issue while processing your signature with UAE Pass. Please try again or contact support if the problem persists.
+                            </p>
+                            break;
+                        case 5:
+                            <p class="text-muted mb-4">
+                                You were inactive for a while. Please check your email which we sent earlier to retry.
+                            </p>
+                            break;
+                        case 6:
+                            <p class="text-muted mb-4">
+                                @($" This document has already been signed by.{EOCheckStatusOfDocumentSigningResult?.SignerEmail} At {EOCheckStatusOfDocumentSigningResult?.SignerSignedAt:yyyy-MM-dd HH:mm:ss}.")
+                            </p>
+                            break;
+                        case 7:
+                            <p class="text-muted mb-4">
+                                This document has been rejected by landlord.
+                            </p>
+                            break;
+                        default:
+                            <></>
+                            break;
+                    }
+
+                    @if (InvalidAttempt == 4 || InvalidAttempt == 2 || InvalidAttempt == 1)
+                    {
+                        <a href="@($"/{CultureInfo.CurrentCulture.Name}/Ejari/NocDeclaration/{Landlord}")" style="text-decoration: underline!important;">Try again</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,109 @@
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@page "/{lang}/media-center/gallery/{slug}";
+
+<PageTitle>
+    @MediaGalleryFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@MediaGalleryFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+<!----page header----->
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@MediaGalleryFrontEnd?.HeaderImage" alt="@MediaGalleryFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @L["Site:MediaGallery"]
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:MediaCenter"]</li>
+                            <li class="active">@L["Site:MediaGallery"]</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!----page header----->
+<!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content ">
+    <!---image-box-section---->
+    <section class="project-section bg_light_1">
+        <!--===============spacing==============-->
+        <div class="pd_top_80"></div>
+        <!--===============spacing==============-->
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="title_all_box style_seven dark_color">
+                        <div class="title_sections">
+                            <h2 class="text-uppercase text-primary-color">@MediaGalleryFrontEnd.Title</h2>
+                        </div>
+                        <!--===============spacing==============-->
+                        <div class="pd_bottom_50"></div>
+                        <!--===============spacing==============-->
+                    </div>
+                </div>
+            </div>
+            @if (MediaGalleryFrontEnd != null && !MediaGalleryFrontEnd.Medias.IsNullOrEmpty())
+            {
+                <div class="project_all filt_style_six  filter_enabled ">
+                    <div class="project_container  clearfix " style="position: relative;">
+                        <div class="row clearfix">
+                            @foreach (var media in MediaGalleryFrontEnd.Medias)
+                            {
+                                <div class="project-wrapper grid-item col-xl-4 col-lg-6 col-md-6 col-sm-12 col-xs-12  project_category-coaching">
+                                    <div class="project_post  style_six">
+                                                <a data-fancybox="gallery" href="@media?.File">
+                                        <div class="image_box ">
+                                            
+                                            <img width="746" height="497" src="@media?.File" class="attachment-creote_project_caro_image_style_one size-creote_project_caro_image_style_one wp-post-image" alt="@media.Title" />
+                                           
+                                        </div>
+                                        
+                                            <span class="icon-add zoom_icon"></span>
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_bottom_60"></div>
+        <!--===============spacing==============-->
+    </section>
+    <!---image-box-section-end---->
+</div>
+<!--===============PAGE CONTENT END==============-->

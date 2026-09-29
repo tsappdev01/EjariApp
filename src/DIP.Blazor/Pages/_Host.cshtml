@@ -1,0 +1,741 @@
+﻿@page "/"
+@namespace DIP.Blazor.Pages
+@using System.Globalization
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.AspNetCore.Components.Web;
+@using Volo.Abp.AspNetCore.Components.Web.LeptonXTheme.Components
+@using Volo.Abp.AspNetCore.Components.Server.LeptonXTheme.Bundling
+@using Volo.Abp.Localization
+
+@{
+    Layout = null;
+
+    var rtl = CultureInfo.CurrentCulture.Name.Equals("en") ? string.Empty : "rtl";
+
+}
+
+<!DOCTYPE html>
+<html lang="@CultureInfo.CurrentCulture.Name" dir="@rtl">
+<head>
+    <meta http-equiv="Content-type" content="text/html;charset=utf-8">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Title -->
+    <title>Dubai Investments Park</title>
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Dubai Investments Park (DIP) is a self-contained mixed-use development in Dubai, covering 2,300 hectares of industrial, commercial, and residential space. With world-class infrastructure and comprehensive facilities, DIP provides a unique city-within-a-city experience for businesses and residents." />
+    <meta name="keywords" content="Dubai Investments Park, DIP, industrial development, commercial space, residential, Dubai business" />
+    <meta name="author" content="Dubai Investments Park" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="English" />
+
+    <!-- Open Graph Tags for Social Media -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Dubai Investments Park" />
+    <meta property="og:description" content="Dubai Investments Park (DIP) is a self-contained mixed-use development in Dubai, covering 2,300 hectares of industrial, commercial, and residential space. With world-class infrastructure and comprehensive facilities, DIP provides a unique city-within-a-city experience for businesses and residents." />
+    <meta property="og:url" content="https://www.dipark.com" />
+    <meta property="og:image" content="https://www.dipark.com/assets/images/favicon.png" />
+    <meta property="og:site_name" content="Dubai Investments Park" />
+
+    <!-- Fav Icon -->
+    <link rel="icon" href="assets/images/favicon.png" type="image/x-icon">
+    <link rel="apple-touch-icon" href="assets/images/favicon.png">
+
+    <!-- Fav Icon -->
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+    <base href="~/" />
+    <!-- Google Fonts -->
+    <link rel='stylesheet'
+          href='https://fonts.googleapis.com/css?family=Spartan%3A400%2C500%2C600%2C700%2C800%2C900%7CInter%3A300%2C400%2C500%2C600%2C700%2C800%2C900&amp;subset=latin%2Clatin-ext'
+          type='text/css' media='all' />
+    <!-- Google Fonts -->
+
+    <abp-style-bundle name="@BlazorLeptonXThemeBundles.Styles.Global" />
+
+    @if (!HttpContext.Request.Path.Value.Contains("admin"))
+    {
+
+        <!-- Style -->
+        <link rel='stylesheet' href='assets/css/backToTop.css' type='text/css' media='all' />
+
+        <link rel='stylesheet' href='assets/css/owl.css' type='text/css' media='all' />
+        <link rel='stylesheet' href='assets/css/jquery.fancybox.min.css' type='text/css' media='all' />
+        <link rel='stylesheet' href='assets/css/font-awesome.min.css' type='text/css' media='all' />
+        <link rel='stylesheet' href='assets/css/swiper.min.css' type='text/css' media='all' />
+
+
+        @if (CultureInfo.CurrentCulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase))
+        {
+            <link rel="stylesheet" href="assets/css/bootstrap.min.css" type='text/css' media='all'>
+            <link rel="stylesheet" href="assets/css/style.css?v=1" type='text/css' media='all'>
+            <link rel='stylesheet' href='assets/css/scss/elements/theme-css.css' type='text/css' media='all' />
+
+        }
+        else
+        {
+            <link rel="stylesheet" href="assets/css/bootstrap_ar.min.css" type='text/css' media='all'>
+            <link rel="stylesheet" href="assets/css/style_ar.css" type='text/css' media='all'>
+            <link rel='stylesheet' href='assets/css/scss/elements/theme-css-ar.css' type='text/css' media='all' />
+
+        }
+    }
+    <link rel='stylesheet' href='assets/css/icomoon.css' type='text/css' media='all' />
+    <link rel='stylesheet' href='~/libs/select2/css/select2.min.css' type='text/css' media='all' />
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-GXG400ZK36"></script>
+    <script>window.dataLayer = window.dataLayer || []; function gtag() { dataLayer.push(arguments); } gtag('js', new Date()); gtag('config', 'G-GXG400ZK36');</script>
+    <!-- Style-->
+    <!---==========================  Linkedin Pixels ==========================-->
+    <script type="text/javascript">
+            _linkedin_partner_id = "9372314";
+            window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
+            window._linkedin_data_partner_ids.push(_linkedin_partner_id);
+    </script>
+    <script type="text/javascript">
+            (function(l) {
+                if (!l) {
+                    window.lintrk = function(a, b) { window.lintrk.q.push([a, b]) };
+                    window.lintrk.q = []
+                }
+                var s = document.getElementsByTagName("script")[0];
+                var b = document.createElement("script");
+                b.type = "text/javascript"; b.async = true;
+                b.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js";
+                s.parentNode.insertBefore(b, s);
+            })(window.lintrk);
+    </script>
+    <noscript>
+        <img height="1" width="1" style="display:none;" alt="" src="https://px.ads.linkedin.com/collect/?pid=9372314&fmt=gif" />
+    </noscript>
+    <!---==========================  Linkedin Pixels ==========================-->
+
+</head>
+<body class="abp-application-layout @rtl">
+
+    @*<component type="typeof(App)" render-mode="Server" />*@
+    @if (!User.Identity.IsAuthenticated)
+    {
+        <component type="typeof(App)" render-mode="Server" />
+
+    }
+    else
+    {
+        <component type="typeof(App)" render-mode="Server" />
+
+    }
+    <div id="blazor-error-ui">
+        <environment include="Staging,Production">
+            An error has occurred. This application may no longer respond until reloaded.
+        </environment>
+        <environment include="Development">
+            An unhandled exception has occurred. See browser dev tools for details.
+        </environment>
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <abp-script-bundle name="@BlazorLeptonXThemeBundles.Scripts.Global" />
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <script type='text/javascript' src='assets/js/bootstrap.min.js'></script>
+
+
+    <!---========================== javascript ==========================-->
+
+    <script type='text/javascript' src='assets/js/jquery-3.6.0.min.js'></script>
+    <script type='text/javascript' src='assets/js/site_V1.js'></script>
+    <script type='text/javascript' src='assets/js/jquery.fancybox.js'></script>
+    <script type='text/javascript' src='~/libs/select2/js/select2.min.js'></script>
+
+    <!-- main-js -->
+    <script type='text/javascript' src='assets/js/owl.js'></script>
+    <script type='text/javascript' src='assets/js/swiper.min.js'></script>
+    <script type='text/javascript' src='assets/js/isotope.min.js'></script>
+    <script type='text/javascript' src='assets/js/appear.js'></script>
+    <script type='text/javascript' src='assets/js/backToTop.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+
+
+    <script src="https://static.elfsight.com/platform/platform.js" data-use-service-core defer></script>
+    <script type='text/javascript' src='assets/js/dip-extension.js'></script>
+    <!---========================== javascript ==========================-->
+    <!---========================== index ==========================-->
+    <script type='text/javascript' src="https://unpkg.com/splitting/dist/splitting.min.js"></script>
+    @*<script type='text/javascript' src="~/assets/captcha/scriptLoader.js"></script>*@
+    @*<script src="https://www.google.com/recaptcha/api.js"></script>*@
+    <script src="assets/js/captcha/script.js"></script>
+    @*<abp-script-bundle name="@BlazorLeptonXThemeBundles.Scripts.Global" />*@
+    <script>
+            // Wait until a 'reload' button appears
+            new MutationObserver((mutations, observer) => {
+
+                if (document.querySelector('#components-reconnect-modal h5 a')) {
+                    // Now every 10 seconds, see if the server appears to be back, and if so, reload
+                    async function attemptReload() {
+                        await fetch(''); // Check the server really is back
+                        location.reload();
+                    }
+                    observer.disconnect();
+                    attemptReload();
+                    setInterval(attemptReload, 10000);
+                }
+
+            }).observe(document.body, { childList: true, subtree: true });
+    </script>
+
+    <script>
+            // Wait until a 'reload' button appears
+            new MutationObserver((mutations, observer) => {
+                if (document.querySelector('#blazor-error-ui')) {
+
+                    const element = document.querySelector('#blazor-error-ui')
+
+
+
+                    const dskcellIsDisplayed = window.getComputedStyle(element, null).getPropertyValue("display");
+
+
+                    if (dskcellIsDisplayed == 'block') {
+
+                        // Now every 10 seconds, see if the server appears to be back, and if so, reload
+                        async function attemptReload() {
+                            await fetch(''); // Check the server really is back
+                            location.reload();
+                        }
+                        observer.disconnect();
+                        attemptReload();
+                        setInterval(attemptReload, 10000);
+                    }
+
+                }
+
+            }).observe(document.body, { childList: true, subtree: true });
+    </script>
+    <script>
+            downloadFile = function(fileName, contentType, byteArray) {
+                const blob = new Blob([byteArray], { type: contentType });
+                const link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(link.href);
+            };
+
+            // NOC OTP: client-side input + focus (instant on UAT Blazor Server); sync to .NET via JSInvokable
+            window.dipNocOtp = window.dipNocOtp || {
+                _abort: null,
+                _dotnet: null,
+
+                collectInputs: function() {
+                    var list = [];
+                    for (var i = 0; i < 6; i++) {
+                        var el = document.getElementById('otp-input-' + i);
+                        if (!el) return null;
+                        list.push(el);
+                    }
+                    return list;
+                },
+
+                readDigits: function() {
+                    var inputs = this.collectInputs();
+                    if (!inputs) return ['', '', '', '', '', ''];
+                    return inputs.map(function(el) {
+                        var d = String(el.value || '').replace(/\D/g, '').slice(-1);
+                        return d.length ? d[0] : '';
+                    });
+                },
+
+                clearAll: function() {
+                    var inputs = this.collectInputs();
+                    if (!inputs) return;
+                    inputs.forEach(function(el) { el.value = ''; });
+                },
+
+                unwire: function() {
+                    if (this._abort) {
+                        this._abort.abort();
+                        this._abort = null;
+                    }
+                    this._dotnet = null;
+                },
+
+                wire: function(dotnetHelper) {
+                    var self = this;
+                    self.unwire();
+                    var inputs = self.collectInputs();
+                    if (!inputs || inputs.length !== 6) return false;
+
+                    self._dotnet = dotnetHelper;
+                    self._abort = new AbortController();
+                    var sig = self._abort.signal;
+
+                    function sync() {
+                        if (!self._dotnet) return;
+                        var arr = self.readDigits();
+                        self._dotnet.invokeMethodAsync('SyncOtpFromClient', arr);
+                    }
+
+                    function applyDigitsFrom(rawDigits) {
+                        var d = String(rawDigits || '').replace(/\D/g, '').slice(0, 6);
+                        for (var i = 0; i < 6; i++) {
+                            inputs[i].value = i < d.length ? d[i] : '';
+                        }
+                        var focusIx = d.length >= 6 ? 5 : Math.min(Math.max(d.length, 0), 5);
+                        inputs[focusIx].focus();
+                        sync();
+                    }
+
+                    inputs.forEach(function(el, idx) {
+                        el.addEventListener('input', function() {
+                            var raw = String(el.value || '').replace(/\D/g, '');
+                            if (raw.length > 1) {
+                                applyDigitsFrom(raw);
+                                return;
+                            }
+                            el.value = raw;
+                            if (raw.length === 1 && idx < 5) {
+                                inputs[idx + 1].focus();
+                            }
+                            sync();
+                        }, { signal: sig });
+
+                        el.addEventListener('keydown', function(e) {
+                            if (e.key !== 'Backspace') return;
+                            if (el.value && el.value.length > 0) return;
+                            e.preventDefault();
+                            if (idx > 0) {
+                                inputs[idx - 1].focus();
+                                inputs[idx - 1].value = '';
+                                sync();
+                            }
+                        }, { signal: sig });
+
+                        el.addEventListener('paste', function(e) {
+                            e.preventDefault();
+                            var text = (e.clipboardData || window.clipboardData).getData('text') || '';
+                            applyDigitsFrom(text);
+                        }, { signal: sig });
+                    });
+
+                    sync();
+                    return true;
+                }
+            };
+    </script>
+    <script>
+            function click_menu() {
+                $(".hamburger_menu").click(function() {
+                    $(this).toggleClass("is-active");
+                });
+                $('.crt_mobile_menu .menu-backdrop').on('click', function() {
+                    $('.hamburger_menu ').removeClass('is-active');
+                });
+
+          
+                if ($('.crt_mobile_menu').length) {
+                    var mobileMenuContent = $('.header  .header_content_collapse .navigation_menu').html();
+                    $('.crt_mobile_menu .menu-box .menu-outer').append(mobileMenuContent);
+
+                    //Menu Toggle Btn
+                    $('.navbar_togglers').on('click', function() {
+                        $('body').toggleClass('crt_mobile_menu-visible');
+                    });
+                    //Menu Toggle Btn
+                    $('.crt_mobile_menu .menu-backdrop,.crt_mobile_menu .close-btn').on('click', function() {
+                        $('body').removeClass('crt_mobile_menu-visible');
+                    });
+                }
+
+      
+
+
+      
+            }
+            function dip_arrows() {
+
+                setTimeout(() => {
+                    if ($('header .navbar_nav li.dropdown ul').length) {
+                        $('header .navbar_nav li.dropdown').append('<div class="dropdown-btn"><span class="fa fa-angle-down"></span></div>');
+                    }
+
+                    if ($('header .navbar_nav li.mega_menu  ul').length) {
+                        $('header .navbar_nav li.mega_menu a.nav-link').append('<span class="fa fa-angle-down"></span>');
+                    }
+
+                    if ($('.crt_mobile_menu .navbar_nav li.dropdown ul').length) {
+                        $('.crt_mobile_menu .navbar_nav li.dropdown').append('<div class="dropdown-btn"><span class="fa fa-angle-down"></span></div>');
+                    }
+
+                    if ($('.crt_mobile_menu .navbar_nav li.mega_menu  ul').length) {
+                        $('.crt_mobile_menu .navbar_nav li.mega_menu a.nav-link').append('<span class="fa fa-angle-down"></span>');
+                    }
+
+                    if ($('.crt_mobile_menu').length) {
+                        var mobileMenuContent = $('.header  .header_content_collapse .navigation_menu').html();
+                        $('.crt_mobile_menu .menu-box .menu-outer').append(mobileMenuContent);
+
+                        //Menu Toggle Btn
+                        $('.navbar_togglers').on('click', function() {
+                            $('body').toggleClass('crt_mobile_menu-visible');
+                        });
+                        //Menu Toggle Btn
+                        $('.crt_mobile_menu .menu-backdrop,.crt_mobile_menu .close-btn').on('click', function() {
+                            $('body').removeClass('crt_mobile_menu-visible');
+                        });
+                    }
+
+                    $(function() {
+                        $('.crt_mobile_menu li.dropdown .dropdown-btn').on('click', function(event) {
+
+
+                            event.preventDefault();
+                            $(this).toggleClass('open');
+                            $(this).parent().find('ul.dropdown-menu').first().toggle(300);
+
+                            $(this).parent().siblings().find('ul.dropdown-menu').hide(200);
+
+                            //Hide menu when clicked outside
+                            $(this).parent().find('ul.dropdown-menu').parent().mouseleave(function() {
+                                var thisUI = $(this);
+                                $('html').click(function() {
+                                    thisUI.children(".dropdown-menu").hide();
+                                    thisUI.children("span").removeClass('open');
+
+                                    $('html').unbind('click');
+                                });
+                            });
+                        });
+                    });
+
+                    $(document).ready(function() {
+                        $(".hamburger_menu").click(function() {
+                            $(this).toggleClass("is-active");
+                        });
+                        $('.crt_mobile_menu .menu-backdrop').on('click', function() {
+                            $('.hamburger_menu ').removeClass('is-active');
+                        });
+                    });
+                }, 1500);
+
+        
+            }
+
+   
+
+
+            //function headerStyle() {
+            //    if ($('body').length) {
+            //        var windowpos = $(window).scrollTop();
+            //        var siteHeader = $('body');
+            //        if (windowpos >= 250) {
+            //            siteHeader.addClass('fixed-header');
+            //        } else {
+            //            siteHeader.removeClass('fixed-header');
+            //        }
+            //    }
+            //}
+            //$(window).on('scroll', function () {
+            //    headerStyle();
+            //});
+            //$(function () {
+            //    // alert('adasd')
+            //    //Show Popup
+            //    $('.contact-toggler').click(function () {
+            //        alert('1')
+            //        $('.modal_popup').addClass('contact-popup-visible');
+            //    });
+
+            //    $('.inquiry-toggler').click(function () {
+            //        alert('2')
+            //        $('.modal_popup_inquiry').addClass('contact-popup-visible');
+            //    });
+
+            //    $('.feedback-toggler').click(function () {
+            //        $('.modal_popup_feedback').addClass('contact-popup-visible');
+            //    });
+
+            //    $(document).keydown(function (e) {
+            //        if (e.keyCode === 27) {
+            //            $('.modal_popup').removeClass('contact-popup-visible');
+            //        }
+            //    });
+            //    //Hide Popup
+            //    $('.close-modal').click(function () {
+            //        $('.modal_popup').removeClass('contact-popup-visible');
+            //    });
+            //    $('.close-modal-inquiry ').click(function () {
+            //        $('.modal_popup_inquiry').removeClass('contact-popup-visible');
+            //    });
+            //    $('.close-modal-feedback ').click(function () {
+            //        $('.modal_popup_feedback').removeClass('contact-popup-visible');
+            //    });
+            //    //jQuery(".dropdown-category ul li").click(function (e) {
+            //    //    $(".category-submenu").toggle();
+            //    //});
+            //})
+            Splitting();
+
+            setTimeout(() => {
+                document.querySelector(".card").focus();
+            }, 1500);
+
+
+    </script>
+
+
+    <script>
+
+            function hideMainMenu() {
+                // if (window.innerWidth <= 1368) {
+                $('.hamburger_menu ').removeClass('is-active');
+                $('body').removeClass('crt_mobile_menu-visible');
+                // }
+            }
+
+
+            //var player;
+            //function onYouTubeIframeAPIReady() {
+            //    player = new YT.Player('youtube-background', {
+            //        videoId: 'fb-yf_2DrCg', // Replace with your YouTube video ID
+            //        playerVars: {
+            //            autoplay: 1,
+            //            controls: 0,
+            //            showinfo: 0,
+            //            loop: 1,
+            //            mute: 1,
+            //            playlist: 'fb-yf_2DrCg' // Replace with your YouTube video ID
+            //        },
+            //        events: {
+            //            onReady: onPlayerReady
+            //        }
+            //    });
+            //}
+
+            function onPlayerReady(event) {
+                event.target.mute();
+                event.target.playVideo();
+            }
+            //function playVideo() {
+            //    setTimeout(2000);
+            //    if (document.getElementById("youtube-background") != null) {
+            //        var v = document.getElementById("youtube-background");
+            //        v.muted = true;
+            //        v.play();
+
+            //    }
+
+            //}
+            function dip_preloader() {
+                if ($('.preloader-wrap').length) {
+                    $('.preloader-wrap').delay(500).css("height", "0");
+                    $('.preloader').delay(500).fadeOut(100);
+                    $('.loading-icon').delay(500).fadeOut(100);
+                }
+            }
+            function dip_modal_popup() {
+                //Search Popup
+                if ($('.modal_popup').length) {
+                    //Show Popup
+                    $('.contact-toggler').on('click', function() {
+                        $('.modal_popup_contact').addClass('contact-popup-visible');
+                    });
+                    $('.support-toggler').on('click', function() {
+                        $('.modal_popup_support').addClass('contact-popup-visible');
+                    });
+                    $('.inquiry-toggler').click(function() {
+
+                        $('.modal_popup_inquiry').addClass('contact-popup-visible');
+                    });
+
+                    $('.feedback-toggler').click(function() {
+                        $('.modal_popup_feedback').addClass('contact-popup-visible');
+                    });
+
+                    $('.feedbacknew-toggler').click(function() {
+                        $('.modal_popup_feedbacknew').addClass('contact-popup-visible');
+                    });
+                    $(document).keydown(function(e) {
+                        if (e.keyCode === 27) {
+                            $('.modal_popup').removeClass('contact-popup-visible');
+                        }
+                    });
+                    //Hide Popup
+                    $('.close-modal ').on('click', function() {
+                        $('.modal_popup').removeClass('contact-popup-visible');
+                    });
+                }
+
+
+            }
+
+            function select2_init(dotnetHelper) {
+                $('.category-class').select2({
+                    // Your Select2 options here
+                }).on('change', function() {
+                    // Call Blazor when value changes
+                    dotnetHelper.invokeMethodAsync('OnSelectedCategoryValueChanged', $(this).val());
+                });
+                $('.sub-category-class').select2({
+                    // Your Select2 options here
+                }).on('change', function() {
+                    // Call Blazor when value changes
+                    dotnetHelper.invokeMethodAsync('OnSelectedSubCategoryValueChanged', $(this).val());
+                });
+                //  return $(selector).select2('val');
+                // $('.js-example-basic-single').select2();
+            }
+
+
+            function dip_swiper_options() {
+                var swiperElements = document.querySelectorAll('.swiper-container');
+                console.log(swiperElements);
+                swiperElements.forEach(function(swiperElement) {
+                    var swiperOptions = JSON.parse(swiperElement.getAttribute('data-swiper'));
+                    console.log(swiperOptions);
+
+                    new Swiper(swiperElement, swiperOptions);
+                });
+            }
+            function dip_light_box() {
+                if ($('.lightbox-image').length) {
+                    $('.lightbox-image').fancybox({
+                        openEffect: 'fade',
+                        closeEffect: 'fade',
+                        helpers: {
+                            media: {}
+                        }
+                    });
+                }
+            }
+            function dip_swiper_with_tab() {
+
+                var swiper = new Swiper(".single_swiper_tab", {
+                    spaceBetween: 30,
+                    slidesPerView: 4,
+                    freeMode: true,
+                    autoplay: true,
+                    loop: true,
+                    centeredSlides: false,
+                    watchSlidesProgress: true,
+                    breakpoints: {
+                        0: {
+                            slidesPerView: 1,
+                        },
+                        540: {
+                            slidesPerView: 1,
+                        },
+                        768: {
+                            slidesPerView: 2,
+                        },
+                        1024: {
+                            slidesPerView: 3,
+                        },
+                        1200: {
+                            slidesPerView: 4,
+                        },
+                    },
+                });
+                var swiper2 = new Swiper(".single_swiper", {
+                    spaceBetween: 10,
+                    centeredSlides: true,
+                    loop: true,
+                    slidesPerView: 3,
+                    spaceBetween: 30,
+                    grabCursor: true,
+                    breakpoints: {
+                        240: {
+                            slidesPerView: 1,
+                        },
+                        540: {
+                            slidesPerView: 1,
+                        },
+                        768: {
+                            slidesPerView: 2,
+                        },
+                        1024: {
+                            slidesPerView: 3,
+                        },
+                        1200: {
+                            slidesPerView: 3,
+                        },
+                    },
+                    navigation: {
+                        nextEl: ".swiper-button-next",
+                        prevEl: ".swiper-button-prev",
+                    },
+                    thumbs: {
+                        swiper: swiper,
+                    },
+                });
+            }
+
+            function dip_theme_owl_carousel() {
+                if ($('.theme_carousel').length) {
+                    $(".theme_carousel").each(function(index) {
+                        var $owlAttr = {
+                            animateOut: 'slideOut',
+                            animateIn: 'slideIn',
+                        },
+                            $extraAttr = $(this).data("options");
+                        $.extend($owlAttr, $extraAttr);
+                        $(this).owlCarousel($owlAttr);
+                    });
+                }
+            }
+
+    </script>
+    <!---========================== index ==========================-->
+
+
+
+    <script>
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+    </script>
+    <script>
+            function dip_chat_box() {
+                $(".chtbtn_hod").click(function() {
+                    $('.chat-form').show(500);
+                });
+                $(".close_chat").click(function() {
+                    $('.chat-form').hide(500);
+                });
+            }
+
+    </script>
+
+
+
+
+
+
+    <script>
+            $(document).ready(function() {
+                $(".mob-menu").click(function() {
+                    $("#mobile-menu").toggle();
+                });
+            });
+    </script>
+
+    <script>
+            function go_to_top() {
+
+                $(".gototop").click(function() {
+
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+       
+                });
+
+            }
+    </script>
+
+</body>
+</html>

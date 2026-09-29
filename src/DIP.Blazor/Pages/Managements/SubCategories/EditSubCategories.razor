@@ -1,0 +1,212 @@
+@page "/admin/sub-categories/edit/{id}"
+@page "/admin/sub-categories/create"
+
+
+@attribute [Authorize(DIPPermissions.SubCategories.Default)]
+@using DIP.SubCategories
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject ISubCategoriesAppService SubCategoriesAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+
+<PageHeader Title="@( $"{L[Id.IsNullOrEmpty()? "Create":"Update"]} {L["SubCategories"]}")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+<Card>
+    @if (Id.IsNullOrEmpty())
+    {
+
+        <Form id="CreateSubCategoryForm">
+             <CardBody>
+                <Tabs SelectedTab="@SelectedCreateTab" SelectedTabChanged="@OnSelectedCreateTabChanged">
+                    <Items>
+                        <Tab Name="create-tab-english">@L["English"]</Tab>
+                        <Tab Name="create-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                <Validations @ref="@NewSubCategoryValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewSubCategory"
+                            ValidateOnLoad="false">
+                 <TabPanel Name="create-tab-english">
+
+                     
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewSubCategory.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@NewSubCategory.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewSubCategory.IsFeature">@L["IsFeature"]</Check>
+                    </Field>
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewSubCategory.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["Category"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@NewSubCategory.CategoryId">
+                            @foreach (var category in CategoriesCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@category.Id">
+                                    @category.DisplayName
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+
+
+                 </TabPanel>
+                 <TabPanel Name="create-tab-arabic">
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                    <TextEdit @bind-Text="@NewSubCategory.TitleAr">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>
+                 </TabPanel>
+
+ 
+                    
+                </Validations>
+                </Content>
+            </Tabs>
+        </CardBody>
+        <CardFooter>
+            <SubmitButton Form="CreateSubCategoryForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+            <SubmitButton Form="CreateSubCategoryForm" Clicked="async()=> await CreateSubCategoryAsync()" />
+        </CardFooter>
+        </Form>
+
+    }
+    else
+    {
+     
+                <Form id="EditSubCategoryForm">
+              <CardBody>
+                <Tabs SelectedTab="@SelectedEditTab" SelectedTabChanged="@OnSelectedEditTabChanged">
+                    <Items>
+                        <Tab Name="edit-tab-english">@L["English"]</Tab>
+                        <Tab Name="edit-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                        <Validations @ref="@EditingSubCategoryValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@EditingSubCategory"
+                                 ValidateOnLoad="false">
+                            <TabPanel Name="edit-tab-english">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingSubCategory.TitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@EditingSubCategory.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@EditingSubCategory.IsFeature">@L["IsFeature"]</Check>
+                                </Field>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@EditingSubCategory.IsActive">@L["IsActive"]</Check>
+                                </Field>
+
+                                <Field>
+                                    <FieldLabel>@L["Category"]</FieldLabel>
+                                    <Select TValue="Guid" @bind-SelectedValue="@EditingSubCategory.CategoryId">
+                                        @foreach (var category in CategoriesCollection)
+                                        {
+                                            <SelectItem TValue="Guid" Value="@category.Id">
+                                                @category.DisplayName
+                                            </SelectItem>
+                                        }
+                                    </Select>
+                                </Field>
+                            </TabPanel>
+                            <TabPanel Name="edit-tab-arabic">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingSubCategory.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                            </TabPanel>
+                        </Validations>
+  
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="EditSubCategoryForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="EditSubCategoryForm" Clicked="async()=> await UpdateSubCategoryAsync()" />
+            </CardFooter>
+               
+                </Form>
+      
+
+        
+    }
+    @* ************************* EDIT MODAL ************************* *@
+    </Card>

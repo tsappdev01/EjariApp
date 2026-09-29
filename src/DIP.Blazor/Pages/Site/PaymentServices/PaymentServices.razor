@@ -1,0 +1,586 @@
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared
+@inherits DIPComponentBase
+@layout CustomLayout;
+@using DIP.Settings
+
+@inject IDIPSettingAppService DIPSettingAppService
+@page "/{lang}/Online/PaymentServices";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+
+
+
+
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @PageInfoFrontEnd?.Title
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:Home:EService"] </li>
+                            <li class="active">@PageInfoFrontEnd?.Title</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+         <!----page header----->
+         
+         <!--===============PAGE CONTENT==============-->
+
+
+<div id="content" class="site-content ">
+
+    <!---newsteller--->
+    <section class="top-steps">
+        <!--===============spacing==============-->
+        <div class="pd_top_80"></div>
+        <!--===============spacing==============-->
+        <div class="auto-container">
+            <div class="row align-items-center m-0 py-3 payment-steps">
+                <div class="col-lg-4 col-md-12">
+                    <div class="stepname active">
+                        <div class="stepnum">1</div>
+                        <div class="steptitle">
+                            <img src="assets/images/clipboard-list.svg">
+                            <h4>@L["PAYMENTDIRECT"]</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-12 p-0">
+                    <div class="stepname middle-step">
+                        <div class="stepnum">2</div>
+                        <div class="steptitle">
+                            <img src="assets/images/credit-card.svg">
+                            <h4>@L["PAYMENT"]</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-12">
+                    <div class="stepname">
+                        <div class="stepnum">3</div>
+                        <div class="steptitle">
+                            <img src="assets/images/info-square.svg">
+                            <h4>@L["STATUS"]</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_bottom_0"></div>
+        <!--===============spacing==============-->
+    </section>
+    <!---newsteller end--->
+    @if (@hasErrorMessage)
+    {
+        <span class="wpcf7-form-control-wrap your-name mx-1 radio-bs mt-0 d-block py-3 px-3">@errorMessage </span>
+        <div class="alert alert-danger" role="alert">
+            errorMessage
+        </div>
+    }
+    <section class="blog_post_section two_column style_three">
+        <!--===============spacing==============-->
+        <div class="pd_top_80"></div>
+        <!--===============spacing==============-->
+
+        <div class="auto-container p-0">
+
+            <div class="row align-items-center">
+                <div class="col-lg-9">
+                    <div class="title_all_box style_seven dark_color">
+                        <div class="title_sections">
+                            <div class="title fw-normal text-primary-color">@L["PaymentDirect"]</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+            
+
+                        <div class="theme_btn_all color_one">
+                        <button target="_blank" rel="nofollow" class="theme-btn one support-toggler w-100"> @L["SupportedBanks"] </button>
+                        </div>
+
+                </div>
+                <div class="col-md-12">
+                    <!--===============spacing==============-->
+                    <div class="pd_bottom_30"></div>
+                    <!--===============spacing==============-->
+                </div>
+            </div>
+
+        </div>
+        
+        <div class="auto-container p-0">
+            <div class="row">
+                <div class="col-lg-12">
+                    <section class="contact_form_box_all type_one">
+                        <div class="contact_form_box_inner">
+                            <div class="contact_form_shortcode">
+                                <div role="form" class="wpcf7">
+    <EditForm EditContext="EditContext"  class="wpcf7-form init row">
+           <DataAnnotationsValidator />
+                                     @*   <Validations @ref="@OnlinePaymentValidations"
+                                             Mode="ValidationMode.Auto"
+                                                     Model="@OnlinePaymentDto"
+                                             ValidateOnLoad="false">*@
+                                        <div class="col-md-6">
+                                            <p>
+                                                <label>
+                                                    @L["PropertyCode"]<br>
+                                              
+                                                    <span class="wpcf7-form-control-wrap your-name d-flex">
+                                                        <select name="service-name" @bind="@OnlinePaymentDto.PropertyCode"
+                                                                class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required bg-white w-25"
+                                                                aria-required="true" aria-invalid="false"
+                                                                placeholder="@L["EnterPropertyCode"]">
+                                                            <option value="" >
+                                                                @L["Select"]
+                                                            </option>
+                                                            @foreach (var direction in Directions)
+                                                            {
+                                                                <option Value="@direction.Value">
+                                                                    @direction.Text
+                                                                </option>
+                                                            }
+                                                     
+                                                        </select>
+                                                        <input @bind-value="@OnlinePaymentDto.PropertyValue" type="text" name="your-subject" size="40"
+                                                                           class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required w-75"
+                                                         aria-required="true" aria-invalid="false"
+                                                         placeholder="@L["PropertyCode"]">
+                                                     </span>
+                                                    
+                                                    <br>
+                                                    <i class="fa fa-barcode"></i><br>
+                                                    <ValidationMessage For="() => OnlinePaymentDto.PropertyCode" />
+                                                    <ValidationMessage For="() => OnlinePaymentDto.PropertyValue" />
+                                                </label>
+                                            </p>
+                                        </div>
+                             
+                                        <div class="col-md-6">
+                                            <p>
+                                                <label>
+                                                    @L["MobileNumber"]<br>
+
+                                                    <span class="wpcf7-form-control-wrap your-name d-flex">
+
+                                                        <select disabled name="service-name" 
+                                                                class="custom-select wpcf7-form-control wpcf7-text wpcf7-validates-as-required bg-white w-25"
+                                                                aria-required="true" aria-invalid="false"
+                                                               >
+                                                            <option selected>
+                                                                +971
+                                                            </option>
+                                                         
+
+                                                        </select>
+                                                            <input type="number" @bind-value="@OnlinePaymentDto.MobileNumber"
+                                                               name="your-name" pattern="[0-9]{9}"
+                                                               class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required w-75"
+                                                               aria-required="true" aria-invalid="false"
+                                                               placeholder=" @L["EnterMobileNumber"]" />
+                                                              
+                                                    </span><br>
+                                                    <i class="fa fa-phone"></i><br>
+                                                    <ValidationMessage For="() => OnlinePaymentDto.MobileNumber" />
+
+                                                </label>
+                                            </p>
+
+
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <p>
+                                                <label>
+                                                    @L["TenantName"]<br>
+                                                    <span class="wpcf7-form-control-wrap your-subject">
+                                                        <input type="text" @bind-value="@OnlinePaymentDto.TenantName"
+                                                               name="your-subject"  size="40"
+                                                               class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required"
+                                                               aria-required="true" aria-invalid="false"
+                                                               placeholder="@L["EnterTenantName"]">
+                                                    </span><br>
+                                                    <i class="fa fa-user"></i><br>
+                                                    <ValidationMessage For="() => OnlinePaymentDto.TenantName" />
+
+                                                </label>
+                                            </p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p>
+                                                <label>
+                                                    @L["Email"] <br>
+                                                    <span class="wpcf7-form-control-wrap your-email">
+                                                        <input type="email" @bind-value="@OnlinePaymentDto.Email"
+                                                               name="your-email" size="40"
+                                                               class="wpcf7-form-control wpcf7-text wpcf7-email wpcf7-validates-as-required wpcf7-validates-as-email"
+                                                               aria-required="true" aria-invalid="false"
+                                                               placeholder="@L["EnterYourEmail"]">
+                                                    </span><br>
+                                                    <i class="fa fa-envelope"></i><br>
+
+                                                    <ValidationMessage For="() => OnlinePaymentDto.Email" />
+
+                                                </label>
+                                            </p>
+                                        </div>
+                                        <!-- <p><input type="submit" value="Submit"
+                                              class="wpcf7-form-control has-spinner wpcf7-submit"></p> -->
+
+
+                                    </EditForm>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_top_70"></div>
+        <!--===============spacing==============-->
+    </section>
+    <section class="blog_post_section two_column style_three">
+                                        <!--===============spacing==============-->
+                                        <div class="pd_top_0"></div>
+                                        <!--===============spacing==============-->
+
+                                        <div class="auto-container p-0">
+
+                                            <div class="row align-items-center">
+                                                <div class="col-lg-9">
+                                                    <div class="title_all_box style_seven dark_color">
+                                                        <div class="title_sections">
+                                                            <div class="title fw-normal text-primary-color">@L["ServicesForPayment"]</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="theme_btn_all color_one">
+                        <button class="theme-btn one w-100" @onclick=this.HandleAddServiceSubmit> @L["AddService"] </button>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-12">
+                                                    <!--===============spacing==============-->
+                                                    <div class="pd_bottom_30"></div>
+                                                    <!--===============spacing==============-->
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                    <div class="auto-container p-0">
+                                      <div class="row">
+                                         <div class="col-lg-12">
+                                            <section class="contact_form_box_all type_one">
+                                               <div class="contact_form_box_inner">
+                                                  <div class="contact_form_shortcode">
+                                                     <div role="form" class="wpcf7">
+
+                                    <EditForm EditContext="ServicePaymentEditContext" OnValidSubmit="AddPaymentServices" class="wpcf7-form init row">
+                                        <DataAnnotationsValidator />
+
+
+                                        <div class="col-md-3">
+                                            <p>
+                                                <label>
+                                                    @L["PaymentFor"]<br>
+                                                    <span class="wpcf7-form-control-wrap your-name">
+                                                        <select name="service-name" @onchange="@PaymentForChanged"
+                                                                class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required bg-white"
+                                                                aria-required="true" aria-invalid="false"
+                                                                placeholder="@L["EnterPropertyCode"]">
+                                                            <option value=""> @L["Select"]</option>
+
+                                                            @foreach (var otherCharge in otherCharges)
+                                                            {
+                                                                <option Value="@otherCharge.AccCode"> @otherCharge.Name </option>
+
+                                                            }
+
+                                                         
+                                                        </select>
+                                                    </span>
+                                                </label>
+                                            </p>
+                                            <ValidationMessage For="() => ServiceForPayment.paymentFor" />
+
+                                        </div>
+                                        <div class="col-md-3">
+                                            <p>
+                                                <label>
+                                                    @L["Month"]<br>
+                                                    <span class="wpcf7-form-control-wrap your-name">
+                                                        <select name="service-name" @bind="@ServiceForPayment.Month"
+                                                                class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required bg-white"
+                                                                aria-required="true" aria-invalid="false"
+                                                                placeholder="Enter Property Code">
+                                                            <option value=""> @L["Select"]</option>
+
+                                                            @foreach (var month in listOfMonth)
+                                                            {
+                                                                <option Value="@month.Id"> @month.Name </option>
+
+                                                            }
+                                                        </select>
+                                                    </span>
+                                                </label>
+                                            </p>
+
+                                            <ValidationMessage For="() => ServiceForPayment.Month" />
+
+                                        </div>
+                                        <div class="col-md-3">
+                                            <p>
+                                                <label>
+                                                    @L["Year"] <br>
+                                                    <span class="wpcf7-form-control-wrap your-name">
+                                                        <select name="service-name" @bind="@ServiceForPayment.Year"
+                                                                class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required bg-white"
+                                                                aria-required="true" aria-invalid="false"
+                                                                placeholder="Enter Property Code">
+                                                            <option value=""> @L["Select"]</option>
+
+                                                            @foreach (var year in listOfYear)
+                                                            {
+                                                                <option Value="@year.Id"> @year.Name </option>
+
+                                                            }
+                                                        </select>
+                                                    </span>
+                                                </label>
+                                            </p>
+                                            <ValidationMessage For="() => ServiceForPayment.Year" />
+                                        </div>
+
+                                        <div class="col-md-3">
+                                            <p>
+                                                <label>
+                                                    @L["Amount(AED)"] <br>
+                                                    <span class="wpcf7-form-control-wrap your-email">
+                                                        <input type="number" @bind-value="@ServiceForPayment.Amount"
+                                                               name="your-email"
+                                                               class="wpcf7-form-control wpcf7-text wpcf7-email wpcf7-validates-as-required"
+                                                               aria-required="true" aria-invalid="false"
+                                                               placeholder="@L["EnterAmountInAED"]">
+                                                    </span><br>
+                                                    <i class="fa fa-money"></i><br>
+                                                </label>
+                                            </p>
+                                            <ValidationMessage For="() => ServiceForPayment.Amount" />
+
+                                        </div>
+
+                                        <div class="col-md-12">
+                                            <p>
+                                                <label>
+                                                    @L["Comment(optional)"]<br>
+                                                    <span class="wpcf7-form-control-wrap your-message">
+                                                        <textarea name="your-message" cols="40" rows="10" @bind="@ServiceForPayment.Comments"
+                                                                  class="wpcf7-form-control wpcf7-textarea" aria-invalid="false"
+                                                                  placeholder="@L["EnterYourComment"]"></textarea>
+                                                    </span><br>
+                                                    <i class="fa fa-comments"></i><br>
+                                                </label>
+                                            </p>
+                                        </div>
+                                    </EditForm>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_top_70"></div>
+        <!--===============spacing==============-->
+    </section>
+    <section class="blog_post_section two_column style_three">
+        <!--===============spacing==============-->
+        <div class="pd_top_0"></div>
+        <!--===============spacing==============-->
+
+        <div class="auto-container p-0">
+
+            <div class="row align-items-center">
+                <div class="col-lg-9">
+                    <div class="title_all_box style_seven dark_color">
+                        <div class="title_sections">
+                            <div class="title fw-normal text-primary-color">@L["SelectedServices"]</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                </div>
+                <div class="col-md-12">
+                    <!--===============spacing==============-->
+                    <div class="pd_bottom_30"></div>
+                    <!--===============spacing==============-->
+                </div>
+            </div>
+
+        </div>
+
+        <div class="auto-container p-0">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="fact-box acctablebox">
+                        <table class="rwd-table acctable w-100">
+                            @*<tbody>*@
+                                <tr>
+                                    <th>@L["ServiceName"]</th>
+                                    <th>@L["Month"]</th>
+                                    <th>@L["Year"]</th>
+                                    <th>@L["Amount"]</th>
+                                    <th>@L["Comment"]</th>
+                                    <th>@L["Action"]</th>
+                                </tr>
+                            @foreach (var item in ListServiceForPayment)
+                                {
+                                    <tr>
+                                    <td data-th="Service Name" class="fw-bold">@getNameFromAccCode(item.paymentFor) </td>
+                                        <td data-th="Month">@item.Month</td>
+                                        <td data-th="Year">@item.Year</td>
+                                        <td data-th="Amount">AED  @item.Amount</td>
+                                        <td data-th="Comment" class="wrapok">@item.Comments</td>
+                                        <td data-th="" class="text-center">
+                                        <button class="bg-danger m-auto border-0 d-flex align-items-center justify-content-center p-2 rounded text-white" @onclick="(() => RemovePaymentServices(item))">
+                                            <i class="fa fa-trash fs-5 text-white me-2"  @onclick="(() => RemovePaymentServices(item))" ></i> @L["Remove"]
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+
+
+                      
+
+                            @*</tbody>*@
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_top_70"></div>
+        <!--===============spacing==============-->
+    </section>
+    <section class="blog_post_section two_column style_three">
+        <!--===============spacing==============-->
+        <div class="pd_top_0"></div>
+        <!--===============spacing==============-->
+        @if (@hasError)
+        {
+            @* <span class="wpcf7-form-control-wrap your-name mx-1 radio-bs mt-0 d-block py-3 px-3">@ValidateServicePayment </span> *@
+            <div class="auto-container alert alert-danger" role="alert">
+                @ValidateServicePayment
+            </div>
+        }
+          <div class="auto-container mb-5">
+         @*     @if (GoogleReCaptachDto != null)
+            { *@
+                <EditForm EditContext="ServicePaymentCaptchaEditContext" class="wpcf7-form init row">
+                    <DataAnnotationsValidator />
+                    <p>
+                        <MathCaptcha OnCaptchaVerified="(result) => OnSuccessCaptchaForget(result)" />
+                      @*   <Captcha @ref="captchaComponent" SiteKey="@GoogleReCaptachDto.SiteKey" OnSuccess="OnSuccessCaptchaForget" OnExpired="OnExpiredCaptchaForget"></Captcha> *@
+                        <ValidationMessage For="() => ServiceForPaymentCaptchaDto.Captcha" />
+                    </p>
+                </EditForm>
+            @* }  *@
+            </div>
+         <div class="auto-container">
+        
+            <div class="row bg_light_1 align-items-center justify-content-between p-4 rounded-10">
+                <div class="col-lg-6 p-lg-0">
+                    <div>
+                        <h5>@L["TotalAmount"]</h5>
+                        <h2 class="text-primary-color">@totalAmount   AED</h2>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="theme_btn_all color_one">
+                        @*href="@($"{CultureInfo.CurrentCulture.Name}/UaepgsGateway/PaymentProcess/Refr")"*@ 
+                        <a disabled="@DisableButton" rel="nofollow" class="theme-btn one w-100" @onclick=this.HandleSubmit>@L["Submit"] </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_top_70"></div>
+        <!--===============spacing==============-->
+    </section>
+</div>
+
+
+<!--===============PAGE CONTENT END==============-->
+<div id="banks" class="modal_popup modal_popup_support one">
+    <div class="modal-popup-inner">
+        <div class="close-modal"><i class="fa fa-times"></i></div>
+        <div class="modal_box">
+            <div class="row">
+
+                <div class="col-lg-12 col-md-12 about_company_inner p-4">
+                    <div class="abt_content">
+                        <h3 class="bg_light_4 text-white py-2 px-3 fw-normal rounded_radius-5 mb-4">@L["ListOfSupportedBanks"]</h3>
+                        <div class="list_item_box style_two style_list px-3">
+                            <ul class="list-inline">
+                                @foreach (var supportedBank in SupportedBankFrontEnds)
+                                {
+                                    <li class="list_items">
+                                        <small class="d-flex align-items-center">
+                                            <span class="icon_bx ">
+                                                <i class=" fa fa-check fs-5"></i>
+                                            </span>
+                                            <p class="fs-5 mb-1">@supportedBank.Title</p>
+                                        </small>
+                                    </li>
+                                }
+
+
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

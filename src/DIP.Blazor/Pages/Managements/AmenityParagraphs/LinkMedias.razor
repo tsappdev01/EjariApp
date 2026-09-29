@@ -1,0 +1,111 @@
+@page "/admin/amenity-paragraphs/medias/{id}"
+
+@attribute [Authorize(DIPPermissions.Medias.Default)]
+@using DIP.Blazor.Components
+@using DIP.Blazor.Components.Layout;
+@using DIP.Localization
+@using DIP.Shared
+@using DIP.Helper
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@( $"{L["Update"]} {L["AmenityParagraphs"]}")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+@* ************************* SEARCH ************************* *@
+
+
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <Form id="EditAmenityParagraphForm">
+        <Validations @ref="@EditingAmenityParagraphValidations"
+                     Mode="ValidationMode.Auto"
+                     Model="@AmenityParagraphDto"
+                     ValidateOnLoad="false">
+            @if (AmenityParagraphDto != null)
+            {
+                <Card>
+                    <CardTitle></CardTitle>
+                    <CardBody>
+                        <Validations @ref="@EditingAmenityParagraphValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@AmenityParagraphDto"
+                                 ValidateOnLoad="false">
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["TitleEn"]</FieldLabel>
+                                    <TextEdit @bind-Text="@AmenityParagraphDto.TitleEn" Disabled>
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                    <TextEdit @bind-Text="@AmenityParagraphDto.TitleAr" Disabled>
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>
+                        </Validations>
+
+                        <Div Class="mb-2">
+                            <Button Class="btn-light" Clicked="async ()=>await addNewMediaAsync()"><Icon Name="@IconName.Add" /> @L["Add"] @L["Media"]</Button>
+                        </Div>
+                        <Card>
+                            <CardBody>
+                                @if (!MediaDtos.IsNullOrEmpty())
+                                {
+                                    <Tabs SelectedTab="@SelectedTab" SelectedTabChanged="@OnSelectedCreateTabChanged">
+                                        <Items>
+                                          
+                                             @foreach (var (item, index) in MediaDtos.WithIndex())
+                                                {
+                                                <Tab Name="@((index+1).ToString())">@item.TitleEn</Tab>
+                                                }
+                                        </Items>
+                                        <Content>
+                                            @foreach (var (item, index) in MediaDtos.WithIndex())
+                                            {
+                                                <TabPanel Name="@((index+1).ToString())">
+                                                    <CustomMedia Media="item" MediaDeleted="MediaDeleted"></CustomMedia>
+                                                </TabPanel>
+                                            }
+                                        </Content>
+                                    </Tabs>   
+                                }
+                            </CardBody>
+                        </Card>
+                    </CardBody>
+                    <CardFooter>
+                        <SubmitButton Form="EditAmenityParagraphForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                        <SubmitButton Form="EditAmenityParagraphForm" Clicked="async()=> await UpdateAmenityParagraphMediasAsync()" />
+                    </CardFooter>
+                </Card>
+            }
+        </Validations>
+    </Form>
+</Card>

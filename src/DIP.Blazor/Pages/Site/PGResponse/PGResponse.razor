@@ -1,0 +1,293 @@
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@page "/{lang}/uaepgsgateway/PGResponse";
+@* @page "/{lang}/uaepgsgateway/PGResponse/{formCallBack}"; *@
+
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+
+
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @L["PaymentProcessing"]
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:Home:EService"]</li>
+                            <li class="active">@L["PaymentProcessing"]</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+         <!----page header----->
+         
+         <!--===============PAGE CONTENT==============-->
+
+
+ <div id="content" class="site-content ">
+
+
+
+            <section class="blog_post_section two_column style_three">
+        
+        <!--===============spacing==============-->
+               <div class="pd_top_80"></div>
+               <!--===============spacing==============-->
+        @if (Confirmation != null)
+        {
+            
+       
+        <div class="auto-container p-0">
+            <div class="row">
+
+                  <div class="box-contents-container curved shadow_box">
+                    <h3 class="col-md-12 box-title payment-box-title"> @L["PaymentStatus"]</h3>
+                    <div class="head-title text-center">
+                        @if (Confirmation.ResponseCode == "000")
+                        {
+                            <div class="glyphicon-ringgreen ">
+                                <span class="glyphicon glyphicon-ok  glyphicon-borderedG"></span>
+                            </div>
+                            <div class="alert alert-success">
+                                    <strong>@L["Success"]!</strong> @Confirmation.ResponseMessage
+                            </div>
+                        }
+                        else if (Confirmation.ResponseCode == "200")
+                        {
+                            <div class="glyphicon-ringgreen ">
+                                <span class="glyphicon glyphicon-ok  glyphicon-borderedG"></span>
+                            </div>
+                            <div class="alert alert-success">
+                                    <strong>@L["Success"]!</strong> @Confirmation.ResponseMessage
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="glyphicon-ringred ">
+                                <span class="glyphicon glyphicon-remove-circle glyphicon-borderedR"></span>
+                            </div>
+                            <div class="alert alert-danger">
+                                    <strong>@L["Info"]!</strong> @Confirmation.ResponseMessage
+                            </div>
+                        }
+
+                        
+                        @if(!@ErrorMessage.IsNullOrEmpty())
+                            {
+                                <div class="glyphicon-ringred ">
+                                    <span class="glyphicon glyphicon-remove-circle glyphicon-borderedR"></span>
+                                </div>
+                                <div class="alert alert-danger">
+                                    <strong>@ErrorMessage</strong> 
+                                </div>
+                            }
+                        </div>
+                    <div class="head-description text-center pr0">
+                            <p>@L["YourTransactionStatus"] : @Confirmation.ResponseMessage</p>
+                            <p>@L["AnEmailHasBeeSentToYourEmaiId"] : @Confirmation.EmailId</p>
+                    </div>
+
+
+            </div>
+        </div>
+        </div>
+        }
+               <div class="auto-container p-0">
+                  
+                  <div class="row align-items-center">
+                     <div class="col-lg-12">
+                         <div class="title_all_box style_seven dark_color">
+                             <div class="title_sections">
+                               <div class="title fw-normal text-primary-color">@L["CustomerDetails"]</div>
+                             </div>
+                         </div>
+                     </div>
+
+                     <div class="col-md-12">
+                       <!--===============spacing==============-->
+                       <div class="pd_bottom_30"></div>
+                       <!--===============spacing==============-->
+                     </div>
+
+                     <div class="col-lg-12 py-3 px-0 payment-steps">
+                        <section class="creote-contact-box">
+                           <div class="row">
+                              <div class="col mb-xl-0">
+                                 <div class="contact_box_content style_two ">
+                                    <div class="contact_box_inner color_one head-info">
+                                       <div class="text ">
+                                          <h3>@L["ReferenceNumber"]</h3>
+                                       </div>
+                                    </div>
+
+                                    <div class="contact_box_inner color_one info-text">
+                                       <div class="text">
+                                            <p>@Confirmation?.ReferenceNumber</p>
+                                       </div>
+                                    </div>
+
+                                 </div>
+                              </div>
+                              <div class="col mb-xl-0">
+                                 <div class="contact_box_content style_two ">
+                                    <div class="contact_box_inner color_one head-info">
+                                       <div class="text ">
+                                          <h3>@L["CustomerName"]</h3>
+                                       </div>
+                                    </div>
+
+                                    <div class="contact_box_inner color_one info-text">
+                                       <div class="text">
+                                            <p>@Confirmation?.CustomerName</p>
+                                       </div>
+                                    </div>
+
+                                 </div>
+                              </div>
+                              <div class="col">
+                                 <div class="contact_box_content style_two ">
+                                    <div class="contact_box_inner color_one head-info">
+                                       <div class="text ">
+                                          <h3>@L["BillReferenceNo"]</h3>
+                                       </div>
+                                    </div>
+
+                                    <div class="contact_box_inner color_one info-text">
+                                       <div class="text">
+                                            <p>@Confirmation?.BillReference</p>
+                                       </div>
+                                    </div>
+
+                                 </div>
+                              </div>
+                              <div class="col mb-xl-0">
+                                 <div class="contact_box_content style_two ">
+                                    <div class="contact_box_inner color_one head-info">
+                                       <div class="text ">
+                                            <h3>@L["TransactionType"]</h3>
+                                       </div>
+                                    </div>
+
+                                    <div class="contact_box_inner color_one info-text">
+                                       <div class="text">
+                                            <p>@Confirmation?.TransactionType</p>
+                                       </div>
+                                    </div>
+
+                                 </div>
+                              </div>
+                              <div class="col">
+                                 <div class="contact_box_content style_two ">
+                                    <div class="contact_box_inner color_one head-info">
+                                       <div class="text ">
+                                            <h3>@L["TransactionRefNo"]</h3>
+                                       </div>
+                                    </div>
+
+                                    <div class="contact_box_inner color_one info-text">
+                                       <div class="text">
+                                            <p>@Confirmation?.TransactionRefNo</p>
+                                       </div>
+                                    </div>
+
+                                 </div>
+                              </div>
+
+                            <div class="col mb-xl-0">
+                                <div class="contact_box_content style_two ">
+                                    <div class="contact_box_inner color_one head-info">
+                                        <div class="text ">
+                                            <h3>@L["TransactionDateTime"]</h3>
+                                        </div>
+                                    </div>
+
+                                    <div class="contact_box_inner color_one info-text">
+                                        <div class="text">
+                                            <p>@Confirmation?.TransactionDateTime</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <div class="contact_box_content style_two ">
+                                    <div class="contact_box_inner color_one head-info">
+                                        <div class="text ">
+                                            <h3>@L["TotalAmount"]</h3>
+                                        </div>
+                                    </div>
+
+                                    <div class="contact_box_inner color_one info-text">
+                                        <div class="text">
+                                            <p>@Confirmation?.TotalAmount</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                           </div>
+                        </section>
+                     </div>
+                <div class="confirm-box-title">@L["PaymentAuthoriztion"] </div>
+                @if (@Confirmation != null && Confirmation.isNOC)
+                {
+                    <div> Please <a href="@($"/{CultureInfo.CurrentCulture.Name}/Ejari/Status/{EncryptionHelper.EncryptUrlSafe(Confirmation.ReferenceNumber)}")" class="btn">@L["ClickHere"] </a> @L["ToCheckStatus"]  </div>
+                }
+                     <div class="col-md-12">
+                       <!--===============spacing==============-->
+                       <div class="pd_top_80"></div>
+                       <!--===============spacing==============-->
+                     </div>
+                 </div>
+
+                 
+               </div>
+
+       
+               <!--===============spacing==============-->
+               <div class="pd_top_70"></div>
+               <!--===============spacing==============-->
+            </section>
+
+            
+
+         </div>

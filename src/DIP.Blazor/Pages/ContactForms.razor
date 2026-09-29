@@ -1,0 +1,262 @@
+
+
+@page "/contact-forms"
+
+@attribute [Authorize(DIPPermissions.ContactForms.Default)]
+@using DIP.ContactForms
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IContactFormsAppService ContactFormsAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["ContactForms"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+        <Form id="ContactFormSearchForm" class="mb-3">
+            <Addons>
+                <Addon AddonType="AddonType.Body">
+                    <TextEdit @bind-Text="@Filter.FilterText"
+                              Autofocus="true"
+                              Placeholder="@L["Search"]">
+                    </TextEdit>
+                </Addon>
+                <Addon AddonType="AddonType.End">
+                    <SubmitButton Form="ContactFormSearchForm" Clicked="GetContactFormsAsync">
+                        <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                    </SubmitButton>
+                </Addon>
+            </Addons>
+        </Form>
+    </CardBody>
+</Card>
+
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>
+        <DataGrid TItem="ContactFormDto"
+                  Data="ContactFormList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="ContactFormDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="ContactFormDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="ContactFormDto"
+                                          Visible="@CanEditContactForm"
+                                          Clicked="async () => await OpenEditContactFormModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="ContactFormDto"
+                                          Visible="@CanDeleteContactForm"
+                                          Clicked="() => DeleteContactFormAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+               
+              <DataGridColumn TItem="ContactFormDto"
+                      Field="FullName"
+                      Caption="@L["FullName"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="ContactFormDto"
+                      Field="Email"
+                      Caption="@L["Email"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="ContactFormDto"
+                      Field="Subject"
+                      Caption="@L["Subject"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="ContactFormDto"
+                      Field="Message"
+                      Caption="@L["Message"]">
+              </DataGridColumn>
+
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateContactFormModal" Closing="@CreateContactFormModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="CreateContactFormForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewContactForm"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateContactFormModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewContactFormValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewContactForm"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["FullName"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewContactForm.FullName" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Email"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewContactForm.Email"  Role="TextRole.Email">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Subject"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewContactForm.Subject" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Message"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewContactForm.Message" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateContactFormModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateContactFormForm" Clicked="CreateContactFormAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditContactFormModal" Closing="@EditContactFormModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="EditContactFormForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditContactFormModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingContactFormValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingContactForm"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["FullName"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingContactForm.FullName" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Email"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingContactForm.Email"  Role="TextRole.Email">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Subject"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingContactForm.Subject" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Message"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingContactForm.Message" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditContactFormModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateContactFormForm" Clicked="UpdateContactFormAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>

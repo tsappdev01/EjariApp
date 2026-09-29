@@ -1,0 +1,422 @@
+@page "/admin/media-galleries"
+
+@attribute [Authorize(DIPPermissions.MediaGalleries.Default)]
+@using DIP.MediaGalleries
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IMediaGalleriesAppService MediaGalleriesAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["MediaGalleries"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+        <Form id="MediaGallerySearchForm" class="mb-3">
+            <Addons>
+                <Addon AddonType="AddonType.Body">
+                    <TextEdit @bind-Text="@Filter.FilterText"
+                              Autofocus="true"
+                              Placeholder="@L["Search"]">
+                    </TextEdit>
+                </Addon>
+                <Addon AddonType="AddonType.End">
+                    <SubmitButton Form="MediaGallerySearchForm" Clicked="GetMediaGalleriesAsync">
+                        <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                    </SubmitButton>
+                </Addon>
+            </Addons>
+        </Form>
+    </CardBody>
+</Card>
+
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>
+        <DataGrid TItem="MediaGalleryDto"
+                  Data="MediaGalleryList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="MediaGalleryDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="MediaGalleryDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="MediaGalleryDto"
+                                          Visible="@CanEditMediaGallery"
+                                          Clicked="async () => await EditAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="MediaGalleryDto"
+                                          Visible="@CanEditMediaGallery"
+                                          Clicked="async () => await LinkMedias(context)"
+                                          Text="@L["LinkMedias"]"></EntityAction>
+                            <EntityAction TItem="MediaGalleryDto"
+                                          Visible="@CanDeleteMediaGallery"
+                                          Clicked="() => DeleteMediaGalleryAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+               
+              <DataGridColumn TItem="MediaGalleryDto"
+                      Field="TitleEn"
+                      Caption="@L["TitleEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="MediaGalleryDto"
+                      Field="TitleAr"
+                      Caption="@L["TitleAr"]">
+              </DataGridColumn>
+
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateMediaGalleryModal" Closing="@CreateMediaGalleryModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="CreateMediaGalleryForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewMediaGallery"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateMediaGalleryModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewMediaGalleryValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewMediaGallery"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewMediaGallery.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Slug"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewMediaGallery.Slug" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewMediaGallery.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewMediaGallery.MetaTitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewMediaGallery.MetaTitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewMediaGallery.MetaDescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewMediaGallery.MetaDescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewMediaGallery.SummaryEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewMediaGallery.SummaryAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewMediaGallery.HeaderImage" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Image"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewMediaGallery.Image" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateMediaGalleryModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateMediaGalleryForm" Clicked="CreateMediaGalleryAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditMediaGalleryModal" Closing="@EditMediaGalleryModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="EditMediaGalleryForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditMediaGalleryModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingMediaGalleryValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingMediaGallery"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingMediaGallery.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Slug"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingMediaGallery.Slug" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingMediaGallery.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingMediaGallery.MetaTitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingMediaGallery.MetaTitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingMediaGallery.MetaDescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingMediaGallery.MetaDescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingMediaGallery.SummaryEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingMediaGallery.SummaryAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingMediaGallery.HeaderImage" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Image"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingMediaGallery.Image" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditMediaGalleryModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateMediaGalleryForm" Clicked="UpdateMediaGalleryAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>

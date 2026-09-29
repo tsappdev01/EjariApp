@@ -1,0 +1,76 @@
+﻿@using Blazorise.RichTextEdit
+
+<RichTextEdit @ref="ComponentRef"
+              Theme="RichTextEditTheme.Snow"
+              ContentChanged="@OnContentChanged"
+              SubmitOnEnter="false"
+              ToolbarPosition="Placement.Top">
+
+    <Editor>@((MarkupString)InitValue)</Editor>
+    <Toolbar>
+        <RichTextEditToolbarGroup>
+            <RichTextEditToolbarButton Action="RichTextEditAction.Bold" />
+            <RichTextEditToolbarButton Action="RichTextEditAction.Italic" />
+            <RichTextEditToolbarSelect Action="RichTextEditAction.Size">
+                <RichTextEditToolbarSelectItem Value="small" />
+                <RichTextEditToolbarSelectItem Selected />
+                <RichTextEditToolbarSelectItem Value="large" />
+                <RichTextEditToolbarSelectItem Value="huge">Very Big</RichTextEditToolbarSelectItem>
+            </RichTextEditToolbarSelect>
+            <RichTextEditToolbarButton Action="RichTextEditAction.List" Value="ordered" />
+            <RichTextEditToolbarButton Action="RichTextEditAction.List" Value="bullet" />
+        </RichTextEditToolbarGroup>
+        <RichTextEditToolbarGroup>
+            @*<RichTextEditToolbarButton Action="RichTextEditAction.Script" />*@
+            <RichTextEditToolbarSelect Action="RichTextEditAction.Background" />
+            <RichTextEditToolbarSelect Action="RichTextEditAction.Align">
+                <RichTextEditToolbarSelectItem Selected="true" />
+                <RichTextEditToolbarSelectItem Value="center" />
+                <RichTextEditToolbarSelectItem Value="right" />
+            </RichTextEditToolbarSelect>
+            <RichTextEditToolbarButton Action="RichTextEditAction.Blockquote" />
+            <RichTextEditToolbarButton Action="RichTextEditAction.Clean" />
+            <RichTextEditToolbarButton Action="RichTextEditAction.CodeBlock" />
+            <RichTextEditToolbarSelect Action="RichTextEditAction.Color" />
+            @* <RichTextEditToolbarSelect Action="RichTextEditAction.Direction" >
+            <RichTextEditToolbarSelectItem Value="ltr" />
+            <RichTextEditToolbarSelectItem Value="rtl" />
+            </RichTextEditToolbarSelect>*@
+            @* <RichTextEditToolbarSelect Action="RichTextEditAction.Font">
+            <RichTextEditToolbarSelectItem Value="Sans-Serif" />
+            <RichTextEditToolbarSelectItem Value="Cursive" />
+            <RichTextEditToolbarSelectItem Value="Fantasy" />
+            </RichTextEditToolbarSelect>*@
+            @*<RichTextEditToolbarButton Action="RichTextEditAction.Header" />*@
+            <RichTextEditToolbarButton Action="RichTextEditAction.Image" />
+            <RichTextEditToolbarButton Action="RichTextEditAction.Indent" Value="+1" />
+            <RichTextEditToolbarButton Action="RichTextEditAction.Indent" Value="-1" />
+            <RichTextEditToolbarButton Action="RichTextEditAction.Link" />
+            <RichTextEditToolbarButton Action="RichTextEditAction.Strike" />
+            <RichTextEditToolbarButton Action="RichTextEditAction.Underline" />
+
+
+
+        </RichTextEditToolbarGroup>
+        @*<RichTextEditToolbarGroup Float="Float.End">
+        <Button onClick="window.open('https://www.quilljs.com/','quilljs')"><Icon Name="IconName.InfoCircle" /></Button>
+        <Button Clicked="@OnSave"><Icon Name="IconName.Save" /></Button>
+        </RichTextEditToolbarGroup>*@
+    </Toolbar>
+
+</RichTextEdit>
+
+@code {
+
+    [Parameter]
+    public string InitValue { get; set; }
+
+    [Parameter]
+    public EventCallback<string> ContentChanged { get; set; }
+
+    protected RichTextEdit ComponentRef;
+    public async Task OnContentChanged()
+    {
+        await ContentChanged.InvokeAsync(await ComponentRef.GetHtmlAsync());
+    }
+}

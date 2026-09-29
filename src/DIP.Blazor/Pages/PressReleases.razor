@@ -1,0 +1,632 @@
+
+
+@page "/press-releases"
+
+@attribute [Authorize(DIPPermissions.PressReleases.Default)]
+@using DIP.PressReleases
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IPressReleasesAppService PressReleasesAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["PressReleases"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+        <Form id="PressReleaseSearchForm" class="mb-3">
+            <Addons>
+                <Addon AddonType="AddonType.Body">
+                    <TextEdit @bind-Text="@Filter.FilterText"
+                              Autofocus="true"
+                              Placeholder="@L["Search"]">
+                    </TextEdit>
+                </Addon>
+                <Addon AddonType="AddonType.End">
+                    <SubmitButton Form="PressReleaseSearchForm" Clicked="GetPressReleasesAsync">
+                        <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                    </SubmitButton>
+                </Addon>
+            </Addons>
+        </Form>
+    </CardBody>
+</Card>
+
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>
+        <DataGrid TItem="PressReleaseDto"
+                  Data="PressReleaseList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="PressReleaseDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="PressReleaseDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="PressReleaseDto"
+                                          Visible="@CanEditPressRelease"
+                                          Clicked="async () => await OpenEditPressReleaseModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="PressReleaseDto"
+                                          Visible="@CanDeletePressRelease"
+                                          Clicked="() => DeletePressReleaseAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+               
+              <DataGridColumn TItem="PressReleaseDto"
+                      Field="TitleAr"
+                      Caption="@L["TitleAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PressReleaseDto"
+                      Field="TitleEn"
+                      Caption="@L["TitleEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PressReleaseDto"
+                      Field="MetaTitleAr"
+                      Caption="@L["MetaTitleAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PressReleaseDto"
+                      Field="MetaTitleEn"
+                      Caption="@L["MetaTitleEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PressReleaseDto"
+                      Field="MetaDescriptionEn"
+                      Caption="@L["MetaDescriptionEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PressReleaseDto"
+                      Field="MetaDescriptionAr"
+                      Caption="@L["MetaDescriptionAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PressReleaseDto"
+                      Field="IsFeatured"
+                      Caption="@L["IsFeatured"]">
+                    <DisplayTemplate>
+                        @if (context.IsFeatured)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+
+
+              <DataGridColumn TItem="PressReleaseDto"
+                      Field="Slug"
+                      Caption="@L["Slug"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PressReleaseDto"
+                      Field="Image"
+                      Caption="@L["Image"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PressReleaseDto"
+                      Field="HeaderImage"
+                      Caption="@L["HeaderImage"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PressReleaseDto"
+                      Field="DescriptionAr"
+                      Caption="@L["DescriptionAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PressReleaseDto"
+                      Field="DescriptionEn"
+                      Caption="@L["DescriptionEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PressReleaseDto"
+                      Field="SummaryEn"
+                      Caption="@L["SummaryEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PressReleaseDto"
+                      Field="SummaryAr"
+                      Caption="@L["SummaryAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PressReleaseDto"
+                      Field="Order"
+                      Caption="@L["Order"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PressReleaseDto"
+                      Field="Date"
+                      Caption="@L["Date"]">
+                  <DisplayTemplate>
+                        @context.Date.ToShortDateString()
+                  </DisplayTemplate>
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PressReleaseDto"
+                      Field="IsActive"
+                      Caption="@L["IsActive"]">
+                    <DisplayTemplate>
+                        @if (context.IsActive)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+
+
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreatePressReleaseModal" Closing="@CreatePressReleaseModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="CreatePressReleaseForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewPressRelease"]</ModalTitle>
+                <CloseButton Clicked="CloseCreatePressReleaseModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewPressReleaseValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewPressRelease"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewPressRelease.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewPressRelease.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewPressRelease.MetaTitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewPressRelease.MetaTitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewPressRelease.MetaDescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewPressRelease.MetaDescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewPressRelease.IsFeatured">@L["IsFeatured"]</Check>
+                    </Field>
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Slug"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewPressRelease.Slug" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Image"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewPressRelease.Image" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewPressRelease.HeaderImage" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewPressRelease.DescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewPressRelease.DescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewPressRelease.SummaryEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewPressRelease.SummaryAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@NewPressRelease.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Date"]</FieldLabel>
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.DateTime" @bind-Date="@NewPressRelease.Date">
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewPressRelease.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreatePressReleaseModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreatePressReleaseForm" Clicked="CreatePressReleaseAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditPressReleaseModal" Closing="@EditPressReleaseModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="EditPressReleaseForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditPressReleaseModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingPressReleaseValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingPressRelease"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPressRelease.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPressRelease.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPressRelease.MetaTitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPressRelease.MetaTitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPressRelease.MetaDescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPressRelease.MetaDescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingPressRelease.IsFeatured">@L["IsFeatured"]</Check>
+                    </Field>
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Slug"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPressRelease.Slug" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Image"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPressRelease.Image" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPressRelease.HeaderImage" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPressRelease.DescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPressRelease.DescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPressRelease.SummaryEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPressRelease.SummaryAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@EditingPressRelease.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Date"]</FieldLabel>
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.DateTime" @bind-Date="@EditingPressRelease.Date">
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingPressRelease.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditPressReleaseModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreatePressReleaseForm" Clicked="UpdatePressReleaseAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>

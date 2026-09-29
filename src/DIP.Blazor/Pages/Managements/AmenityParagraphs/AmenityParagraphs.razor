@@ -1,0 +1,430 @@
+@page "/admin/amenity-paragraphs"
+
+@attribute [Authorize(DIPPermissions.AmenityParagraphs.Default)]
+@using DIP.AmenityParagraphs
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IAmenityParagraphsAppService AmenityParagraphsAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["AmenityParagraphs"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+        <Form id="AmenityParagraphSearchForm" class="mb-3">
+            <Addons>
+                <Addon AddonType="AddonType.Body">
+                    <Select TValue="Guid?" @bind-SelectedValue="@Filter.AmenityId" Placeholder="@L["SelectAmenity"]">
+                        <SelectItem TValue="Guid?" Value="null"></SelectItem>
+                        @foreach (var amenity in AmenitiesCollection)
+                        {
+                            <SelectItem TValue="Guid?" Value="@amenity.Id">
+                                @amenity.DisplayName
+                            </SelectItem>
+                        }
+                    </Select>
+
+@*                    <TextEdit @bind-Text="@Filter.FilterText"
+                              Autofocus="true"
+                              Placeholder="@L["Search"]">
+                    </TextEdit>*@
+                </Addon>
+                <Addon AddonType="AddonType.End">
+                    <SubmitButton Form="AmenityParagraphSearchForm" Clicked="GetAmenityParagraphsAsync">
+                        <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                    </SubmitButton>
+                </Addon>
+            </Addons>
+        </Form>
+    </CardBody>
+</Card>
+
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>
+        <DataGrid TItem="AmenityParagraphWithNavigationPropertiesDto"
+                  Data="AmenityParagraphList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="AmenityParagraphWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="AmenityParagraphWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="AmenityParagraphWithNavigationPropertiesDto"
+                                          Visible="@CanEditAmenityParagraph"
+                                          Clicked="async () => await EditAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="AmenityParagraphWithNavigationPropertiesDto"
+                                          Visible="@CanEditAmenityParagraph"
+                                          Clicked="async () => await LinkMedias(context)"
+                                          Text="@L["LinkMedias"]"></EntityAction>
+                            <EntityAction TItem="AmenityParagraphWithNavigationPropertiesDto"
+                                          Visible="@CanDeleteAmenityParagraph"
+                                          Clicked="() => DeleteAmenityParagraphAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+               
+              <DataGridColumn TItem="AmenityParagraphWithNavigationPropertiesDto"
+                      Field="AmenityParagraph.TitleEn"
+                      Caption="@L["TitleEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="AmenityParagraphWithNavigationPropertiesDto"
+                      Field="AmenityParagraph.TitleAr"
+                      Caption="@L["TitleAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="AmenityParagraphWithNavigationPropertiesDto"
+                      Field="AmenityParagraph.SubTitleEn"
+                      Caption="@L["SubTitleEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="AmenityParagraphWithNavigationPropertiesDto"
+                      Field="AmenityParagraph.SubTitleAr"
+                      Caption="@L["SubTitleAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="AmenityParagraphWithNavigationPropertiesDto"
+                      Field="AmenityParagraph.Order"
+                      Caption="@L["Order"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="AmenityParagraphWithNavigationPropertiesDto"
+                      Field="AmenityParagraph.IsActive"
+                      Caption="@L["IsActive"]">
+                    <DisplayTemplate>
+                        @if (context.AmenityParagraph.IsActive)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+
+
+              <DataGridColumn TItem="AmenityParagraphWithNavigationPropertiesDto"
+                      Field="Amenity.TitleEn"
+                      Caption="@L["Amenity"]">
+              </DataGridColumn>
+
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateAmenityParagraphModal" Closing="@CreateAmenityParagraphModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="CreateAmenityParagraphForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewAmenityParagraph"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateAmenityParagraphModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewAmenityParagraphValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewAmenityParagraph"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewAmenityParagraph.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewAmenityParagraph.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SubTitleEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewAmenityParagraph.SubTitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SubTitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewAmenityParagraph.SubTitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewAmenityParagraph.DescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewAmenityParagraph.DescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["ButtonUrl"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewAmenityParagraph.ButtonUrl" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@NewAmenityParagraph.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewAmenityParagraph.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["Amenity"] *</FieldLabel>
+                        <Autocomplete Data="@AmenitiesCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id ?? default)"
+                                      SearchChanged="@GetAmenityCollectionLookupAsync"
+                                      @bind-SelectedValue="@NewAmenityParagraph.AmenityId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateAmenityParagraphModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateAmenityParagraphForm" Clicked="CreateAmenityParagraphAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditAmenityParagraphModal" Closing="@EditAmenityParagraphModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="EditAmenityParagraphForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditAmenityParagraphModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingAmenityParagraphValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingAmenityParagraph"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingAmenityParagraph.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingAmenityParagraph.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SubTitleEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingAmenityParagraph.SubTitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SubTitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingAmenityParagraph.SubTitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingAmenityParagraph.DescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingAmenityParagraph.DescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["ButtonUrl"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingAmenityParagraph.ButtonUrl" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@EditingAmenityParagraph.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingAmenityParagraph.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["Amenity"] *</FieldLabel>
+                        <Autocomplete Data="@AmenitiesCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id ?? default)"
+                                      SearchChanged="@GetAmenityCollectionLookupAsync"
+                                      @bind-SelectedValue="@EditingAmenityParagraph.AmenityId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditAmenityParagraphModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateAmenityParagraphForm" Clicked="UpdateAmenityParagraphAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>

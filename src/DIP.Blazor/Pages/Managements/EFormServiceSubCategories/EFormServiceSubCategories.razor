@@ -1,0 +1,312 @@
+
+
+@page "/admin/e-form-service-sub-categories"
+
+@attribute [Authorize(DIPPermissions.EFormServiceSubCategories.Default)]
+@using DIP.EFormServiceSubCategories
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IEFormServiceSubCategoriesAppService EFormServiceSubCategoriesAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["EFormServiceSubCategories"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+        <Form id="EFormServiceSubCategorySearchForm" class="mb-3">
+            <Addons>
+                <Addon AddonType="AddonType.Body">
+                    <TextEdit @bind-Text="@Filter.FilterText"
+                              Autofocus="true"
+                              Placeholder="@L["Search"]">
+                    </TextEdit>
+                </Addon>
+                <Addon AddonType="AddonType.End">
+                    <SubmitButton Form="EFormServiceSubCategorySearchForm" Clicked="GetEFormServiceSubCategoriesAsync">
+                        <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                    </SubmitButton>
+                </Addon>
+            </Addons>
+        </Form>
+    </CardBody>
+</Card>
+
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>
+        <DataGrid TItem="EFormServiceSubCategoryWithNavigationPropertiesDto"
+                  Data="EFormServiceSubCategoryList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="EFormServiceSubCategoryWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="EFormServiceSubCategoryWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="EFormServiceSubCategoryWithNavigationPropertiesDto"
+                                          Visible="@CanEditEFormServiceSubCategory"
+                                          Clicked="async () => await EditAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="EFormServiceSubCategoryWithNavigationPropertiesDto"
+                                          Visible="@CanDeleteEFormServiceSubCategory"
+                                          Clicked="() => DeleteEFormServiceSubCategoryAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+               
+              <DataGridColumn TItem="EFormServiceSubCategoryWithNavigationPropertiesDto"
+                      Field="EFormServiceSubCategory.TitleEn"
+                      Caption="@L["TitleEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="EFormServiceSubCategoryWithNavigationPropertiesDto"
+                      Field="EFormServiceSubCategory.TitleAr"
+                      Caption="@L["TitleAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="EFormServiceSubCategoryWithNavigationPropertiesDto"
+                      Field="EFormServiceSubCategory.Order"
+                      Caption="@L["Order"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="EFormServiceSubCategoryWithNavigationPropertiesDto"
+                      Field="EFormServiceSubCategory.IsActive"
+                      Caption="@L["IsActive"]">
+                    <DisplayTemplate>
+                        @if (context.EFormServiceSubCategory.IsActive)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+
+
+              <DataGridColumn TItem="EFormServiceSubCategoryWithNavigationPropertiesDto"
+                      Field="EFormService.TitleEn"
+                      Caption="@L["EFormService"]">
+              </DataGridColumn>
+
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateEFormServiceSubCategoryModal" Closing="@CreateEFormServiceSubCategoryModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="CreateEFormServiceSubCategoryForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewEFormServiceSubCategory"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateEFormServiceSubCategoryModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewEFormServiceSubCategoryValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewEFormServiceSubCategory"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewEFormServiceSubCategory.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewEFormServiceSubCategory.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["File"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewEFormServiceSubCategory.File" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@NewEFormServiceSubCategory.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewEFormServiceSubCategory.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["EFormService"] *</FieldLabel>
+                        <Autocomplete Data="@EFormServicesCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id ?? default)"
+                                      SearchChanged="@GetEFormServiceCollectionLookupAsync"
+                                      @bind-SelectedValue="@NewEFormServiceSubCategory.EFormServiceId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateEFormServiceSubCategoryModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateEFormServiceSubCategoryForm" Clicked="CreateEFormServiceSubCategoryAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditEFormServiceSubCategoryModal" Closing="@EditEFormServiceSubCategoryModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="EditEFormServiceSubCategoryForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditEFormServiceSubCategoryModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingEFormServiceSubCategoryValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingEFormServiceSubCategory"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingEFormServiceSubCategory.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingEFormServiceSubCategory.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["File"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingEFormServiceSubCategory.File" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@EditingEFormServiceSubCategory.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingEFormServiceSubCategory.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["EFormService"] *</FieldLabel>
+                        <Autocomplete Data="@EFormServicesCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id ?? default)"
+                                      SearchChanged="@GetEFormServiceCollectionLookupAsync"
+                                      @bind-SelectedValue="@EditingEFormServiceSubCategory.EFormServiceId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditEFormServiceSubCategoryModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateEFormServiceSubCategoryForm" Clicked="UpdateEFormServiceSubCategoryAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>

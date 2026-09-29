@@ -1,0 +1,411 @@
+@page "/admin/commercials/edit/{id}"
+@page "/admin/commercials/create"
+
+
+@attribute [Authorize(DIPPermissions.Commercials.Default)]
+@using DIP.Commercials
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject ICommercialsAppService CommercialsAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+
+
+<PageHeader Title="@( $"{L[Id.IsNullOrEmpty()? "Create":"Update"]} {L["Commercials"]}")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+
+@* ************************* CREATE MODAL ************************* *@
+
+
+<Card>
+    @if (Id.IsNullOrEmpty())
+    {
+
+        <Form id="CreateCommercialForm">
+            <CardBody>
+                <Tabs SelectedTab="@SelectedCreateTab" SelectedTabChanged="@OnSelectedCreateTabChanged">
+                    <Items>
+                        <Tab Name="create-tab-english">@L["English"]</Tab>
+                        <Tab Name="create-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                <Validations @ref="@NewCommercialValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewCommercial"
+                            ValidateOnLoad="false">
+                     
+                <TabPanel Name="create-tab-english">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewCommercial.TitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["PlotNo"]</FieldLabel>
+                                        <TextEdit TextExpression="@(()=>NewCommercial.PlotNo)" TextChanged="@OnPlotNoChanged">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+@*                                         <TextEdit @bind-Text="@NewCommercial.PlotNo">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit> *@
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["ActivityEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewCommercial.ActivityEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Phone"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewCommercial.Phone">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Fax"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewCommercial.Fax">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["MakaniNo"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is10">
+                                            <TextEdit @bind-Text="@NewCommercial.MakaniNo" Disabled></TextEdit>
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is2">
+                                                <Button Color="Color.Primary" Clicked="async()=> await GetMakani()" Disabled="@DisableGetMakaninButton">@L["GetMakaniNo"]</Button>
+                                        </Column>
+                                    </Row>
+                                </Field>
+                                @{
+                                    if (PlotEmpty)
+                                    {
+                                        <div class="alert alert-danger">
+                                            @L["Message:PlotNoEmpty"]
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        if (MakaniApiError)
+                                        {
+                                            <div class="alert alert-danger">
+                                                @L["Message:MakaniApiError"]
+                                            </div>
+                                        }
+                                    }
+                                }
+                                
+                                
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@NewCommercial.IsActive">@L["IsActive"]</Check>
+                                </Field>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@NewCommercial.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+
+                                <Field>
+                                    <FieldLabel>@L["SubCategory"]</FieldLabel>
+                                    <Select TValue="Guid" @bind-SelectedValue="@NewCommercial.SubCategoryId">
+                                        @foreach (var subCategory in SubCategoriesCollection)
+                                        {
+                                            <SelectItem TValue="Guid" Value="@subCategory.Id">
+                                                @subCategory.DisplayName
+                                            </SelectItem>
+                                        }
+                                    </Select>
+                                </Field>
+
+                </TabPanel>
+  
+                 
+                            <TabPanel Name="create-tab-arabic">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewCommercial.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+
+
+
+
+
+
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["ActivityAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewCommercial.ActivityAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                            </TabPanel>
+               
+                           
+
+                    
+                    
+                </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="CreateCommercialForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="CreateCommercialForm" Clicked="async()=> await CreateCommercialAsync()" />
+            </CardFooter>
+         
+        </Form>
+    }
+    else
+    {
+                <Form id="EditCommercialForm">
+                  <CardBody>
+                <Tabs SelectedTab="@SelectedEditTab" SelectedTabChanged="@OnSelectedEditTabChanged">
+                    <Items>
+                        <Tab Name="edit-tab-english">@L["English"]</Tab>
+                        <Tab Name="edit-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                        <Validations @ref="@EditingCommercialValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@EditingCommercial"
+                                 ValidateOnLoad="false">
+                            <TabPanel Name="edit-tab-english">
+
+                                        <Validation>
+                                <Field>
+                                    <FieldLabel>@L["TitleEn"]</FieldLabel>
+                                    <TextEdit @bind-Text="@EditingCommercial.TitleEn">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>
+
+
+                         
+
+
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["PlotNo"]</FieldLabel>
+                                        <TextEdit Text="@EditingCommercial.PlotNo" TextExpression="@(()=>EditingCommercial.PlotNo)" TextChanged="@OnPlotNoChanged">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+@*                                     <TextEdit @bind-Text="@EditingCommercial.PlotNo">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit> *@
+                                </Field>
+                            </Validation>
+
+
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["ActivityEn"]</FieldLabel>
+                                    <TextEdit @bind-Text="@EditingCommercial.ActivityEn">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>
+
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["Phone"]</FieldLabel>
+                                    <TextEdit @bind-Text="@EditingCommercial.Phone">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>
+
+
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["Fax"]</FieldLabel>
+                                    <TextEdit @bind-Text="@EditingCommercial.Fax">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>
+                                <Field>
+                                    <FieldLabel>@L["MakaniNo"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is10">
+                                            <TextEdit @bind-Text="@EditingCommercial.MakaniNo" Disabled></TextEdit>
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is2">
+                                            <Button Color="Color.Primary" Clicked="async()=> await GetMakani()" Disabled="@DisableGetMakaninButton">@L["GetMakaniNo"]</Button>
+                                        </Column>
+                                    </Row>
+                                </Field>
+                                @{
+                                    if (PlotEmpty)
+                                    {
+                                                    <div class="alert alert-danger">
+                                            @L["Message:MakaniApiError"]
+                                                    </div>
+                                    }
+                                    else
+                                    {
+                                        if (MakaniApiError)
+                                        {
+                                                            <div class="alert alert-danger">
+                                                @L["Message:MakaniApiError"]
+                                                            </div>
+                                        }
+                                    }
+                                }
+                            <Field>
+                                <Check TValue="bool" @bind-Checked="@EditingCommercial.IsActive">@L["IsActive"]</Check>
+                            </Field>
+
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["Order"]</FieldLabel>
+                                    <NumericPicker TValue="int" @bind-Value="@EditingCommercial.Order" Decimals="0">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </NumericPicker>
+                                </Field>
+                            </Validation>
+
+
+                            <Field>
+                                <FieldLabel>@L["SubCategory"]</FieldLabel>
+                                <Select TValue="Guid" @bind-SelectedValue="@EditingCommercial.SubCategoryId">
+                                    @foreach (var subCategory in SubCategoriesCollection)
+                                    {
+                                        <SelectItem TValue="Guid" Value="@subCategory.Id">
+                                            @subCategory.DisplayName
+                                        </SelectItem>
+                                    }
+                                </Select>
+                            </Field>
+
+
+                            </TabPanel>
+
+                    
+                            <TabPanel Name="edit-tab-arabic">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingCommercial.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["ActivityAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingCommercial.ActivityAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                            </TabPanel>
+                     
+
+
+                      
+
+
+
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="EditCommercialForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="EditCommercialForm" Clicked="async()=> await UpdateCommercialAsync()" />
+            </CardFooter>
+                </Form>
+
+
+    }
+</Card>
+
+@* ************************* EDIT MODAL ************************* *@

@@ -1,0 +1,176 @@
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@page "/{lang}/media-center/press-releases/{slug}";
+
+<PageTitle>
+    @PressReleaseFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PressReleaseFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+<!----page header----->
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PressReleaseFrontEnd?.HeaderImage" alt="@PressReleaseFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @L["Site:PressReleases"]
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:MediaCenter"]</li>
+                            <li class="active">@L["Site:PressReleases"]</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!----page header----->
+<!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content ">
+
+    <!---image-box-section---->
+    <section class="image-box-section py-lg-5">
+        <!--===============spacing==============-->
+        <div class="pd_top_30"></div>
+        <!--===============spacing==============-->
+        <div class="auto-container">
+            <div class="row">
+
+                <div class="col-xl-12 col-lg-12">
+                    <div class="title_all_box style_one dark_color">
+                        <div class="title_sections ">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fa fa-calendar me-2"></i><p class="mb-0 p-0">
+                                    @($"{PressReleaseFrontEnd.Date.Value.ToString("dddd")}, {PressReleaseFrontEnd.Date.Value.ToString("MMM")} {PressReleaseFrontEnd.Date.Value.Day} ,{PressReleaseFrontEnd.Date.Value.Year}")
+                                   
+                                    
+                                
+                                </p>
+                            </div>
+                            <div class="title text-capitalize text-primary-color mb-4">
+                                @PressReleaseFrontEnd?.Title
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-12 col-lg-12 mb-5 mb-lg-5 mb-xl-0">
+
+
+
+                    @((MarkupString)PressReleaseFrontEnd?.Description)
+
+
+                </div>
+
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_bottom_80"></div>
+        <!--===============spacing==============-->
+    </section>
+    <!---image-box-section-end---->
+
+    @if (RelatedPressReleasesFrontEnd != null && RelatedPressReleasesFrontEnd.Count > 0)
+    {
+        <section class="blog_post_section two_column style_three bg_light_1">
+            <!--===============spacing==============-->
+            <div class="pd_top_80"></div>
+            <!--===============spacing==============-->
+
+            <div class="auto-container">
+
+                <div class="row">
+                    <div class="col-lg-10">
+                        <div class="title_all_box style_seven dark_color">
+                            <div class="title_sections">
+                                <div class="title text-uppercase text-primary-color">@L["Site:SimilarNews"]</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="theme_btn_all color_one mt-4 mt-md-0">
+                            <a href="@($"{CultureInfo.CurrentCulture.Name}/media-center/press-releases")" rel="nofollow" class="theme-btn one w-100">
+                                @L["Site:Home:ViewAll"]
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <!--===============spacing==============-->
+                        <div class="pd_bottom_50"></div>
+                        <!--===============spacing==============-->
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="auto-container">
+                <div class="row">
+
+
+
+                    @foreach (var singleEvents in RelatedPressReleasesFrontEnd)
+                    {
+                        <div class="col-lg-4">
+                            
+                                <div class="news_box style_two grid_box _card has_images">
+                                    <div class="content_box">
+                                    <a href="@($"{CultureInfo.CurrentCulture.Name}/media-center/press-releases/{singleEvents.Slug}")">
+                                        <div class="overlay"> </div>
+
+                                        <img src="@singleEvents.Image" class="img-fluid" alt="img" />
+                                    </a>
+                                        <div class="content_mid">
+                                        <a href="@($"{CultureInfo.CurrentCulture.Name}/media-center/press-releases/{singleEvents.Slug}")" rel="bookmark">
+                                            <span class="date_in_number">
+                                                @if (singleEvents.Date.HasValue)
+                                                {
+                                                    @($"{singleEvents.Date.Value.ToString("MMMM")} {singleEvents.Date.Value.Day} {singleEvents.Date.Value.Year}")
+                                                }
+                                            </span>
+                                            </a>
+                                        <h2 class="title"><a href="@($"{CultureInfo.CurrentCulture.Name}/media-center/press-releases/{singleEvents.Slug}")" rel="bookmark">@singleEvents.Summary</a></h2>
+                                        </div>
+                                    </div>
+                                </div>
+                           
+                        </div>
+                }
+          
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_top_70"></div>
+        <!--===============spacing==============-->
+
+    </section>
+    }
+
+</div>

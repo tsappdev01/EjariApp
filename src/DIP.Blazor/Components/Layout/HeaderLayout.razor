@@ -1,0 +1,238 @@
+﻿@using System.Globalization;
+@using DIP.Blazor.Shared;
+@inherits DIPComponentBase;
+
+ <!----preloader----->
+@*        <div class="preloader-wrap">
+            <img src="assets/images/logoicon-white.svg" class="loading-icon">
+            <div class="preloader"
+                 style="background-image: url(assets/images/logo-white-1.svg); background-size: 200px;">
+            </div>
+            <div class="overlay"></div>
+        </div>*@
+        <!----preloader----->
+
+<div class="header_area " id="header_contents">
+    @* <HeaderLayout />*@
+    <div class="top_bar style_two">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="top_inner">
+                        <div class="left_side common_css">
+                            <div class="contntent phone">
+                                <i class="fa fa-phone"></i>
+                                <div class="text">
+                                    <span>@L["Site:Header:800DIPARK"]</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="right_side common_css">
+                            <div class="contntent media">
+                                <div class="text">
+                                      @if (@SiteSettingFrontEnd != null && !@SiteSettingFrontEnd.FaceBookLink.IsNullOrEmpty())
+                                        {
+                                        <a onclick="hideMainMenu()" href="@SiteSettingFrontEnd?.FaceBookLink" target="_blank" rel="nofollow">
+                                                <i class="fa fa-facebook"></i>
+                                            </a>
+                                        }
+                                    @if (@SiteSettingFrontEnd != null && !@SiteSettingFrontEnd.TwitterLink.IsNullOrEmpty())
+                                    {
+                                        <a onclick="hideMainMenu()" href="@SiteSettingFrontEnd?.TwitterLink" target="_blank" rel="nofollow">
+                                            <svg width="25" height="13" viewBox="0 0 300 300" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                                                <path fill="#fff" stroke="none" d="M178.57 127.15 290.27 0h-26.46l-97.03 110.38L89.34 0H0l117.13 166.93L0 300.25h26.46l102.4-116.59 81.8 116.59h89.34M36.01 19.54H76.66l187.13 262.13h-40.66"></path>
+                                            </svg>
+                                        </a>
+                                    }
+                                    @if (@SiteSettingFrontEnd != null && !@SiteSettingFrontEnd.InstagramLink.IsNullOrEmpty())
+                                    {
+                                        <a onclick="hideMainMenu()" href="@SiteSettingFrontEnd?.InstagramLink" target="_blank" rel="nofollow">
+                                            <i class="fa fa-instagram"></i>
+                                        </a>
+                                    }
+                                    @if (@SiteSettingFrontEnd != null &&!@SiteSettingFrontEnd.LinkedinLink.IsNullOrEmpty())
+                                    {
+                                        <a onclick="hideMainMenu()" href="@SiteSettingFrontEnd?.LinkedinLink" target="_blank" rel="nofollow">
+                                            <i class="fa fa-linkedin"></i>
+                                        </a>
+                                    }
+                                    @if (@SiteSettingFrontEnd != null && !@SiteSettingFrontEnd.YouTubeLink.IsNullOrEmpty())
+                                    {
+                                        <a onclick="hideMainMenu()" href="@SiteSettingFrontEnd?.YouTubeLink" target="_blank" rel="nofollow">
+                                            <i class="fa fa-youtube"></i>
+                                        </a>
+                                    }
+                                </div>
+                           </div>
+                             <div class="contntent language">
+                                <a href="@Link" @onclick="async ()=> await Navigat(Link)">
+                                    <i class="fa fa-globe"></i>
+                                    <div class="text">
+                                        @if (CultureInfo.CurrentCulture.Name == "en")
+                                        {
+                                            <span>العربية</span>
+                                        }
+                                        else
+                                        {
+                                            <span>EN</span>
+                                        }
+                                    </div>
+                                </a>
+                            </div> 
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <header class="header header_default style_two get_sticky_header">
+        <div class="auto-container">
+            <div class="row align-items-center">
+                <div class="col-lg-2 col-md-2 col-sm-6 col-xs-6 logo_column">
+                    <div class="header_log_outer">
+                        <div class="header_logo_box">
+                            <a href="@UtilClass.GetHomeUrlByLang()" class="logo navbar-brand">
+                                <img src="assets/images/logo-white-1.svg" alt="DIP LOGO" class="logo_default">
+                                <img src="assets/images/logo-default.svg" alt="DIP LOGO" class="logo__sticky">
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-10 col-md-10 col-sm-6 col-xs-6 menu_column">
+                    <div class="navbar_togglers hamburger_menu">
+                        <span class="line"></span>
+                        <span class="line"></span>
+                        <span class="line"></span>
+                    </div>
+                    <div class="header_content_collapse">
+                        <div class="header_menu_box">
+                            <div class="navigation_menu">
+                                <ul id="myNavbar" class="navbar_nav">
+                                    <li class="menu-item active nav-item">
+                                        <a onclick="hideMainMenu()" href="@UtilClass.GetHomeUrlByLang()" class="nav-link">
+                                            <span>@L["Site:Header:Home"]</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu-item menu-item-has-children dropdown nav-item">
+                                        <a onclick="hideMainMenu()" class="dropdown-toggle nav-link">
+                                            <span>@L["Site:Header:AboutUs"]</span>
+                                        </a>
+                                        <ul class="dropdown-menu">
+                                            @if (!PageInfoHeaderAboutUs.IsNullOrEmpty())
+                                            {
+                                                foreach (var pageInfoHeader in PageInfoHeaderAboutUs)
+                                                {
+                                                    <li class="menu-item  nav-item">
+                                                        <a onclick="hideMainMenu()" href="@($"/{CultureInfo.CurrentCulture.Name}/about-us/{pageInfoHeader.Slug}")" class="dropdown-item nav-link">
+                                                            <span>@pageInfoHeader.Title</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                            }
+                                        </ul>
+                                    </li>
+                                    <li class="menu-item menu-item-has-children dropdown nav-item">
+                                        <a   onclick="hideMainMenu()" class="dropdown-toggle nav-link">
+                                            <span>@L["Site:Header:E-Services"]</span>
+                                        </a>
+                                        <ul class="dropdown-menu">
+                                            @if (!EServiceList.IsNullOrEmpty())
+                                            {
+                                                foreach (var pageInfoHeader in EServiceList)
+                                                {
+                                                    <li class="menu-item  nav-item">
+                                                        <a onclick="hideMainMenu()" href="@($"/{CultureInfo.CurrentCulture.Name}/{pageInfoHeader.Slug}")" class="dropdown-item nav-link">
+                                                            <span>@pageInfoHeader.Title</span>
+                                                        </a>
+                                                    </li>
+                                                }
+
+                                                <li class="menu-item  nav-item">
+                                                    <a onclick="hideMainMenu()" href="https://reg.dipark.com" class="dropdown-item nav-link" target="_blank">
+                                                        <span>LandLord Registration</span>
+                                                    </a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </li>
+                                    <li class="menu-item menu-item-has-children dropdown nav-item">
+                                        <a onclick="hideMainMenu()" href="@($"/{CultureInfo.CurrentCulture.Name}/zones")" class="dropdown-toggle nav-link">
+                                            <span>@L["Site:Header:Zones"]</span>
+                                        </a>
+                                        <ul class="dropdown-menu">
+                                            @if (!ZonesList.IsNullOrEmpty())
+                                            {
+                                                foreach (var zone in ZonesList)
+                                                {
+                                                    <li class="menu-item  nav-item">
+                                                        <a onclick="hideMainMenu()" href="@($"{CultureInfo.CurrentCulture.Name}/zones/{zone.Slug}")" class="dropdown-item nav-link">
+                                                            <span>@zone.Title</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                            }
+                                        </ul>
+                                    </li>
+                                    <li class="menu-item menu-item-has-children dropdown nav-item">
+                                        <a onclick="hideMainMenu()" href="@($"/{CultureInfo.CurrentCulture.Name}/amenities")" class="dropdown-toggle nav-link">
+                                            <span>@L["Site:Header:Amenities"]</span>
+                                        </a>
+                                        <ul class="dropdown-menu">
+                                            @if (!AmenitiesList.IsNullOrEmpty())
+                                            {
+                                                foreach (var amenity in AmenitiesList)
+                                                {
+                                                    <li class="menu-item  nav-item">
+                                                        <a onclick="hideMainMenu()" href="@($"{CultureInfo.CurrentCulture.Name}/amenities/{amenity.Slug}")" class="dropdown-item nav-link">
+                                                            <span>@amenity.Title</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                            }
+                                        </ul>
+                                    </li>
+                                    <li class="menu-item menu-item-has-children dropdown nav-item">
+                                        <a   onclick="hideMainMenu()" class="dropdown-toggle nav-link">
+                                            <span>@L["Site:Header:MediaCenter"]</span>
+                                        </a>
+                                        <ul class="dropdown-menu">
+                                            @if (!PageInfoHeaderMediaCenter.IsNullOrEmpty())
+                                            {
+                                                foreach (var pageInfoHeader in PageInfoHeaderMediaCenter)
+                                                {
+                                                    <li class="menu-item  nav-item">
+                                                        <a  onclick="hideMainMenu()" href="@($"/{CultureInfo.CurrentCulture.Name}/media-center/{pageInfoHeader.Slug}")" class="dropdown-item nav-link">
+                                                            <span>@pageInfoHeader.Title</span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                            }
+
+                              
+                                        </ul>
+                                    </li>
+                                    @if (PageInfoHeaderDirectory != null)
+                                    {
+                                        <li class="menu-item active nav-item">
+                                            <a onclick="hideMainMenu()" href="@($"/{CultureInfo.CurrentCulture.Name}/{PageInfoHeaderDirectory?.Slug}")" class="nav-link">
+                                                <span>@PageInfoHeaderDirectory?.Title</span>
+                                            </a>
+                                        </li>
+                                    }
+                                    @if (PageInfoHeaderContactUs != null)
+                                    {
+                                        <li class="menu-item active nav-item">
+                                            <a onclick="hideMainMenu()" href="@($"/{CultureInfo.CurrentCulture.Name}/{PageInfoHeaderContactUs?.Slug}")" class="nav-link">
+                                                <span>@PageInfoHeaderContactUs?.Title</span>
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+</div>

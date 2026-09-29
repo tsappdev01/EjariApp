@@ -1,0 +1,385 @@
+
+
+@page "/admin/site-settings"
+
+@using DIP.SiteSettings;
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject ISiteSettingsAppService SiteSettingsAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["SiteSettings"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+<Card>
+    <CardBody>
+        @if (EditingSiteSetting != null)
+        {
+            <Form id="EditSiteSettingForm">
+                <CardBody>
+                    <Tabs SelectedTab="@SelectedTab" SelectedTabChanged="@OnSelectedTabChanged">
+                        <Items>
+                            <Tab Name="setting-tab-english">@L["English"]</Tab>
+                            <Tab Name="setting-tab-arabic">@L["Arabic"]</Tab>
+                        </Items>
+                        <Content>
+                            <Validations @ref="@EditingSiteSettingValidations"
+                                         Mode="ValidationMode.Auto"
+                                         Model="@EditingSiteSetting"
+                                         ValidateOnLoad="false">
+                                <TabPanel Name="setting-tab-english">
+                                    <Accordion>
+                                        <Collapse Visible="true">
+                                            <CollapseHeader>
+                                                    <Heading Size="HeadingSize.Is5">
+                                                        <AccordionToggle>@L["DataContent"]</AccordionToggle>
+                                                        </Heading>
+                                            </CollapseHeader>
+                                            <CollapseBody>
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["DipEmail"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.DipEmail">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["Phone"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.Phone">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["POBox"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.POBox">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["OfficeLocationEn"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.OfficeLocationEn">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["SiteLink"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.SiteLink">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["PbLocation"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.PbLocation">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+                                            </CollapseBody>
+                                        </Collapse>
+                                    </Accordion>
+                                    <Accordion>
+                                        <Collapse Visible="true">
+                                            <CollapseHeader>
+                                                <Heading Size="HeadingSize.Is5">
+                                                    <AccordionToggle>@L["BusinessHours"]</AccordionToggle>
+                                                </Heading>
+                                            </CollapseHeader>
+                                            <CollapseBody>
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["WorkDays"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.WorkDays">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+
+
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["WorkHours"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.WorkHours">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+
+
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["RamadanWorkDays"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.RamadanWorkDays">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+
+
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["RamadanWorkHours"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.RamadanWorkHours">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+
+
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["FridayWorkHours"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.FridayWorkHours">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+
+
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["ClosedDay1"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.ClosedDay1">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+
+
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["ClosedDay2"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.ClosedDay2">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+                                            </CollapseBody>
+                                        </Collapse>
+                                    </Accordion>
+                                    <Accordion>
+                                        <Collapse Visible="true">
+                                            <CollapseHeader>
+                                                    <Heading Size="HeadingSize.Is5">
+                                                        <AccordionToggle>@L["Links"]</AccordionToggle>
+                                                        </Heading>
+                                            </CollapseHeader>
+                                            <CollapseBody>
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["FaceBookLink"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.FaceBookLink">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["TwitterLink"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.TwitterLink">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["InstagramLink"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.InstagramLink">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["YouTubeLink"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.YouTubeLink">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+
+
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["LinkedinLink"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.LinkedinLink">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+                                            </CollapseBody>
+                                        </Collapse>
+                                    </Accordion>
+                                    <Accordion>
+                                        <Collapse Visible="true">
+                                            <CollapseHeader>
+                                                <Heading Size="HeadingSize.Is5">
+                                                    <AccordionToggle>@L["EmergencyContacts"]</AccordionToggle>
+                                                </Heading>
+                                            </CollapseHeader>
+                                            <CollapseBody>
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["FireDepartmentPhone"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.FireDepartmentPhone">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["Emergency1Phone"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.Emergency1Phone">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["Emergency2Phone"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.Emergency2Phone">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["PolicePost"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.PolicePost">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+                                            </CollapseBody>
+                                        </Collapse>
+                                    </Accordion>
+                                </TabPanel>
+                                <TabPanel Name="setting-tab-arabic">
+                                    <Accordion>
+                                        <Collapse Visible="true">
+                                            <CollapseHeader>
+                                                    <Heading Size="HeadingSize.Is5">
+                                                        <AccordionToggle>@L["DataContent"]</AccordionToggle>
+                                                        </Heading>
+                                            </CollapseHeader>
+                                            <CollapseBody>
+                                                <Validation>
+                                                    <Field>
+                                                        <FieldLabel>@L["OfficeLocationAr"]</FieldLabel>
+                                                        <TextEdit @bind-Text="@EditingSiteSetting.OfficeLocationAr">
+                                                            <Feedback>
+                                                                <ValidationError />
+                                                            </Feedback>
+                                                        </TextEdit>
+                                                    </Field>
+                                                </Validation>
+                                            </CollapseBody>
+                                        </Collapse>
+                                    </Accordion>
+                                    <Accordion>
+                                        <Collapse Visible="true">
+                                            <CollapseHeader>
+                                                <Heading Size="HeadingSize.Is5">
+                                                    <AccordionToggle>@L["Links"]</AccordionToggle>
+                                                </Heading>
+                                            </CollapseHeader>
+                                            <CollapseBody>
+
+                                            </CollapseBody>
+                                        </Collapse>
+                                    </Accordion>
+                                </TabPanel>
+                            </Validations>
+                        </Content>
+                    </Tabs>
+                </CardBody>
+                <CardFooter>
+                    @*<SubmitButton Form="EditResearchAreaForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>*@
+                    <SubmitButton Form="EditFaqCategoryForm" Clicked="async()=> await UpdateSiteSettingAsync()" />
+                </CardFooter>
+            </Form>
+        }
+    </CardBody>
+</Card>
+

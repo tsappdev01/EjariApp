@@ -1,0 +1,570 @@
+@page "/admin/last-events/edit/{id}"
+@page "/admin/last-events/create"
+
+@attribute [Authorize(DIPPermissions.LastEventss.Default)]
+@using DIP.Blazor.Components
+@using DIP.LastEventss
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject ILastEventssAppService LastEventssAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+
+
+<PageHeader Title="@( $"{L[Id.IsNullOrEmpty()? "Create":"Update"]} {L["LastEventss"]}")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+
+
+
+<Card>
+    @if (Id.IsNullOrEmpty())
+    {
+
+        <Form id="CreateLastEventsForm">
+            <CardBody>
+                <Tabs SelectedTab="@SelectedCreateTab" SelectedTabChanged="@OnSelectedCreateTabChanged">
+                    <Items>
+                        <Tab Name="create-tab-english">@L["English"]</Tab>
+                        <Tab Name="create-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                        <Validations @ref="@NewLastEventsValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@NewLastEvents"
+                                 ValidateOnLoad="false">
+                            <TabPanel Name="create-tab-english">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"]</FieldLabel>
+                                        <TextEdit TextExpression="@(()=>NewLastEvents.TitleEn)" TextChanged="@OnTitleEnChanged">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Slug"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewLastEvents.Slug">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewLastEvents.MetaTitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryEn"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@NewLastEvents.SummaryEn" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                                    <CustomRichTextEditor ContentChanged="@CreatingDescriptionEnOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionEnValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionEnRequired"]
+                                    </div>
+                                }
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewLastEvents.MetaDescriptionEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                  @*              <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["LocationEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewLastEvents.LocationEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>*@
+
+                                <Field>
+                                    <FieldLabel>@L["Image"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(true)">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (!LastEventsImage.IsNullOrEmpty() && !LastEventsImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(LastEventsImage)};base64,{Convert.ToBase64String(LastEventsImageContent)}"))"></div>
+                                    }
+                                </Field>
+                                @if (ImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:ImageRequired"]
+                                    </div>
+                                }
+                                <Field>
+                                    <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="HeaderImageChanged" Upload="OnHeaderImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(false)">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (!LastEventsHeaderImage.IsNullOrEmpty() && !LastEventsHeaderImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(LastEventsHeaderImage)};base64,{Convert.ToBase64String(LastEventsHeaderImageContent)}"))"></div>
+                                    }
+                                </Field>
+                                @if (HeaderImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:HeaderImageRequired"]
+                                    </div>
+                                }
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["StartDate"]</FieldLabel>
+                                        <DateEdit TValue="DateTime" InputMode="DateInputMode.DateTime" @bind-Date="@NewLastEvents.StartDate">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </DateEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["EndDate"]</FieldLabel>
+                                        <DateEdit TValue="DateTime" InputMode="DateInputMode.DateTime" @bind-Date="@NewLastEvents.EndDate">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </DateEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@NewLastEvents.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@NewLastEvents.IsFeatured">@L["IsFeatured"]</Check>
+                                </Field>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@NewLastEvents.IsActive">@L["IsActive"]</Check>
+                                </Field>
+
+                            </TabPanel>
+
+
+                            <TabPanel Name="create-tab-arabic">
+
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewLastEvents.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewLastEvents.MetaTitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryAr"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@NewLastEvents.SummaryAr" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                                    <CustomRichTextEditor ContentChanged="@CreatingDescriptionArOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionArValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionArRequired"]
+                                    </div>
+                                }
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewLastEvents.MetaDescriptionAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                       @*         <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["LocationAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewLastEvents.LocationAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>*@
+
+                            </TabPanel>
+
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="CreateLastEventsForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="CreateLastEventsForm" Clicked="async()=> await CreateLastEventsAsync()" />
+            </CardFooter>
+        </Form>
+
+
+    }
+    else
+    {
+        <Form id="EditLastEventsForm">
+            <CardBody>
+                <Tabs SelectedTab="@SelectedEditTab" SelectedTabChanged="@OnSelectedEditTabChanged">
+                    <Items>
+                        <Tab Name="edit-tab-english">@L["English"]</Tab>
+                        <Tab Name="edit-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                        <Validations @ref="@EditingLastEventsValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@EditingLastEvents"
+                                 ValidateOnLoad="false">
+
+                            <TabPanel Name="edit-tab-english">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"]</FieldLabel>
+                                        <TextEdit Text="@EditingLastEvents.TitleEn" TextExpression="@(()=>EditingLastEvents.TitleEn)" TextChanged="@OnTitleEnChanged">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Slug"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingLastEvents.Slug">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingLastEvents.MetaTitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryEn"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@EditingLastEvents.SummaryEn" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                                    <CustomRichTextEditor InitValue="@EditingLastEvents.DescriptionEn" ContentChanged="@EditingDescriptionEnOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionEnValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionEnRequired"]
+                                    </div>
+                                }
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingLastEvents.MetaDescriptionEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                          @*      <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["LocationEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingLastEvents.LocationEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>*@
+
+                                <Field>
+                                    <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="HeaderImageChanged" Upload="OnHeaderImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(false)">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (LastEventsHeaderImageNewUpload && !LastEventsHeaderImage.IsNullOrEmpty() && !LastEventsHeaderImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(LastEventsHeaderImage)};base64,{Convert.ToBase64String(LastEventsHeaderImageContent)}"))"></div>
+                                    }
+                                    else
+                                    {
+                                        if (!LastEventsHeaderImage.IsNullOrEmpty())
+                                        {
+                                            <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"{MimeTypes.MimeTypeMap.GetAttachmentPath()}/lastEvent/{LastEventsHeaderImage}"))"></div>
+                                        }
+                                    }
+                                </Field>
+                                @if (HeaderImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:HeaderImageRequired"]
+                                    </div>
+                                }
+
+                                <Field>
+                                    <FieldLabel>@L["Image"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(true)">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (LastEventsImageNewUpload && !LastEventsImage.IsNullOrEmpty() && !LastEventsImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(LastEventsImage)};base64,{Convert.ToBase64String(LastEventsImageContent)}"))"></div>
+                                    }
+                                    else
+                                    {
+                                        if (!LastEventsImage.IsNullOrEmpty())
+                                        {
+                                            <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"{MimeTypes.MimeTypeMap.GetAttachmentPath()}/lastEvent/{LastEventsImage}"))"></div>
+                                        }
+                                    }
+                                </Field>
+                                @if (ImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:ImageRequired"]
+                                    </div>
+                                }
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["StartDate"]</FieldLabel>
+                                        <DateEdit TValue="DateTime" InputMode="DateInputMode.DateTime" @bind-Date="@EditingLastEvents.StartDate">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </DateEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["EndDate"]</FieldLabel>
+                                        <DateEdit TValue="DateTime" InputMode="DateInputMode.DateTime" @bind-Date="@EditingLastEvents.EndDate">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </DateEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@EditingLastEvents.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@EditingLastEvents.IsFeatured">@L["IsFeatured"]</Check>
+                                </Field>
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@EditingLastEvents.IsActive">@L["IsActive"]</Check>
+                                </Field>
+
+                            </TabPanel>
+                            <TabPanel Name="edit-tab-arabic">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingLastEvents.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingLastEvents.MetaTitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryAr"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@EditingLastEvents.SummaryAr" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                                    <CustomRichTextEditor InitValue="@EditingLastEvents.DescriptionAr" ContentChanged="@EditingDescriptionArOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionArValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionArRequired"]
+                                    </div>
+                                }
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingLastEvents.MetaDescriptionAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["LocationAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingLastEvents.LocationAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                            </TabPanel>
+
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="EditLastEventsForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="EditLastEventsForm" Clicked="async()=> await UpdateLastEventsAsync()" />
+            </CardFooter>
+        </Form>
+    }
+</Card>
+@* ************************* EDIT MODAL ************************* *@

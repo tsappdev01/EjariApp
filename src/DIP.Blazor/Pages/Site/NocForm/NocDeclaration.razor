@@ -1,0 +1,438 @@
+﻿@using DIP.Blazor.Components.Layout;
+@using DIP.Blazor.Shared;
+@using DIP.Settings
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+
+@inject IDIPSettingAppService DIPSettingAppService
+@page "/{lang}/Ejari/NocDeclaration/{Landlord}";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+    <style>
+            .btn-proceed {
+                background-color: #6F6259;
+                border-color: transparent;
+                color: white;
+                font-weight: 500;
+                padding: 12px 40px;
+                border-top-left-radius: 10px;
+                border-bottom-left-radius: 0px;
+                border-top-right-radius: 0px;
+                border-bottom-right-radius: 10px;
+            }
+
+            .btn-danger {
+                background-color: #FF5F57;
+                border-color: transparent;
+                color: white;
+                font-weight: 500;
+                padding: 12px 40px;
+                border-top-left-radius: 10px;
+                border-bottom-left-radius: 0px;
+                border-top-right-radius: 0px;
+                border-bottom-right-radius: 10px;
+            }
+
+            /* .btn-proceed:hover {
+                                                                                                                                                        background-color: #5a6268;
+                                                                                                                                                        border-color: #545b62;
+                                                                                                                                                        color: white;
+                                                                                                                                                        } */
+
+            .form-check-input:checked {
+                background-color: #71645B;
+                border-color: #71645B;
+            }
+
+            .btn-noc {
+                border: 1px solid #6F6259;
+                color: #6F6259;
+                background-color: #f8f8f8;
+                border-top-left-radius: 10px;
+                border-bottom-left-radius: 0px;
+                border-top-right-radius: 0px;
+                border-bottom-right-radius: 10px;
+                padding: 8px 16px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+                .btn-noc:hover {
+                    background-color: #ece8e5;
+                    color: #4f463f;
+                    border-color: #4f463f;
+                }
+
+            .custom-input-wrapper {
+                background-color: #ffffff;
+                border-radius: 5px;
+                padding: 12px 16px;
+                display: flex;
+                align-items: flex-end;
+            }
+
+            .custom-input {
+                border: none;
+                border-bottom: 1px solid #dee2e6;
+                border-radius: 0;
+                padding: 8px 0;
+                outline: none;
+                box-shadow: none;
+            }
+
+                .custom-input:focus {
+                    border-color: #6f6259;
+                    box-shadow: none;
+                }
+
+            .modal-content-success {
+                border-radius: 12px;
+                border: none;
+                text-align: center;
+                padding: 2rem;
+                align-items: center;
+            }
+
+            .checkmark-circle {
+                width: 60px;
+                height: 60px;
+                background-color: #e6f4ea;
+                color: #2e7d32;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                margin: 0 auto 1rem auto;
+                font-size: 24px;
+            }
+
+            .btn-close-modal {
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                padding: 0.5rem 1.5rem;
+                font-weight: 500;
+                background-color: white;
+                width: 100px;
+            }
+
+
+            .btnview {
+                padding: 8px 16px;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 600;
+                border: none;
+                cursor: pointer;
+                transition: all 0.2s;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                white-space: nowrap;
+                text-decoration: none;
+            }
+
+            .btnview-view {
+                background: linear-gradient(135deg, #7a6b5d 0%, #8b7d6f 100%);
+                color: white !important;
+            }
+
+                .btnview-view:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(122, 107, 93, 0.3);
+                }
+    </style>
+</HeadContent>
+
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            Declaration
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:Home:Ejari"]</li>
+                            <li class="active">Declaration</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@if (_isLoading)
+{
+    <div class="row align-items-center justify-content-center" style="min-height: 400px;">
+        <div class="col-md-12 text-center">
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h4 class="text-muted">Preparing your document, please wait...</h4>
+        </div>
+    </div>
+}
+else if (!UAEPassAuthorized)
+{
+    <div class="container py-4">
+        <div id="content" class="site-content ">
+            <div class="container d-flex justify-content-center p-5" id="successContainer" style="display: block;">
+                <div class="message-card">
+                    <div class="card-body text-center p-5">
+                        <h1 class="h3 fw-semibold mb-3"> You need to login with UAE Pass to Sign the Document</h1>
+                        <a href="@_uaepassloginRedirectionLink" class="icon light uaepass-login-btn">
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container py-4">
+        <div id="content" class="site-content ">
+            @if (_siggnExist == "Yes" || _siggnExist == "Rejected")
+            {
+                <div class="mb-3">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <div class="px-3 py-3 rounded-2 text-warning" style="background-color: #FFF2CC; color: #c00000 !important; margin-left: -14px;">
+                                <svg class="alert-icon me-2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+                                </svg>
+                                @(_siggnExist == "Rejected" ? "This document has been rejected by landlord."
+                                :
+                                $"This document has already been signed by {EOCheckStatusOfDocumentSigningResult?.SignerEmail} At {EOCheckStatusOfDocumentSigningResult?.SignerSignedAt.ToString("yyyy-MM-dd HH:mm:ss")}")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            <div class="mb-4" style="color: #4A4E56;">
+                <p>
+                    I declare that I fully take responsibility of any required government approvals, defaulted
+                    payments, DIP fees, that I fully understand the requirements mentioned above as well as the
+                    Explanatory Notes and shall abide by all Environmental, Health, Safety and Civil Defense
+                    requirements at all stages of my operations in DIP.
+                </p>
+                <p>I have accepted and approved the activity mentioned in this form.</p>
+                <p>
+                    Finally, I declare that the information provided in the tenancy contract is true and correct, I
+                    carry the full legal responsibility in case of any incorrect information provided in the tenancy
+                    contract.
+                </p>
+
+            </div>
+            <div class="mb-5">
+                <div class="row mb-3 align-items-center">
+                    <div class="col-md-3 text-muted fs-6">Property Code</div>
+                    <div class="col-md-9 fs-4" style="color: #4A4E56;">@Info?.PropertyCode</div>
+                </div>
+                @* <div class="row mb-3 align-items-center">
+                <div class="col-md-3 text-muted fs-6">Unit No</div>
+                <div class="col-md-9 fs-4" style="color: #4A4E56;">504</div>
+            </div> *@
+                <div class="row mb-3 align-items-center">
+                    <div class="col-md-3 text-muted fs-6">Tenant Name</div>
+                    <div class="col-md-5 fs-4" style="color: #4A4E56;">@Info?.CompanyName</div>
+                    @* <div class="col-md-4 text-muted fs-6 d-flex justify-content-center justify-content-md-end mt-4 mt-md-0">
+                    <a class="btn btn-noc" href="@DataUrl" download="@(ReferenceNumber + ".pdf")">
+                        <i class="bi bi-download"></i> Download NOC Form
+                    </a>
+                </div> *@
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <div class="px-3 py-3 rounded-2 text-warning" style="background-color: #FFF2CC;color:black !important; margin-left: -14px;">
+                            To help you get started, you may <a href="javascript:void(0)" class="text-decoration-underline" style="color:#c55e00;" @onclick="OpenVideoModal">refer to the video for a quick step-by-step guide</a> on how to sign the document using UAE Pass.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="form-section my-3">
+                <div class="p-2 p-md-4 rounded-2" style="background-color: #EEEEEE; border: 1px solid #DEE2E6;">
+                    @* <div class="row g-2 g-md-4">
+                    <div class="col-md-12">
+                        <div class="bg-white p-2 rounded-2">
+                            <label for="Designation" class="form-label text-muted mb-1">Designation</label>
+                            <input type="text" @bind="Designation" class="form-control custom-input" id="Designation" placeholder="">
+                        </div>
+                    </div>
+                </div> *@
+
+                    <div class="py-3">
+                        <h6 class="mb-0 fs-2 fw-normal" style="color:#6F6259">Submitted Documents:</h6>
+                    </div>
+                    <div class="p-2 p-md-4 mb-3 rounded-2" style="background-color: #EEEEEE;border: 1px solid #DEE2E6;">
+                        <div style="display: flex;justify-content: flex-start;gap:10px;flex-wrap: wrap;align-items: center;">
+                            @* <div class="row g-2"> *@
+                            @if (DocumentsGrid != null)
+                            {
+                                @foreach (var doc in DocumentsGrid)
+                                {
+                                    <div class="btnview btnview-view col-md-3"
+                                         style="border-right: 2px solid #eeeeee;justify-content: space-between;text-wrap: auto;min-height: -webkit-fill-available;">
+                                        @(doc.DocName)
+                                        <a style="color:white;display: flex; text-decoration:underline;"
+                                           href="@($"/api/PdfViewer/GetPdf?referenceNumber={Uri.EscapeDataString(encryptedReferenceNumber)}&documentId={Uri.EscapeDataString(EncryptionHelper.EncryptUrlSafe(doc.Id.ToString()))}")"
+                                           target="_blank" @onclick:stopPropagation="true">
+                                            <Div style="height:20px;width: 20px; color: white;">
+                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                </svg>
+                                            </Div>
+                                            View
+                                        </a>
+                                    </div>
+                                }
+                            }
+                            @* </div> *@
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mt-2">
+                        <div class="col-md-12">
+                            <iframe src="@DataUrl"
+                                    width="100%"
+                                    height="800px"
+                                    style="border: 1px solid #e5e7eb; border-radius: 0.5rem;"
+                                    title="NOC PDF Document">
+                                <p>
+                                    Your browser does not support PDF viewing.
+                                    <a class="btn btn-noc" href="@DataUrl" download="@(ReferenceNumber + ".pdf")">
+                                        <i class="bi bi-download"></i> Download NOC Form
+                                    </a> instead.
+                                </p>
+                            </iframe>
+                            @* <div class="bg-white p-2 rounded-2">
+                            <label class="form-label text-muted">Upload Signed Document</label>
+                            <InputFile OnChange="@((InputFileChangeEventArgs args) => OnFileUpload(args))"
+                                       class="form-control"
+                                       accept=".pdf,application/pdf"
+                                       MaxFileSize="100" />
+                        </div> *@
+                        </div>
+                    </div>
+                    @* <div class="row g-4 mt-2">
+                    @if (!@ErrorMessageUpload.IsNullOrEmpty())
+                    {
+
+                        <div class="alert alert-danger texxt-center" role="alert">@ErrorMessageUpload</div>
+                    }
+                </div> *@
+                </div>
+            </div>
+            @if (_siggnExist == "No")
+            {
+                <!-- Submit -->
+                <div class="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3 my-5 border-bottom pb-4">
+                    <p class="mb-5">
+                        @*          <Captcha @ref="captchaComponentLogIn" SiteKey="@GoogleReCaptachDto.SiteKey" OnSuccess="OnSuccessCaptchaLogIn" OnExpired="OnExpiredCaptchaLogIn"></Captcha> *@
+
+                        <MathCaptcha OnCaptchaVerified="(result) => OnSuccessCaptcha(result)" />
+
+                        @* <ValidationMessage For="() => LoginDto.Captcha" /> *@
+                    </p>
+                </div>
+                <div class="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3 my-5 border-bottom pb-4">
+                    @if (isCaptchaValid)
+                    {
+                        <button type="button" class="btn-proceed" @onclick="HandleReject" id="rejectBtn">
+                            Reject
+                        </button>
+
+                        @* <a href="@_uaepassRedirectionLink" class="icon light uaepass-btn">
+                            </a> *@
+
+                        <button type="button" class="icon light uaepass-btn" id="uaepassSignButton" @onclick="HandleUAEPassSignatureFow">
+                        </button>
+                    }
+                    else
+                    {
+                        @* <div class="mb-3">
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <div class="px-3 py-3 rounded-2 text-danger" style="background-color: #FFF2CC;color: #8D7A3E">
+                                        Please verify Captcha
+                                    </div>
+                                </div>
+                            </div>
+                        </div> *@
+                        <button disabled type="button" class="btn-proceed" id="rejectBtn">
+                            Reject
+                        </button>
+                        <img src="/assets/images/UAEPASS_Sign_in_Disabled.png" class="icon light">
+                    }
+                </div>
+            }
+
+            <div id="content" class="site-content ">
+            </div>
+
+            <Modal @ref="videoModalRef"
+                   CloseOnEscapeKey="false"
+                   CloseOnOutsideClick="false"
+                   Closed="OnVideoModalClosed">
+
+                <ModalContent Centered Size="ModalSize.Default">
+                    <ModalHeader>
+                        <ModalTitle class="text-center">
+                            UAE Pass – Guide
+                        </ModalTitle>
+                        <CloseButton />
+                    </ModalHeader>
+
+                    <ModalBody>
+
+                        <div class="ratio ratio-16x9">
+                            @if (isVideoModalOpen)
+                            {
+                                <video id="ApprovalVideo" controls autoplay>
+                                    <source src="/Videos/For-Landlords-final.mp4" type="video/mp4" />
+                                    Your browser does not support the video tag.
+                                </video>
+                            }
+
+                        </div>
+                    </ModalBody>
+                </ModalContent>
+            </Modal>
+        </div>
+    </div>
+}

@@ -1,0 +1,146 @@
+﻿@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@using System.Collections
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@page "/{lang}/UaepgsGateway/Disclaimer/{referenceNumber}";
+
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+
+
+
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @PageInfoFrontEnd?.Title
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:Home:EService"] </li>
+                            <li class="active">@L["PaymentDisclaimer"]</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+         <!----page header----->
+         
+         <!--===============PAGE CONTENT==============-->
+
+
+<div id="content" class="site-content ">
+    <!---image-box-section---->
+    <section class="image-box-section py-lg-5 bg_light_1">
+        <!--===============spacing==============-->
+        <div class="pd_top_80"></div>
+        <!--===============spacing==============-->
+        <div class="auto-container">
+            <div class="row">
+
+                <div class="col-xl-12 col-lg-12">
+                    <div class="title_all_box style_one dark_color">
+                        <div class="title_sections ">
+                            <div class="title text-uppercase mb-3 p-0 text-center d-block">@L["DIPDisclaimerService"]</div>
+                            <h3 class="fw-500 fs-2 text-center mb-3">@L["UseOfDirectDepitForOnlinePayment"]</h3>
+                            <p>
+                                @((MarkupString)PageInfoFrontEnd?.Description) @DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")
+
+                            </p>
+
+                        </div>
+                        <div class="row py-3">
+
+                            <div class="theme_btn_all color_one w-50 text-start px-3 px-md-0">
+                                <button rel="nofollow" class="theme-btn two p-1" @onclick="async ()=> await  onDeniedClick()">@L["Denied"]</button>
+                            </div>
+
+                            <div class="theme_btn_all color_one w-50 text-end px-3 px-md-0">
+                                <button rel="nofollow" class="theme-btn one p-1" onclick="document.getElementById('form').submit()" >@L["IAgree"]</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_bottom_80"></div>
+        <!--===============spacing==============-->
+    </section>
+    <!---image-box-section-end---->
+
+</div>         <!--===============PAGE CONTENT END==============-->
+  <form  name='form' id="form" asp-controller="Home" asp-action="SetLanguage" action='@url' method="post" role="form">
+    @foreach (DictionaryEntry culture in transactionData)
+    {
+         
+
+             <input type='hidden' name='@culture.Key' value='@culture.Value' /> 
+    }
+</form>
+
+@*  <form name='form' id="form" asp-controller="Home" asp-action="SetLanguage" action='@url' method="post" role="form">
+    <input type="hidden" id="AAAAAA" name="AAAAAA" value="689A03CC357778B3BE11499479A6463493C148FF0E8D68BC1084A9F212B9840A" />
+    <input type="hidden" id="pp_Amount" name="pp_Amount" value="10000" />
+    <input type="hidden" id="pp_BillReference" name="pp_BillReference" value="billRef" />
+    <input type="hidden" id="pp_Description" name="pp_Description" value="Descriptionof transaction" />
+    <input type="hidden" id="pp_Language" name="pp_Language" value="EN" />
+    <input type="hidden" id="pp_MerchantID" name="pp_MerchantID" value="Test601000M007" />
+    <input type="hidden" id="pp_ReturnURL" name="pp_ReturnURL" value="https://pgt.cbuaepay.ae/MerchantSimulator/HttpRequestDemoServer/Index" />
+    <input type="hidden" id="pp_SecureHash" name="pp_SecureHash" value="689A03CC357778B3BE11499479A6463493C148FF0E8D68BC1084A9F212B9840A" />
+    <input type="hidden" id="pp_SubMerchantID" name="pp_SubMerchantID" value="" />
+    <input type="hidden" id="pp_TxnCurrency" name="pp_TxnCurrency" value="AED" />
+    <input type="hidden" id="pp_TxnDateTime" name="pp_TxnDateTime" value="20240818120829" />
+    <input type="hidden" id="pp_TxnExpiryDateTime" name="pp_TxnExpiryDateTime" value="-1" />
+    <input type="hidden" id="pp_TxnRefNo" name="pp_TxnRefNo" value="2B0B408A8AB08B9" />
+    <input type="hidden" id="pp_TxnType" name="pp_TxnType" value="DD" />
+    <input type="hidden" id="pp_Version" name="pp_Version" value="1.1" />
+    <input type="hidden" id="ppmbf_1" name="ppmbf_1" value="1" />
+    <input type="hidden" id="ppmbf_2" name="ppmbf_2" value="2" />
+    <input type="hidden" id="ppmbf_3" name="ppmbf_3" value="3" />
+    <input type="hidden" id="ppmbf_4" name="ppmbf_4" value="4" />
+    <input type="hidden" id="ppmbf_5" name="ppmbf_5" value="5" />
+    <input type="hidden" id="ppmpf_1" name="ppmpf_1" value="1" />
+    <input type="hidden" id="ppmpf_2" name="ppmpf_2" value="2" />
+    <input type="hidden" id="ppmpf_3" name="ppmpf_3" value="3" />
+    <input type="hidden" id="ppmpf_4" name="ppmpf_4" value="4" />
+    <input type="hidden" id="ppmpf_5" name="ppmpf_5" value="5" />
+</form>  *@
+
+

@@ -1,0 +1,187 @@
+
+@page "/admin/e-form-services/edit/{id}"
+@page "/admin/e-form-services/create"
+@attribute [Authorize(DIPPermissions.EFormServices.Default)]
+@using DIP.EFormServices
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IEFormServicesAppService EFormServicesAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+
+
+<PageHeader Title="@( $"{L[Id.IsNullOrEmpty()? "Create":"Update"]} {L["EFormServices"]}")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+<Card>
+    @if (Id.IsNullOrEmpty())
+    {
+
+
+        <Form id="CreateEFormServiceForm">
+        
+             <CardBody>
+                    <Tabs SelectedTab="@SelectedCreateTab" SelectedTabChanged="@OnSelectedCreateTabChanged">
+                    <Items>
+                        <Tab Name="create-tab-english">@L["English"]</Tab>
+                        <Tab Name="create-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                <Validations @ref="@NewEFormServiceValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewEFormService"
+                            ValidateOnLoad="false">
+                   <TabPanel Name="create-tab-english">
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewEFormService.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+               
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@NewEFormService.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewEFormService.IsActive">@L["IsActive"]</Check>
+                    </Field>
+                     </TabPanel>
+                            <TabPanel Name="create-tab-arabic">
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                    <TextEdit @bind-Text="@NewEFormService.TitleAr">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>
+                            </TabPanel>
+                    
+                </Validations>
+                </Content>
+            </Tabs>
+        </CardBody>
+        <CardFooter>
+            <SubmitButton Form="CreateEFormServiceForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+            <SubmitButton Form="CreateEFormServiceForm" Clicked="async()=> await CreateEFormServiceAsync()" />
+        </CardFooter>
+         
+        </Form>
+    }
+    else
+    {
+                <Form id="EditEFormServiceForm">
+                 <CardBody>
+                <Tabs SelectedTab="@SelectedEditTab" SelectedTabChanged="@OnSelectedEditTabChanged">
+                    <Items>
+                        <Tab Name="edit-tab-english">@L["English"]</Tab>
+                        <Tab Name="edit-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+
+                        <Validations @ref="@EditingEFormServiceValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@EditingEFormService"
+                                 ValidateOnLoad="false">
+                            <TabPanel Name="edit-tab-english">
+
+
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                                    <TextEdit @bind-Text="@EditingEFormService.TitleEn">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>
+
+
+                       
+
+
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["Order"]</FieldLabel>
+                                    <NumericPicker TValue="int" @bind-Value="@EditingEFormService.Order" Decimals="0">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </NumericPicker>
+                                </Field>
+                            </Validation>
+
+
+                            <Field>
+                                <Check TValue="bool" @bind-Checked="@EditingEFormService.IsActive">@L["IsActive"]</Check>
+                            </Field>
+
+                            </TabPanel>
+                            <TabPanel Name="edit-tab-arabic">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingEFormService.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                            </TabPanel>
+                        </Validations>
+                        </Content>
+                        </Tabs>
+                        </CardBody>
+            <CardFooter>
+                <SubmitButton Form="EditEFormServiceForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="EditEFormServiceForm" Clicked="async()=> await UpdateEFormServiceAsync()" />
+            </CardFooter>
+                
+                </Form>
+
+    }
+
+@* ************************* EDIT MODAL ************************* *@
+</Card>

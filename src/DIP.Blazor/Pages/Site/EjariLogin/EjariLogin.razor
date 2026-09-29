@@ -1,0 +1,660 @@
+@using Blazorise.Components
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@using DIP.Settings
+@using Blazorise
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@inject IDIPSettingAppService DIPSettingAppService
+@page "/{lang}/Ejari";
+@page "/Ejari";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang == null)
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        @if (Lang.Contains("en"))
+        {
+            <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+            <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+        }
+        else
+        {
+            <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+            <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+        }
+    }
+
+</HeadContent>
+
+
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @PageInfoFrontEnd?.Title
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li class="active">@L["CustomerLogin"]</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!----page header----->
+<!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content ">
+
+    <!--feature-->
+    <section class="feature-section py-lg-3">
+        <!--===============spacing==============-->
+        <div class="pd_top_20"></div>
+        <!--===============spacing==============-->
+        <div class="container">
+            <div class="row justify-content-center">
+
+                <div class="col-lg-7 col-md-7 col-sm-12 col-xs-12">
+                    <div class="login_left_side p-2 p-lg-5 border rounded_radius-5 bg_light_1">
+
+                        <div class="col-sm-12 text-center mb-4">
+                            <h2>@L["NOCEJARIOnline"]</h2>
+                        </div>
+
+                        <div class="login_content_box">
+                            <div class="login_forms_box my-3">
+
+                                <ul class="nav nav-pills mb-5 justify-content-center w-100 m-auto" id="pills-tab" role="tablist">
+                                    <li class="nav-item mx-1" role="presentation">
+                                        <button class=" theme-btn one fs-6" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">@L["Login"]</button>
+                                    </li>
+                                    <li class="nav-item mx-1" role="presentation">
+                                        <button class=" theme-btn one fs-6" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">@L["Register"]</button>
+                                    </li>
+                                </ul>
+                                <div class="tab-content" id="pills-tabContent">
+                                    <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+
+                                        @if (@hasLogInError)
+                                        {
+                                            <div class="alert alert-danger" role="alert">
+                                                @RegisterMessageError
+                                            </div>
+
+
+                                        }
+                                        <EditForm EditContext="EditContextLogin" OnValidSubmit="OnClickLogin" OnInvalidSubmit="OnInvalid" class="login-register-form login">
+                                            <DataAnnotationsValidator></DataAnnotationsValidator>
+
+                                            <p class="form-row">
+                                                <label for="username">@L["ReferenceNumber"]&nbsp;<span class="required">*</span></label>
+                                                <input @bind-value="@LoginDto.ReferenceNumber" type="text" autocomplete="off" name="username" id="username"
+                                                       aria-required="true" aria-invalid="false">
+
+                                                <ValidationMessage For="() => LoginDto.ReferenceNumber" />
+
+                                            </p>
+                                            <p class="form-row">
+                                                <label for="password">@L["PassCode"]&nbsp;<span class="required">*</span></label>
+                                                <input @bind-value="@LoginDto.PassCode" type="password" autocomplete="off" name="pass_code" id="password"
+                                                       aria-required="true" aria-invalid="false">
+                                                <ValidationMessage For="() => LoginDto.PassCode" />
+
+                                            </p>
+                                            <p class="form-row mb-2 d-flex justify-content-between">
+                                                <label>
+                                                    <input name="rememberme" type="checkbox" id="rememberme" value="forever" checked> <span>@L["RememberMe"]</span>
+                                                </label>
+                                                <div>
+                                                    @* <a href="@($"/{CultureInfo.CurrentCulture.Name}/Ejari/Renewal")" class="text-right bold" style="font-weight: bold;">Renew Ejari Certificate</a>
+                                                    <p style="display: inline-block"> / </p> *@
+                                                    <a href="@($"/{CultureInfo.CurrentCulture.Name}/Ejari/Forgot")" class="text-right">@L["ForgotPasscode"]</a>
+                                                </div>
+                                            </p>
+                                            @*   @if (GoogleReCaptachDto != null)
+                                    { *@
+                                            <p class="mb-5">
+                                                @*          <Captcha @ref="captchaComponentLogIn" SiteKey="@GoogleReCaptachDto.SiteKey" OnSuccess="OnSuccessCaptchaLogIn" OnExpired="OnExpiredCaptchaLogIn"></Captcha> *@
+
+                                                <MathCaptcha OnCaptchaVerified="(result) => OnSuccessCaptchaLogIn(result)" />
+
+                                                <ValidationMessage For="() => LoginDto.Captcha" />
+                                            </p>
+                                            @* }  *@
+                                            <p class="form-row  mb-2 text-center">
+                                                <button type="submit" disabled="@DisableButtonLogin" name="login" value="Log in" class="fs-6">@L["Login"]</button>
+                                            </p>
+
+                                        </EditForm>
+
+                                        <span class="w-100 fw-bold displayinlineblock d-inline-block text-start text-danger text-center text-bold d-block mt-3 text-decoration-none">
+                                            Click here to Download the Termination Form
+                                            <br />
+                                            <a href="/dipassets/host/TerminationDocs/ealry_termination.pdf"
+                                               target="_blank"
+                                               class="displayinlineblock d-inline-block text-start text-danger text-bold d-block mt-3 text-decoration-underline fw-semibold">Early Termination</a>
+                                            |
+                                            <a href="/dipassets/host/TerminationDocs/expired_termination.pdf"
+                                               target="_blank"
+                                               class="displayinlineblock d-inline-block text-start text-danger text-bold d-block mt-3 text-decoration-underline fw-semibold">Expired Contract</a>
+                                        </span>
+                                        @* <a href="https://www.dipark.com/dipassets/host//eformServiceSubCategory/ae686c4c25124487093f3a21a3166604.pdf"
+                                           class="text-start text-danger text-bold d-block mt-3 text-decoration-underline fw-bold">Click here to request for Ejari Termination</a> *@
+                                    </div>
+                                    <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
+                                        <div class="contact_form_box_inner simple_form">
+                                            <div class="contact_form_shortcode">
+
+
+                                                <EditForm EditContext="EditContextRegistration" OnValidSubmit="OnClickRegistration" OnInvalidSubmit="OnInvalid" class="wpcf7-form init row">
+                                                    <DataAnnotationsValidator></DataAnnotationsValidator>
+
+                                                    <div class="col-md-12 mb-3 p-1 ">
+                                                        <p>
+                                                            <label>Registration Type</label>
+                                                        </p>
+                                                        <InputRadioGroup @bind-Value="RegistrationDto.NocRegistrationType">
+                                                            <div class="d-flex radio-bs">
+                                                                <label class="d-flex wpcf7-form-control-wrap your-name mt-0 py-3 px-3">
+                                                                    <InputRadio Value="true" />
+                                                                    <span style="margin-left:1px; margin-top:-5px;">New</span>
+                                                                </label>
+                                                                <label class="d-flex wpcf7-form-control-wrap your-name mt-0 py-3 px-3">
+                                                                    <InputRadio Value="false" />
+                                                                    <span style="margin-left:1px; margin-top:-5px;">Renewal</span>
+                                                                </label>
+                                                            </div>
+                                                        </InputRadioGroup>
+
+                                                        <ValidationMessage For="() => RegistrationDto.NocRegistrationType" />
+
+                                                    </div>
+
+                                                    @if (!RegistrationDto.NocRegistrationType)
+                                                    {
+                                                        <div class="col-md-12 mb-3 p-1 ">
+                                                            <InputRadioGroup ValueExpression="() => IsSameAsExistingRenewalActivity"
+                                                                             Value="IsSameAsExistingRenewalActivity"
+                                                                             TValue="bool" ValueChanged="OnIsSameAsExistingRenewalActivityValueChanged">
+                                                                <div class="d-flex radio-bs">
+                                                                    <p>
+                                                                        Is the main activity to be carried out in the premises similar to the one on the expired NOC?
+                                                                    </p>
+                                                                    <div class="d-flex">
+                                                                        <label class="d-flex wpcf7-form-control-wrap your-name mt-0 py-3 px-3">
+                                                                            <InputRadio Value="true" />
+                                                                            <span style="margin-left:1px; margin-top:-5px;">Yes</span>
+                                                                        </label>
+                                                                        <label class="d-flex wpcf7-form-control-wrap your-name mt-0 py-3 px-3">
+                                                                            <InputRadio Value="false" />
+                                                                            <span style="margin-left:1px; margin-top:-5px;">No</span>
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                            </InputRadioGroup>
+                                                            <ValidationMessage For="() => RegistrationDto.NocRegistrationType" />
+                                                        </div>
+                                                    }
+
+                                                    <div class="col-md-12 mb-3 p-1 ">
+                                                        <p>
+                                                            <label>@L["NOCType"]</label>
+                                                            <Span style="
+                                                                font-size: smaller;
+                                                                display: block;
+                                                                line-height: normal;
+                                                                font-size: 11px;
+                                                                opacity: 0.8;
+                                                                ">
+                                                                Please select the appropriate option (otherwise your application may not be accepted or cause unnecessary delay)
+                                                            </Span>
+                                                        </p>
+                                                        <InputRadioGroup TValue="string"
+                                                                         Value="@RegistrationDto.NocType"
+                                                                         ValueChanged="OnNocTypeChanged"
+                                                                         ValueExpression="() => RegistrationDto.NocType">
+                                                            <div class="d-flex radio-bs">
+                                                                @foreach (var value in valuesForm)
+                                                                {
+                                                                    <label class="d-flex wpcf7-form-control-wrap your-name mt-0 py-3 px-3">
+                                                                        <InputRadio Value="@value.Key" />
+                                                                        <span style="margin-left:1px; margin-top:-5px;">@value.Value</span>
+                                                                    </label>
+                                                                }
+                                                            </div>
+                                                        </InputRadioGroup>
+
+                                                        <ValidationMessage For="() => RegistrationDto.NocType" />
+
+                                                    </div>
+
+                                                    <div class="col-md-6 p-1 ">
+                                                        <p>
+                                                            <label>
+                                                                @L["PropertyCode"] ( Plot No)<br>
+                                                                <span class="wpcf7-form-control-wrap your-subject d-flex">
+                                                                    <select name="service-name" @bind="@RegistrationDto.PropertyCode"
+                                                                            class="wpcf7-form-control country-code-select wpcf7-text wpcf7-validates-as-required bg-white"
+                                                                            aria-required="true" aria-invalid="false"
+                                                                            placeholder="@L["EnterPropertyCode"]">
+                                                                        <option value="">
+                                                                            @L["Select"]
+                                                                        </option>
+                                                                        @foreach (var direction in Directions)
+                                                                        {
+                                                                            <option Value="@direction.Value">
+                                                                                @direction.Text
+                                                                            </option>
+                                                                        }
+
+                                                                    </select>
+                                                                    <input @bind-value="@RegistrationDto.PropertyValue" type="text" name="your-subject" size="40"
+                                                                           class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required w-75"
+                                                                           aria-required="true" aria-invalid="false"
+                                                                           placeholder="@L["PropertyCode"]">
+                                                                </span>
+                                                                <ValidationMessage For="() => RegistrationDto.PropertyCode" />
+                                                                <ValidationMessage For="() => RegistrationDto.PropertyValue" />
+
+
+                                                            </label>
+                                                            @if (@IsValidPropetyValue)
+                                                            {
+                                                                <div class="alert alert-danger" role="alert">@ValidatePropetyValue </div>
+
+                                                            }
+                                                        </p>
+                                                    </div>
+                                                    <div class="col-md-6 p-1 ">
+                                                        <p>
+                                                            <label>
+                                                                @L["SubTenantName"]<br>
+                                                                <span class="wpcf7-form-control-wrap your-subject">
+                                                                    <input type="text" @bind-value="@RegistrationDto.SubTenantName"
+                                                                           name="your-subject" size="40"
+                                                                           class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required"
+                                                                           aria-required="true" aria-invalid="false"
+                                                                           placeholder="@L["SubTenantName"]">
+                                                                </span>
+                                                            </label>
+                                                        </p>
+
+                                                        <ValidationMessage For="() => RegistrationDto.SubTenantName" />
+
+                                                    </div>
+                                                    <div class="col-md-12 p-1 ">
+                                                        <p>
+                                                            <label>
+                                                                @L["MobileNumber"]<br>
+                                                                <span class="wpcf7-form-control-wrap your-subject d-flex">
+
+                                                                    @* <select disabled name="service-name"
+                                                                            class="custom-select country-code-select wpcf7-form-control wpcf7-text wpcf7-validates-as-required bg-white"
+                                                                            aria-required="true" aria-invalid="false">
+                                                                        <option selected>
+                                                                            +971
+                                                                        </option>
+
+
+                                                                    </select> *@
+                                                                    <Autocomplete TItem="@CountryItem"
+                                                                                  TValue="string"
+                                                                                  Data="CountryItems"
+                                                                                  TextField="@((item) => $"{item.Icon} - ({item.DialCode})")"
+                                                                                  ValueField="@((item) => item.DialCode)"
+                                                                                  @bind-SelectedValue="RegistrationDto.CountryCode"
+                                                                                  Placeholder="Select Country  Code"
+                                                                                  MinLength="0"
+                                                                                  Filter="AutocompleteFilter.Contains"
+                                                                                  CustomFilter="@((item, searchValue) => item.Icon.IndexOf(searchValue, StringComparison.InvariantCultureIgnoreCase) >= 0 || item.DialCode.IndexOf(searchValue, StringComparison.InvariantCultureIgnoreCase) >= 0)">
+
+                                                                        @* <ItemTemplate Context="country">
+                                                                            <div style="display:flex;align-items:center;gap:8px">
+                                                                                <span style="font-size:1.2rem">@country.Icon</span>
+                                                                                <span>@country.Label</span>
+                                                                                <small style="color:gray">@country.DialCode</small>
+                                                                            </div>
+                                                                        </ItemTemplate> *@
+
+                                                                    </Autocomplete>
+
+                                                                    <input type="number" @bind-value="@RegistrationDto.MobileNumber"
+                                                                           name="your-subject" size="40"
+                                                                           class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required w-75"
+                                                                           aria-required="true" aria-invalid="false"
+                                                                           placeholder="@L["MobileNumber"]">
+                                                                </span>
+
+
+
+
+
+                                                            </label>
+                                                        </p>
+                                                        <ValidationMessage For="() => RegistrationDto.CountryCode" />
+                                                        <ValidationMessage For="() => RegistrationDto.MobileNumber" />
+                                                    </div>
+                                                    <div class="col-md-12 p-1 ">
+                                                        <p>
+                                                            <label>
+                                                                @L["Email"] <br>
+                                                                <span class="wpcf7-form-control-wrap your-subject">
+                                                                    <input type="text" @bind-value="@RegistrationDto.Email"
+                                                                           name="your-subject" size="40"
+                                                                           class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required"
+                                                                           aria-required="true" aria-invalid="false"
+                                                                           placeholder="@L["Email"]">
+                                                                </span>
+                                                            </label>
+                                                        </p>
+                                                        <ValidationMessage For="() => RegistrationDto.Email" />
+
+                                                    </div>
+                                                    <div class="col-md-12 p-1 ">
+                                                        <h3 class="bg_light_4 text-white py-2 px-3 fw-normal rounded_radius-5 mb-4">@L["AdditionalInformation"]</h3>
+                                                    </div>
+                                                    <div class="col-md-12 p-1 ">
+                                                        <p>
+                                                            <label>
+                                                                @L["IssuerName"]<br>
+                                                                <span class="wpcf7-form-control-wrap your-name">
+                                                                    <select name="service-name"
+                                                                            @bind="@RegistrationDto.TradeLicenseIssuerId"
+                                                                            class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required bg-white"
+                                                                            aria-required="true" aria-invalid="false"
+                                                                            placeholder="@L["IssuerName"]"
+                                                                            disabled="@(RegistrationDto.NocType == "1")">
+                                                                        @if (Issuers != null)
+                                                                        {
+                                                                            @foreach (var issuer in Issuers)
+                                                                            {
+                                                                                var optionValue = issuer.Value == "0" ? "" : issuer.Value;
+
+                                                                                <option value="@optionValue">
+                                                                                    @issuer.Text
+                                                                                </option>
+                                                                            }
+                                                                        }
+
+                                                                    </select>
+                                                                </span>
+                                                            </label>
+                                                            <ValidationMessage For="() => RegistrationDto.TradeLicenseIssuerId" />
+
+                                                        </p>
+                                                    </div>
+
+                                                    <div class="col-md-12 p-0">
+                                                        <p><label>@L["PleaseSelectAnyOfTheBelowOption"]</label></p>
+
+                                                        <label class="d-flex flex-column">
+                                                            <InputRadioGroup @bind-Value="SelectedRadio">
+
+                                                                <div class="col-md-12 p-1 d-flex justify-content-between">
+                                                                    <label class="custom-input-001 mt-2 wpcf7-form-control-wrap your-name radio-bs mt-0">
+                                                                        <InputRadio Value="0" class="radio-s"
+                                                                                    disabled="@(RegistrationDto.NocType == "1")" />
+                                                                        @L["InitialApproval"]
+                                                                    </label>
+                                                                    <label class="custom-input-001 mt-2 wpcf7-form-control-wrap your-name mx-1 radio-bs mt-0 ">
+                                                                        <InputRadio Value="1" class="radio-s" disabled="@(RegistrationDto.NocType == "1")" />
+                                                                        @L["LicenseNo"]
+                                                                    </label>
+                                                                    <label class="custom-input-001 mt-2 wpcf7-form-control-wrap your-name mx-1 radio-bs mt-0">
+                                                                        <InputRadio Value="2" class="radio-s"
+                                                                                    disabled="@(RegistrationDto.NocType == "2")" />
+                                                                        @L["EmiratesId"]
+                                                                    </label>
+                                                                </div>
+                                                            </InputRadioGroup>
+                                                            @switch (SelectedRadio)
+                                                            {
+                                                                case 0:
+                                                                    <div class="col-md-12 p-1">
+                                                                        <span class="wpcf7-form-control-wrap your-subject d-block mt-2">
+                                                                            <input type="text" @bind="InitialApprovalFormatted" @bind:event="oninput"
+                                                                                   name="your-subject" size="40"
+                                                                                   class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required"
+                                                                                   aria-required="true" aria-invalid="false"
+                                                                                   placeholder="@L["InitialApproval"]"
+                                                                                   disabled="@(SelectedRadio != 0)">
+                                                                        </span>
+                                                                    </div>
+                                                                    break;
+                                                                case 1:
+                                                                    <div class="col-md-12 p-1">
+                                                                        <span class="wpcf7-form-control-wrap your-subject d-block mt-2">
+                                                                            <input type="text" @bind="LicenseNoFormatted" @bind:event="oninput"
+                                                                                   name="your-subject" size="40"
+                                                                                   class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required"
+                                                                                   aria-required="true" aria-invalid="false"
+                                                                                   placeholder="@L["LicenseNo"]"
+                                                                                   disabled="@(SelectedRadio != 1)">
+                                                                        </span>
+                                                                    </div>
+                                                                    break;
+                                                                case 2:
+                                                                    <div class="col-md-12 p-1">
+                                                                        <span class="wpcf7-form-control-wrap your-subject d-block mt-2">
+                                                                            <input type="text" @bind="EmiratesIdFormatted" @bind:event="oninput"
+                                                                                   name="your-subject" size="40"
+                                                                                   class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required"
+                                                                                   aria-required="true" aria-invalid="false"
+                                                                                   placeholder="@L["EmiratesId"]"
+                                                                                   disabled="@(SelectedRadio != 2)">
+                                                                        </span>
+                                                                    </div>
+                                                                    break;
+                                                                default:
+                                                                    <div></div>
+                                                                    break;
+                                                            }
+
+
+
+                                                        </label>
+
+                                                        <ValidationMessage For="() => RegistrationDto.TradeLicenseNo" />
+
+                                                        @if (@hasError)
+                                                        {
+                                                            <div class="alert alert-danger" role="alert">@ValidateTradeLicenseNo </div>
+
+                                                        }
+                                                    </div>
+
+                                                    <div class="col-md-12 p-0">
+                                                        <p>
+                                                            <label>
+                                                                @L["ExpiryDate"] <br>
+                                                                <span class="wpcf7-form-control-wrap your-subject">
+                                                                    @*<input type="date" @bind-value="@RegistrationDto.ExpiryDate"
+                                                                   name="your-subject" size="40"
+                                                                   class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required"
+                                                                   aria-required="true" aria-invalid="false" placeholder=""
+                                                                   min="@(DateTime.Now.AddDays(1))"
+                                                                   max="@(DateTime.Now.AddYears(100))">*@
+                                                                    @* Commented out original DateEdit component *@
+                                                                    @*<DateEdit TValue="DateTimeOffset?"
+                                                                      Date="@ExpiryDateOffset"
+                                                                      Max="@MaxDateOffset"
+                                                                      InputMode="DateInputMode.Date"
+                                                                      Placeholder="dd/MM/yyyy"
+                                                                      Max="@MaxDateOffset"
+                                                                      InputMode="DateInputMode.Date"
+                                                                      Placeholder="dd/MM/yyyy"
+                                                                      Class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required"
+                                                                      ElementId="contractEndDateField"
+                                                                      aria-required="true"
+                                                                      aria-invalid="false" DateChanged="OnDateChanged" />*@
+
+                                                                    @* DateEdit with calendar button using Addons *@
+                                                                    <Addons>
+                                                                        <Addon AddonType="AddonType.Body">
+                                                                            <input type="text" value="@RegistrationDto.ExpiryDate.ToString("dd/MM/yyyy")"
+                                                                                   class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required"
+                                                                                   placeholder="" readonly="readonly">
+                                                                            <DatePicker hidden DisplayFormat="dd/MM/yyyy" @ref="@datePicker" TValue="DateTime" @bind-Date="@RegistrationDto.ExpiryDate" />
+                                                                        </Addon>
+                                                                        <Addon AddonType="AddonType.End">
+                                                                            <Button Color="Color.Light" Clicked="@ToggleDatePicker">
+                                                                                <Icon Name="IconName.CalendarDay" />
+                                                                            </Button>
+                                                                        </Addon>
+                                                                    </Addons>
+                                                                </span>
+                                                            </label>
+                                                            @if (IsDateHaveBetween)
+                                                            {
+                                                                <div style="color: red !important;font-size: 16px;font-family: var(--dip-family-two);font-size: 16px;" class="invalid-feedback d-block validation-message">
+                                                                    @* Date must be between @MinDate.ToString("dd-MM-yyyy") and @MaxDate.ToString("dd-MM-yyyy"). *@
+                                                                    Expired documents are not accepted please provide the valid document.
+                                                                </div>
+                                                            }
+                                                        </p>
+
+                                                        <ValidationMessage For="() => RegistrationDto.ExpiryDate" />
+
+                                                    </div>
+                                                    <div class="pd_top_20"></div>
+                                                    <p class="pb-3">
+                                                        @*       @if (GoogleReCaptachDto != null)
+                                            { *@
+                                                        @*       <Captcha @ref="captchaComponentRegistration" SiteKey="@GoogleReCaptachDto.SiteKey" OnSuccess="OnSuccessCaptchaRegistration" OnExpired="OnExpiredCaptchaRegistration"></Captcha> *@
+                                                        <MathCaptcha OnCaptchaVerified="(result) => OnSuccessCaptchaRegistration(result)" />
+
+                                                        <ValidationMessage For="() => RegistrationDto.Captcha" />
+                                                    </p>
+                                                    @* } *@
+
+                                                    <div class="col-md-2">
+                                                        <p>
+                                                            <input type="submit" disabled="@DisableButtonRegistration" value="@(DisableButtonRegistration ? "Loading" : L["Submit"])"
+                                                                   class="wpcf7-form-control has-spinner wpcf7-submit fs-6 px-1 theme-btn one">
+                                                        </p>
+                                                    </div>
+                                                </EditForm>
+                                                @* Confirmation pop up *@
+
+                                                <Modal @ref="confirmModalRef"
+                                                       CloseOnEscapeKey="false"
+                                                       CloseOnOutsideClick="false">
+
+                                                    <ModalContent Centered>
+                                                        <ModalHeader>
+                                                            <ModalTitle Class="text-center">
+                                                                Please confirm your details
+                                                            </ModalTitle>
+                                                            <CloseButton />
+                                                        </ModalHeader>
+
+                                                        <ModalBody>
+                                                            @* <div class="alert alert-info text-center mb-4">
+                                                        Please confirm your details before submitting
+                                                    </div> *@
+                                                            <div class="row">
+                                                                <div class="col-8">
+
+                                                                    <div class="mb-3">
+                                                                        <b>Email:</b>
+                                                                        <div>@RegistrationDto.Email</div>
+                                                                    </div>
+                                                                    <div class="mb-3">
+                                                                        <b>Mobile Number:</b>
+                                                                        <div>@($"{RegistrationDto.CountryCode}-{RegistrationDto.MobileNumber}")</div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-4">
+                                                                    <img class="images_whatsapp" src="/assets/images/WhatsAppImage.jpeg" alt="whatsApp" />
+                                                                </div>
+                                                                <p class="text-start"><em>Need help? Scan the QR code below and send us a support message — we're happy to assist!</em></p>
+                                                                <h3 class="fw-500 fs-6 mr-2">Note:<em> Online Payments ONLY</em></h3>
+                                                                <p class="text-start "><em>Cheque Payment and Bank Transfers are not accepted for online applications</em></p>
+                                                                <div class="form-check mb-3 d-flex align-items-center">
+                                                                    <input class="form-check-input"
+                                                                           type="checkbox"
+                                                                           @bind="IsConfirmed" />
+                                                                    <label class="form-check-label">
+                                                                        I agree and confirm these details are correct
+                                                                    </label>
+                                                                </div>
+
+                                                                <div class="d-flex justify-content-center">
+                                                                    @* <button class="btn btn-secondary me-2"
+                                                                @onclick="CloseConfirmModal">
+                                                            Cancel
+                                                        </button> *@
+
+                                                                    <button class="wpcf7-form-control has-spinner wpcf7-submit fs-6 px-1 theme-btn one"
+                                                                            disabled="@(!IsConfirmed)"
+                                                                            @onclick="FinalSubmit">
+                                                                        SUBMIT
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+
+                                                        </ModalBody>
+                                                    </ModalContent>
+                                                </Modal>
+
+
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5 col-md-5 col-sm-12 col-xs-12">
+                    <div class="ratio ratio-16x9 w-full">
+                        <video controls>
+                            <source src="/Videos/For-Tenanants-final.mp4" type="video/mp4" />
+                        </video>
+                    </div>
+                    <br /><p><em>To help you get started, you may refer to the video for a quick step-by-step guide on how to use the portal.</em></p>
+                    <br />
+                    <div class="whatsapp_msg_container">
+                        <img class="images_whatsapp_one" src="/assets/images/WhatsAppImage.jpeg" alt="whatsApp" />
+                        <p class="text-center"><em>Need help? Scan the QR code below and send us a support message — we're happy to assist!</em></p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!--===============spacing==============-->
+        <div class="pd_bottom_50"></div>
+        <!--===============spacing==============-->
+    </section>
+    <!---feature end-->
+
+
+</div>
+<!--===============PAGE CONTENT END==============-->

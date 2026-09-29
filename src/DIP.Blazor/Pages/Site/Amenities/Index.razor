@@ -1,0 +1,134 @@
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@page "/{lang}/amenities";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @PageInfoFrontEnd?.Title
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li class="active">@PageInfoFrontEnd?.Title</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content ">
+
+    <section class="image-box-section py-lg-5">
+        <!--===============spacing==============-->
+        <div class="pd_top_80"></div>
+        <!--===============spacing==============-->
+        <div class="auto-container">
+            <div class="row align-items-center mob-order">
+                <div class="col-xl-6 col-lg-12">
+                    <div class="title_all_box style_one dark_color">
+                        <div class="title_sections ">
+                            <div class="title text-uppercase text-primary-color mb-4">@PageInfoFrontEnd?.PageInfoArticleTilte<br>@PageInfoFrontEnd?.PageInfoArticleSubtitle</div>
+                            <p>
+                                @PageInfoFrontEnd?.Summary
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-1"></div>
+                <div class="col-xl-5 col-lg-12 mb-5 mb-lg-5 mb-xl-0">
+                    <div class="image_boxes style_three">
+                        <img src="@PageInfoFrontEnd?.Image" class="img-fluid" alt="@PageInfoFrontEnd?.Title">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_bottom_80"></div>
+        <!--===============spacing==============-->
+    </section>
+
+    @if (!AmenitiesList.IsNullOrEmpty())
+    {
+        <section class="project-section bg_light_1">
+            <div class="pd_bottom_80"></div>
+            <div class="container-fluid w-90">
+                <div class="row">
+                    <div class="col-lg-12 d-flex justify-content-center">
+                        <div class="title_all_box style_seven dark_color  d-flex align-items-center justify-content-center">
+                            <div class="title_sections">
+                                <div class="title text-uppercase text-primary-color text-center">@L["Site:MajorAmenitiesAtDIP"]</div>
+                            </div>
+                            <!--===============spacing==============-->
+                            <div class="mr_bottom_50"></div>
+                            <!--===============spacing==============-->
+                        </div>
+                    </div>
+                    <div class="pd_bottom_80"></div>
+                    <div class="col-lg-12">
+                        <div class="row">
+                            @foreach (var item in AmenitiesList)
+                            {
+                                <div class="col-md-3">
+                                    <div class="project_post style_nine major-amenties-inner-box">
+                                        <a href="@($"{CultureInfo.CurrentCulture.Name}/amenities/{item.Slug}")">
+                                            <div class="image">
+                                                <img loading="lazy" width="1024" height="1024"
+                                             src="@item.Image" class="img-fluid"
+                                             alt="@item.Title">
+                                                <div class="image_zoom_box ">
+                                                    <a href="@($"{CultureInfo.CurrentCulture.Name}/amenities/{item.Slug}")"
+                                               data-fancybox="gallery"><span class="fa fa-plus zoom_icon"></span></a>
+                                                </div>
+                                            </div>
+                                        </a>
+                                        <div class="project_caro_content">
+                                            <h2 class="title_pro"><a href="@($"{CultureInfo.CurrentCulture.Name}/amenities/{item.Slug}")">@item.Title</a></h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pd_bottom_80"></div>
+        </section>
+    }
+
+</div>
+<!--===============PAGE CONTENT END==============-->

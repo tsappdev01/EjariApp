@@ -1,0 +1,80 @@
+@page "/admin/contact-forms/details/{id}"
+
+@attribute [Authorize(DIPPermissions.ContactForms.Default)]
+@using DIP.Blazor.Components
+@using DIP.ContactForms
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IContactFormsAppService ContactFormsAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+
+
+<PageHeader Title="@( $"{L["ContactForms"]} {L["Details"]} ")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+
+@* ************************* CREATE MODAL ************************* *@
+
+<Card>
+    <Form id="DetailsContactFormForm">
+        <CardBody>
+            @if (ContactFormDto != null)
+            {
+                <Field>
+                    <FieldLabel>@L["FullName"]</FieldLabel>
+                    <TextEdit @bind-Text="@ContactFormDto.FullName" ReadOnly>
+                    </TextEdit>
+                </Field>
+
+
+                <Field>
+                    <FieldLabel>@L["Email"]</FieldLabel>
+                    <TextEdit @bind-Text="@ContactFormDto.Email" Role="TextRole.Email" ReadOnly>
+                    </TextEdit>
+                </Field>
+
+                <Field>
+                    <FieldLabel>@L["Subject"]</FieldLabel>
+                    <TextEdit @bind-Text="@ContactFormDto.Subject" ReadOnly>
+                    </TextEdit>
+                </Field>
+
+                <Field>
+                    <FieldLabel>@L["Message"]</FieldLabel>
+                    <MemoEdit @bind-Text="@ContactFormDto.Message" Rows="3" ReadOnly>
+                    </MemoEdit>
+                </Field>
+                                    <Field>
+                    <FieldLabel>@L["CreationTime"]</FieldLabel>
+                    <DateEdit TValue="DateTime" InputMode="DateInputMode.DateTime" @bind-Date="@ContactFormDto.CreationTime" ReadOnly>
+                    </DateEdit>
+                    </Field>
+            }
+        </CardBody>
+        <CardFooter>
+            <SubmitButton Form="DetailsContactFormForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+        </CardFooter>
+    </Form>
+</Card>
+
+@* ************************* Details MODAL ************************* *@

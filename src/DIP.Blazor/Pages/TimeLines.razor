@@ -1,0 +1,407 @@
+
+
+@page "/time-lines"
+
+@attribute [Authorize(DIPPermissions.TimeLines.Default)]
+@using DIP.TimeLines
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject ITimeLinesAppService TimeLinesAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["TimeLines"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+        <Form id="TimeLineSearchForm" class="mb-3">
+            <Addons>
+                <Addon AddonType="AddonType.Body">
+                    <TextEdit @bind-Text="@Filter.FilterText"
+                              Autofocus="true"
+                              Placeholder="@L["Search"]">
+                    </TextEdit>
+                </Addon>
+                <Addon AddonType="AddonType.End">
+                    <SubmitButton Form="TimeLineSearchForm" Clicked="GetTimeLinesAsync">
+                        <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                    </SubmitButton>
+                </Addon>
+            </Addons>
+        </Form>
+    </CardBody>
+</Card>
+
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>
+        <DataGrid TItem="TimeLineWithNavigationPropertiesDto"
+                  Data="TimeLineList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="TimeLineWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="TimeLineWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="TimeLineWithNavigationPropertiesDto"
+                                          Visible="@CanEditTimeLine"
+                                          Clicked="async () => await OpenEditTimeLineModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="TimeLineWithNavigationPropertiesDto"
+                                          Visible="@CanDeleteTimeLine"
+                                          Clicked="() => DeleteTimeLineAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+               
+              <DataGridColumn TItem="TimeLineWithNavigationPropertiesDto"
+                      Field="TimeLine.TitleEn"
+                      Caption="@L["TitleEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="TimeLineWithNavigationPropertiesDto"
+                      Field="TimeLine.TitleAr"
+                      Caption="@L["TitleAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="TimeLineWithNavigationPropertiesDto"
+                      Field="TimeLine.DescriptionEn"
+                      Caption="@L["DescriptionEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="TimeLineWithNavigationPropertiesDto"
+                      Field="TimeLine.DescriptionAr"
+                      Caption="@L["DescriptionAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="TimeLineWithNavigationPropertiesDto"
+                      Field="TimeLine.Image"
+                      Caption="@L["Image"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="TimeLineWithNavigationPropertiesDto"
+                      Field="TimeLine.TimeLineDate"
+                      Caption="@L["TimeLineDate"]">
+                  <DisplayTemplate>
+                        @(context.TimeLine.TimeLineDate.HasValue ? context.TimeLine.TimeLineDate.Value.ToShortDateString() : string.Empty)
+                  </DisplayTemplate>
+              </DataGridColumn>
+
+              <DataGridColumn TItem="TimeLineWithNavigationPropertiesDto"
+                      Field="TimeLine.Order"
+                      Caption="@L["Order"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="TimeLineWithNavigationPropertiesDto"
+                      Field="TimeLine.IsActive"
+                      Caption="@L["IsActive"]">
+                    <DisplayTemplate>
+                        @if (context.TimeLine.IsActive)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+
+
+              <DataGridColumn TItem="TimeLineWithNavigationPropertiesDto"
+                      Field="TimeLineCategory.TitleEn"
+                      Caption="@L["TimeLineCategory"]">
+              </DataGridColumn>
+
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateTimeLineModal" Closing="@CreateTimeLineModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="CreateTimeLineForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewTimeLine"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateTimeLineModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewTimeLineValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewTimeLine"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewTimeLine.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewTimeLine.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewTimeLine.DescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewTimeLine.DescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Image"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewTimeLine.Image" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TimeLineDate"]</FieldLabel>
+                            <DateEdit TValue="DateTime?" InputMode="DateInputMode.DateTime" @bind-Date="@NewTimeLine.TimeLineDate">
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@NewTimeLine.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewTimeLine.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["TimeLineCategory"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@NewTimeLine.TimeLineCategoryId">
+                            @foreach (var timeLineCategory in TimeLineCategoriesCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@timeLineCategory.Id">
+                                    @timeLineCategory.DisplayName
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateTimeLineModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateTimeLineForm" Clicked="CreateTimeLineAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditTimeLineModal" Closing="@EditTimeLineModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="EditTimeLineForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditTimeLineModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingTimeLineValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingTimeLine"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingTimeLine.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingTimeLine.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingTimeLine.DescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingTimeLine.DescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Image"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingTimeLine.Image" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TimeLineDate"]</FieldLabel>
+                            <DateEdit TValue="DateTime?" InputMode="DateInputMode.DateTime" @bind-Date="@EditingTimeLine.TimeLineDate">
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@EditingTimeLine.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingTimeLine.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["TimeLineCategory"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@EditingTimeLine.TimeLineCategoryId">
+                            @foreach (var timeLineCategory in TimeLineCategoriesCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@timeLineCategory.Id">
+                                    @timeLineCategory.DisplayName
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditTimeLineModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateTimeLineForm" Clicked="UpdateTimeLineAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>

@@ -1,0 +1,94 @@
+﻿@inherits LayoutComponentBase
+@using DIP.Localization;
+@using Microsoft.Extensions.Localization;
+@using System.Globalization;
+@using Volo.Abp.AspNetCore.Components.Web.LeptonXTheme.Components.ApplicationLayout.Common
+@using Volo.Abp.AspNetCore.Components.Web.LeptonXTheme.Components.ApplicationLayout.TopMenu
+@using Volo.Abp.Ui.Branding
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Components
+@using Volo.Abp.Ui.LayoutHooks
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Components.LayoutHooks
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@inject IStringLocalizer<DIPResource> Localizer
+
+<div id="page" class="page_wapper hfeed site page_wapper_home">
+    <!---============== wrapper_full =================-->
+    <div id="wrapper_full" class="content_all_warpper">
+       
+        <HeaderLayout Link="@SetCulture()" />
+        <!----header end----->
+        <!--===============PAGE CONTENT==============-->
+        <!--===============PAGE CONTENT==============-->
+        @Body
+        <!--===============PAGE CONTENT END==============-->
+        <!--===============PAGE CONTENT END==============-->
+    </div>
+    <!---============== wrapper_full =================-->
+    <!---==============footer start =================-->
+    <!---==============footer end =================-->
+    <FooterLayout></FooterLayout>
+    <div class="sticky-services">
+        @if(EServiceList != null && EServiceList.Count >0)
+        {
+            @foreach (var eService in EServiceList)
+            {
+                <div class="ss-box" @onclick="async ()=> await Navigat(eService.Slug)" type="button" data-bs-toggle="tooltip" data-bs-placement="right" title="@eService.Title">
+                    <img src="@eService.Image" @onclick="async ()=> await Navigat(eService.Slug)" class="img-fluid svg_image" alt="@eService.Title" href="@($"/{CultureInfo.CurrentCulture.Name}/{eService.Slug}")">
+                </div>
+            }
+        }
+      
+
+    </div>
+    <div class="din-logo">
+        <a href="https://www.dubaiinvestments.com/" target="_blank">
+            <img src="/assets/images/di_subsidiary_badge.svg">
+        </a>
+    </div>
+    <!---==============mobile menu =================-->
+
+    <div class="chtbtn_hod webchat">
+        <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512">
+            <path d="M64 0C28.7 0 0 28.7 0 64V352c0 35.3 28.7 64 64 64h96v80c0 6.1 3.4 11.6 8.8 14.3s11.9 2.1 16.8-1.5L309.3 416H448c35.3 0 64-28.7 64-64V64c0-35.3-28.7-64-64-64H64z" />
+        </svg>
+        <p>@Localizer["HiHowCanIHelp"]</p>
+    </div>
+    <a class="whatsapp-cta" href="https://wa.me/971566960573" target="_blank">
+        <i class="fa fa-whatsapp"></i>
+        <p>@Localizer["BuySellLease"]</p>
+    </a>
+
+    <div class="crt_mobile_menu">
+        <div class="menu-backdrop"></div>
+        <nav class="menu-box">
+            <div class="close-btn"><i class="icon-close"></i></div>
+      @*       <form role="search" method="get" action="#">
+                <input type="search" class="search" placeholder="Search..." value="" name="s" title="Search" />
+                <button type="submit" class="sch_btn"> <i class="icon-search"></i></button>
+            </form> *@
+            <div class="menu-outer">
+                <!--Here Menu Will Come Automatically Via Javascript / Same Menu as in Header-->
+            </div>
+        </nav>
+    </div>
+    <!---==============mobile menu end =================-->
+@*    <div class="prgoress_indicator">
+        <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+            <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" />
+        </svg>
+    </div>*@
+</div>
+<!-- Back to top with progress indicator-->
+
+<!---========================== javascript ==========================-->
+<div class="chat-form">
+    <span class="close_chat">X</span>
+    <iframe id="iframe" src="https://vox.dipark.com/Customer/Start.aspx"  width="400" height="600" runat="server"></iframe>
+
+</div>
+<div class="prgoress_indicator">
+    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" />
+    </svg>
+</div>

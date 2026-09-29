@@ -1,0 +1,339 @@
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@page "/{lang}/Ejari/UploadPayslip/{ReferenceNumber}";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+
+
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @L["EjariUploadPaySlip"]
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:Home:Ejari"]</li>
+                            <li class="active">@L["EjariUploadPaySlip"]</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+         <!----page header----->
+         <!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content ">
+
+    <!---newsteller--->
+    <section class="top-steps">
+        <!--===============spacing==============-->
+        <div class="pd_top_80"></div>
+        <!--===============spacing==============-->
+        <div class="auto-container">
+            <div class="row align-items-center m-0 py-3 payment-steps">
+                <div class="col">
+                    <div class="stepname ">
+                        <div class="stepnum">1</div>
+                        <div class="steptitle">
+                            <img src="assets/images/clipboard-list.svg">
+                            <h4 class="fs-5">@L["Registration"]</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col p-0">
+                    <div class="stepname middle-step">
+                        <div class="stepnum">2</div>
+                        <div class="steptitle">
+                            <img src="assets/images/clipboard-list.svg">
+                            <h4 class="fs-5">@L["Details"]</h4>
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="col p-0">
+                    <div class="stepname active middle-step">
+                        <div class="stepnum">4</div>
+                        <div class="steptitle">
+                            <img src="assets/images/credit-card.svg">
+                            <h4 class="fs-5">@L["UploadPaymentSlip"]</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="stepname">
+                        <div class="stepnum">5</div>
+                        <div class="steptitle">
+                            <img src="assets/images/info-square.svg">
+                            <h4 class="fs-5">@L["STATUS"]</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_bottom_0"></div>
+        <!--===============spacing==============-->
+    </section>
+    <!---newsteller end--->
+
+
+    <section class="blog_post_section two_column style_three">
+        <!--===============spacing==============-->
+        <div class="col-md-12">
+            <!--===============spacing==============-->
+            <div class="pd_bottom_30"></div>
+            <!--===============spacing==============-->
+        </div>
+        <!--===============spacing==============-->
+
+        <div class="auto-container">
+
+            <div class="row align-items-center">
+                <div class="col-lg-12">
+                    <div class="title_all_box style_seven">
+                        <div class="title_sections">
+                            <div class="title fw-normal text-primary-color">@L["UploadPaymentDepositSlipAndSubmit"]</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <!--===============spacing==============-->
+                    <div class="pd_bottom_30"></div>
+                    <!--===============spacing==============-->
+                </div>
+
+                <div class="col-lg-12 py-3 payment-steps">
+
+                    <section class="creote-contact-box">
+                        <div class="row">
+
+                            <div class="col-md-12 mb-2">
+                                <div class="alert alert-success mb-0" role="alert">
+                                    @L["OnlyPDFFilesAreAllowed"]
+                                </div>
+                            </div>
+
+
+                            <div class="col-md-12 mb-2">
+                                <div class="alert alert-primary m-0 fs-6" role="alert">
+                                    @L["FileSizeShouldNotBeMoreThan2MB"]
+                                </div>
+                            </div>
+
+                         
+
+                            <div class="col-md-12 mb-2">
+                                <div class="alert alert-warning mb-0" role="alert">
+                                    @L["PleaseMakeSureAllDocumentsAreUploadedSuccessfullyRefreshThePageToSeeUpdatedStatus"]  @(DocumentsGrid?.Count() - DocumentsGrid?.Count(x => x.IsUploaded == true)) &nbsp; @L["DocumentsArePending"]
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row m-0">
+
+                            <div id="table-hd" class="col-md-12 mt-5">
+                                <div class="alert alert-success row 2 rounded-0 mb-2" role="alert">
+                                    <div class="col-md-3">
+                                        <h3 class="fw-bold fs-5  color_dark">@L["S.NO"]</h3>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <h3 class="fw-bold fs-5 color_dark">@L["DocumentToUpload"]</h3>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <h3 class="fw-bold fs-5 color_dark">@L["IsUploaded"]</h3>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <h3 class="fw-bold fs-5 color_dark">@L["Action"]</h3>
+                                    </div>
+
+                                </div>
+                            </div>
+                               @{
+                              var index = 0;
+                            }
+                            @if(DocumentsGrid !=null)
+                            @foreach (var doc in DocumentsGrid)
+                            {
+
+                            <div id="table-dt" class="col-md-12">
+                                        <div class="@(doc.IsUploaded == true? "alert alert-primary row rounded-0 color_dark mb-0" : "alert alert-danger row rounded-0 color_dark mb-0")" role="alert">
+                                    <div class="col-md-3">
+                                            <p class="fw-500 fs-5 mb-0">@(++index)</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                                <p class="fw-500 fs-5 mb-0">@doc.DocName</p>
+                                            </div>
+                                    <div class="col-md-3">
+                                                <p class="fw-500 fs-5 mb-0">@(doc.IsUploaded == true ? @L["Yes"] : @L["No"])</p>
+                                            </div>
+                                    <div class="col-md-3">
+                                        @if (doc.IsUploaded != null && doc.IsUploaded.Value)
+                                        {
+                                            <p class="fw-500 fs-5 mb-0">
+                                                        <a href="@($"{MimeTypes.MimeTypeMap.GetAttachmentPath()}/UploadPaySlipFiles/{ReferenceNumber}/{doc.DocName}_{doc.Id}/{doc.AttachmentName}")" target="_blank"> @L["View"]</a>
+                                            </p>
+                                        }
+                                        else
+                                        {
+                                            <p class="fw-500 fs-5 mb-0">
+                                                @L["InProgress"]
+                                            </p>
+                                        }
+                                            </div>
+
+                                </div>
+                            </div>
+                         
+                            <div id="upload-doc" class="col-md-12">
+                                <section class="contact_form_box_all type_one">
+                                    <div class="row contact_form_box_inner justify-content-center py-3 rounded-0 mb-2">
+
+                                        <div class="col-12 d-flex align-items-center">
+                                            <div class="mb-3 mt-3">
+                                                        <button class="d-block theme-btn two" onclick="document.getElementById('@index').click()">Upload @doc.DocName</button>
+                                                        <InputFile OnChange="@((InputFileChangeEventArgs args) => OnFileUpload(doc, args , index))" style="display:none" id="@index" accept=".pdf, .png, .jpg, .jpeg, .gif, .svg, image/png, image/jpeg, image/gif, image/svg+xml, application/pdf" MaxFileSize="100" />
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                            @if (indexError == doc.Id && !@ErrorMessageUpload.IsNullOrEmpty())
+                                            {
+                                                <div class="pd_top_20"></div>
+
+
+                                                <div class="alert alert-danger" role="alert">@ErrorMessageUpload </div>
+
+
+
+                                            }
+                                </section>
+                            </div>
+
+
+
+                                }
+
+                            <div class="col-lg-12 py-3 px-0">
+                                <section class="creote-contact-box">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            @if (@haveMissingDocument)
+                                            {
+                                                <div class="alert alert-danger" role="alert">@MissingDocumnetErrorMessage </div>
+
+                                            }
+                                        </div>
+
+                                        <div class="col-md-12 mt-2 ">
+                                            <div class="alert alert-warning mt-2">
+                                                <p>
+                                                    <ul class="mr_top_15">
+                                                        <li>
+                                                            @L["PleaseMakeSureTheDocumentIsUploadedSuccessfullyRefreshThePageToSeeUpdatedStatus"]
+                                                        </li>
+                                                        <li>
+                                                            @L["PleaseNoteApplicationWillBeProcessedOncePaymentIsSuccessful"]
+                                                        </li>     
+                                                        <li>
+                                                            @L["PleaseNoteThePaymentThroughPayslipMayTakeMoreTimeToVerifyIfPossiblePleaseUseOnlinePaymentGatewayForFasterVerification"]
+                                                        </li>
+                                                        <li>
+                                                            @L["ForAnySupportOrQueriesPleaseContact"] <strong class="fw-500">
+                                                                @L["800DIPARK"]
+                                                            </strong> @L["OR"]<br>@L["SendEmailTo"] <strong class="fw-500">
+                                                                businesscentre@dipark.com /
+                                                                accounts@dipark.com
+                                                            </strong>
+                                                        </li>
+                                                    </ul>
+
+                                                <p>
+                                                    <h3 class="fs-5 fw-500">
+                                                            @(DocumentsGrid?.Count() - DocumentsGrid?.Count(x => x.IsUploaded == true)) &nbsp;  @L["PendingDocument"]
+                                                    </h3>
+                                                </p>
+
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-3">
+                                            <p class="mb-0 mt-2 ">
+                                                <input type="submit" value="@L["Cancel"]"
+                                                       @onclick="async ()=> await OnCancelClick()" class="wpcf7-form-control has-spinner wpcf7-submit fs-6 theme-btn one mb-0">
+                                            </p>
+                                        </div>
+
+
+                                        <div class="col-md-3">
+                                            <p class="mb-0 mt-2 ">
+                                                <input type="submit" value="@L["Submit"]"
+                                                       @onclick="async ()=> await OnSubmit()" class="wpcf7-form-control has-spinner wpcf7-submit fs-6 theme-btn one mb-0">
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                </section>
+                            </div>
+                        </div>
+
+                    </section>
+                </div>
+
+                <section class="blog_post_section two_column style_three">
+
+                    <div class="col-md-12">
+                        <!--===============spacing==============-->
+                        <div class="pd_top_80"></div>
+                        <!--===============spacing==============-->
+                    </div>
+
+                </section>
+
+
+
+
+            </div>
+
+
+        </div>
+    </section>
+
+
+
+</div>        <!--===============PAGE CONTENT END==============-->
+      

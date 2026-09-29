@@ -1,0 +1,148 @@
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@page "/{lang}/media-center/upcoming-events";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+<!----page header----->
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1 class="banner_title_inner">
+                        <div class="title_page">
+                            @PageInfoFrontEnd?.Title
+                        </div>
+                    </h1>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:MediaCenter"]</li>
+                            <li class="active">@L["Site:UpcomingEvents"]</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!----page header----->
+<!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content ">
+    <section class="blog_post_section two_column style_three">
+        <!--===============spacing==============-->
+        <div class="pd_top_80"></div>
+        <!--===============spacing==============-->
+
+        <div class="auto-container">
+            @if (LastEventsList != null && LastEventsList.Count() > 0)
+            {
+                <div class="row">
+                    @foreach (var lastEvent in LastEventsList)
+                    {
+                        <div class="col-lg-4 col-md-6 col-12">
+                            <div class="service_post style_four inner-events-box">
+           
+
+                                <div class="image_box">
+                                    <a href="@($"{CultureInfo.CurrentCulture.Name}/media-center/upcoming-events/{lastEvent.Slug}/")">
+                                        <div class="eventdate text-center">
+                                            <span style="font-size: 24px; font-weight: 700; display: block;"> @($"{lastEvent?.StartDate.Value.ToString("MMM")}")</span>
+                                            @($"{lastEvent?.StartDate.Value.Day} - {lastEvent?.EndDate.Value.Day}")
+                                        </div>
+                                        <img src="@lastEvent.Image" class="img-fluid" alt="@lastEvent?.Title" />
+                                    </a>
+                                </div>
+                                <div class="content_in_box">
+                                   
+                                    <span class="icon icon-thumbs-up bg_im"></span>
+                                    <div class="content_box ">
+                                        <h2 class="title_service">
+                                            <a href="@($"{CultureInfo.CurrentCulture.Name}/media-center/upcoming-events/{lastEvent.Slug}/")"
+                                       rel="bookmark">@lastEvent.Title</a>
+                                        </h2>
+                                        <p class="short_desc">@lastEvent.Summary</p>
+                                        <a class="read_more" href="@($"{CultureInfo.CurrentCulture.Name}/media-center/upcoming-events/{lastEvent.Slug}/")">
+                                            @L["Site:ReadMore"]<i class="icon-right-arrow-long"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination text-center align-items-center justify-content-center">
+                                <li class="prev_link">
+                                    <a id="gototop" class="gototop"  onclick="@(() => UpdateLastEvents(CurrentPage-1))">
+                                        <i class="fa fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                                @{
+                                    int[] array = Enumerable.Range(0, LastEventsTotalPage).ToArray();
+                                    foreach (var index in array)
+                                    {
+                                        if (CurrentPage == index)
+                                        {
+                                            <li class="active">
+                                                <a onclick="@(() => UpdateLastEvents(index))">@(index + 1)</a>
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            <li>
+                                                <a onclick="@(() => UpdateLastEvents(index))">@(index + 1)</a>
+                                            </li>
+                                        }
+
+                                    }
+                                }
+                                <li class="next_link">
+                                    <a id="gototop" class="gototop"  onclick="@(() => UpdateLastEvents(CurrentPage+1))">
+                                        <i class="fa fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            }
+           
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_top_70"></div>
+        <!--===============spacing==============-->
+
+    </section>
+
+</div>
+<!--===============PAGE CONTENT END==============-->

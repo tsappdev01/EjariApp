@@ -1,0 +1,124 @@
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@page "/{lang}/e-forms";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+<!----page header----->
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @PageInfoFrontEnd?.Title
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li><a>@L["Site:Home:EService"]</a> </li>
+                            <li class="active">@PageInfoFrontEnd?.Title</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!----page header----->
+<!--===============PAGE CONTENT==============-->
+<!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content ">
+    <!--feature-->
+    <section class="feature-section py-lg-5">
+        <!--===============spacing==============-->
+        <div class="pd_top_20"></div>
+        <!--===============spacing==============-->
+        <div class="auto-container">
+            @if(!EFormServicesList.IsNullOrEmpty())
+            {
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <h2>@EFormServicesList[0].Title</h2>
+                        </div>
+                        @if(!EFormServicesList[0].EFormServiceSubCategories.IsNullOrEmpty())
+                        {
+                            foreach (var eFormServiceSubCategory in EFormServicesList[0].EFormServiceSubCategories)
+                                {
+                                    <div class="col-lg-2 col-md-6 col-sm-6 col-xs-12 inner-service-card">
+                                        <a href="@eFormServiceSubCategory.File" target="_blank">
+                                            <div class="p-3 border-0 text-center d-flex align-items-center justify-content-center rounded bg_light_1 h-100">
+                                                <p class="mb-0">
+                                                    @eFormServiceSubCategory.Title
+                                                </p>
+                                            </div>
+                                        </a>
+                                    </div>
+                                }
+                        }
+                    </div>
+                @if (EFormServicesList.Count > 1)
+                {
+                    foreach (var eFormServices in EFormServicesList.Skip(1))
+                    {
+                        <div class="row mt-5">
+                            <div class="col-sm-12">
+                                <h2>@eFormServices.Title</h2>
+                            </div>
+                            @if (!eFormServices.EFormServiceSubCategories.IsNullOrEmpty())
+                            {
+                                foreach (var eFormServiceSubCategory in eFormServices.EFormServiceSubCategories)
+                                {
+                                    <div class="col-lg-2 col-md-6 col-sm-6 col-xs-12 inner-service-card">
+                                        <a href="@eFormServiceSubCategory.File" target="_blank">
+                                            <div class="p-3 border-0 text-center d-flex align-items-center justify-content-center rounded bg_light_1 h-100">
+                                                <p class="mb-0">
+                                                    @eFormServiceSubCategory.Title
+                                                </p>
+                                            </div>
+                                        </a>
+                                    </div>
+                            }
+                        }
+                    </div>
+                }
+                }
+
+            }
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_bottom_50"></div>
+        <!--===============spacing==============-->
+    </section>
+    <!---feature end-->
+
+</div>
+<!--===============PAGE CONTENT END==============-->
+<!--===============PAGE CONTENT END==============-->

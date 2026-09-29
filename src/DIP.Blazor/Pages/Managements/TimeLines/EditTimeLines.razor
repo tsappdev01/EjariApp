@@ -1,0 +1,336 @@
+@page "/admin/time-lines/edit/{id}"
+@page "/admin/time-lines/create"
+
+@attribute [Authorize(DIPPermissions.TimeLines.Default)]
+@using DIP.Blazor.Components
+@using DIP.TimeLines
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject ITimeLinesAppService TimeLinesAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+
+
+<PageHeader Title="@( $"{L[Id.IsNullOrEmpty()? "Create":"Update"]} {L["TimeLines"]}")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+<Card>
+    @if (Id.IsNullOrEmpty())
+    {
+        <Form id="CreateTimeLineForm">
+          
+
+                  <CardBody>
+                <Tabs SelectedTab="@SelectedCreateTab" SelectedTabChanged="@OnSelectedCreateTabChanged">
+                    <Items>
+                        <Tab Name="create-tab-english">@L["English"]</Tab>
+                        <Tab Name="create-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                        <Validations @ref="@NewTimeLineValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@NewTimeLine"
+                                 ValidateOnLoad="false">
+                            <TabPanel Name="create-tab-english">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewTimeLine.TitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                                    <CustomRichTextEditor ContentChanged="@CreatingDescriptionEnOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+ @*                                @if (DescriptionEnValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionEnRequired"]
+                                    </div>
+                                } *@
+                                <Field>
+                                    <FieldLabel>@L["Image"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia()">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (!TimeLineImage.IsNullOrEmpty() && !TimeLineImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(TimeLineImage)};base64,{Convert.ToBase64String(TimeLineImageContent)}"))"></div>
+                                    }
+                                </Field>
+                                @if (ImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:ImageRequired"]
+                                    </div>
+                                }
+                       @*         <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TimeLineDate"]</FieldLabel>
+                                        <Addons>
+                                            <Addon AddonType="AddonType.Body">
+                                                <DatePicker @ref="@datePicker" TValue="DateTime?" @bind-Date="@NewTimeLine.TimeLineDate" />
+                                            </Addon>
+                                            <Addon AddonType="AddonType.End">
+                                                <Button Color="Color.Light" Clicked="@(()=>datePicker.ToggleAsync())">
+                                                    <Icon Name="IconName.CalendarDay" />
+                                                </Button>
+                                            </Addon>
+                                        </Addons> *@
+                                 @*        <DateEdit TValue="DateTime?" InputMode="DateInputMode.DateTime" @bind-Date="@NewTimeLine.TimeLineDate">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </DateEdit> *@
+                                @*     </Field>
+                                </Validation> *@
+
+                               
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@NewTimeLine.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@NewTimeLine.IsActive">@L["IsActive"]</Check>
+                                </Field>
+
+                                <Field>
+                                    <FieldLabel>@L["TimeLineCategory"]</FieldLabel>
+                                    <Select TValue="Guid" @bind-SelectedValue="@NewTimeLine.TimeLineCategoryId">
+                                        @foreach (var timeLineCategory in TimeLineCategoriesCollection)
+                                        {
+                                            <SelectItem TValue="Guid" Value="@timeLineCategory.Id">
+                                                @timeLineCategory.DisplayName
+                                            </SelectItem>
+                                        }
+                                    </Select>
+                                </Field>
+
+                            </TabPanel>
+                            <TabPanel Name="create-tab-arabic">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewTimeLine.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                                    <CustomRichTextEditor ContentChanged="@CreatingDescriptionArOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+@*                                 @if (DescriptionArValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionArRequired"]
+                                    </div>
+                                } *@
+                            </TabPanel>
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+           
+            <CardFooter>
+                <SubmitButton Form="CreateTimeLineForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="CreateTimeLineForm" Clicked="async()=> await CreateTimeLineAsync()" />
+            </CardFooter>
+        </Form>
+    }
+    else
+    {
+ <Form id="EditTimeLineForm">
+            <CardBody>
+                <Tabs SelectedTab="@SelectedEditTab" SelectedTabChanged="@OnSelectedEditTabChanged">
+                    <Items>
+                        <Tab Name="edit-tab-english">@L["English"]</Tab>
+                        <Tab Name="edit-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                    <Validations @ref="@EditingTimeLineValidations"
+                             Mode="ValidationMode.Auto"
+                             Model="@EditingTimeLine"
+                             ValidateOnLoad="false">
+                            <TabPanel Name="edit-tab-english">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingTimeLine.TitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                                    <CustomRichTextEditor InitValue="@EditingTimeLine.DescriptionEn" ContentChanged="@EditingDescriptionEnOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+             @*                    @if (DescriptionEnValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionEnRequired"]
+                                    </div>
+                                } *@
+
+                                <Field>
+                                    <FieldLabel>@L["Image"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia()">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (TimeLineImageNewUpload && !TimeLineImage.IsNullOrEmpty() && !TimeLineImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(TimeLineImage)};base64,{Convert.ToBase64String(TimeLineImageContent)}"))"></div>
+                                    }
+                                    else
+                                    {
+                                        if (!TimeLineImage.IsNullOrEmpty())
+                                        {
+                                            <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"{MimeTypes.MimeTypeMap.GetAttachmentPath()}/timeLine/{TimeLineImage}"))"></div>
+                                        }
+                                    }
+                                </Field>
+                                @if (ImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:ImageRequired"]
+                                    </div>
+                                }
+@* 
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TimeLineDate"]</FieldLabel>
+                                        <Addons>
+                                            <Addon AddonType="AddonType.Body">
+                                                <DatePicker @ref="@datePicker" TValue="DateTime?" @bind-Date="@EditingTimeLine.TimeLineDate" />
+                                            </Addon>
+                                            <Addon AddonType="AddonType.End">
+                                                <Button Color="Color.Light" Clicked="@(()=>datePicker.ToggleAsync())">
+                                                    <Icon Name="IconName.CalendarDay" />
+                                                </Button>
+                                            </Addon>
+                                        </Addons> *@
+                     @*                    <DateEdit TValue="DateTime?" InputMode="DateInputMode.DateTime" @bind-Date="@EditingTimeLine.TimeLineDate">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </DateEdit> *@
+                            @*         </Field>
+                                </Validation>    *@                    
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@EditingTimeLine.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@EditingTimeLine.IsActive">@L["IsActive"]</Check>
+                                </Field>
+
+                                <Field>
+                                    <FieldLabel>@L["TimeLineCategory"]</FieldLabel>
+                                    <Select TValue="Guid" @bind-SelectedValue="@EditingTimeLine.TimeLineCategoryId">
+                                        @foreach (var timeLineCategory in TimeLineCategoriesCollection)
+                                        {
+                                            <SelectItem TValue="Guid" Value="@timeLineCategory.Id">
+                                                @timeLineCategory.DisplayName
+                                            </SelectItem>
+                                        }
+                                    </Select>
+                                </Field>
+
+                            </TabPanel>
+                            <TabPanel Name="edit-tab-arabic">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingTimeLine.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                                    <CustomRichTextEditor InitValue="@EditingTimeLine.DescriptionAr" ContentChanged="@EditingDescriptionArOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+      @*                           @if (DescriptionArValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionArRequired"]
+                                    </div>
+                                } *@
+                            </TabPanel>
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="EditNewsForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="EditNewsForm" Clicked="async()=> await UpdateTimeLineAsync()" />
+            </CardFooter>
+            </Form>
+                
+    }
+
+</Card>
+
+
+

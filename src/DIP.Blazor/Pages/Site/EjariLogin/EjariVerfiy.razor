@@ -1,0 +1,105 @@
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@page "/{lang}/Ejari/Verify/{Email}/{Phone}";
+
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+
+
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @L["EjariVerfiy"]
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:Home:Ejari"]</li>
+                            <li class="active">@L["EjariVerfiy"]</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+         <!----page header----->
+         <!--===============PAGE CONTENT==============-->
+         <div id="content" class="site-content ">
+
+    <div class="container content">
+
+            <section class="feature-section py-lg-5">
+               <!--===============spacing==============-->
+               <div class="pd_top_20"></div>
+               <!--===============spacing==============-->
+               <div class="container">
+                  <div class="row justify-content-center">
+                    <div class="row">
+
+                        <div class="box-contents-container">
+                            <h3 class="col-md-12 box-title">
+                                @L["RegistrationVerification"]</h3>
+
+                            <div class="col-md-12">
+                                @* <div class="form-group"> *@
+                                @*     <strong>Reference Number: </strong> @ViewBag.Reference *@
+                                @* </div> *@
+                                <p>@L["DearUser"]</p>
+
+                                <p>
+                                    @L["YourRegistrationIsSuccessfulPleaseCheckYourEmail"] <strong>&nbsp;@Email  &nbsp;</strong>@L["OrPhone"] <strong>&nbsp; @(GetCountryCode(Phone) +"-"+ GetMobileNumber(Phone))  &nbsp;</strong>@L["ToRetrieve"]
+                                    <strong>@L["ReferenceNumber"]</strong>&nbsp; @L["And"] &nbsp; <strong>@L["PassCode"]</strong>
+                                </p>
+
+                                <p>@L["ThanksRegards"]</p>
+                                <p>@L["DIPARKBusinessTeam"]</p>
+
+                                <p class="form-row  mb-2 text-center">
+                                    <button @onclick="async ()=> await GoToLogIn()" type="submit" name="login" value="Log in" class="fs-6">@L["GoToLogIn"]</button>
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+  </section>
+
+             </div>
+             </div>

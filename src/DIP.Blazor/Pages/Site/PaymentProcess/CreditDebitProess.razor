@@ -1,0 +1,304 @@
+﻿@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Pages.Site.NocForm
+@using DIP.Blazor.Shared
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@page "/{lang}/CreditDebit/PaymentProcess/{referenceNumber}";
+
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+    <style>
+        /* * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+
+        } */
+        .blog_post_section{
+                display: flex;
+                justify-content: center;
+                padding: 10px 0px;
+                align-items: center;
+        }
+        .payment-container {
+            background: #6f6259;
+            max-width: 530px;
+            width: 100%;
+            border-radius: 10px;
+            /*box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);*/
+            overflow: hidden;
+            /*animation: slideUp 0.5s ease;*/
+        }
+
+        .headercustom {
+            background: #6f6259;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 2px solid #ffffff;
+        }
+
+            .headercustom h2 {
+                color: white;
+                font-size: 28px;
+                font-weight: 600;
+                margin-bottom: 8px;
+            }
+
+            .headercustom p {
+                color: rgba(255, 255, 255, 0.9);
+                font-size: 14px;
+            }
+
+        .form-content {
+            padding: 35px 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            color: #e0e0e0;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        /* input {
+            width: 100%;
+            padding: 14px 16px;
+            background: #2c2c2c;
+            border: 2px solid #4a4a4a;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+            input::placeholder {
+                color: #888;
+            }
+
+            input:focus {
+                border-color: #ffffff;
+                background: #333;
+                box-shadow: 0 0 0 3px #ffffff;
+            } */
+
+        .row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .col {
+            flex: 1;
+        }
+
+        .card-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .paymentButton {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient( 90deg, #6f6259 3%, #cbc9c8 80%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+            .paymentButton:hover {
+                transform: translateY(-2px);
+            }
+
+        paymentButton:active {
+            transform: translateY(0);
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+            .back-link a {
+                color: #ff6b35;
+                text-decoration: none;
+                font-size: 14px;
+                transition: color 0.3s ease;
+            }
+
+                .back-link a:hover {
+                    color: #ff8c42;
+                    text-decoration: underline;
+                }
+
+        .secure-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            color: #888;
+            font-size: 13px;
+        }
+
+            .secure-badge::before {
+                content: "🔒";
+            }
+
+        @@keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</HeadContent>
+
+
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @L["PaymentProcessing"]
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>>@L["Site:Home:EService"]</li>
+                            <li class="active">@L["PaymentProcessing"]</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+         <!----page header----->
+         
+         <!--===============PAGE CONTENT==============-->
+
+
+ <div id="content" class="site-content ">
+    <StepProgress Steps="@registrationSteps"
+                  CurrentStep="@currentStep"
+                  OnStepChanged="HandleStepChanged"
+                  AllowClickNavigation="true" />
+
+            <section class="blog_post_section two_column style_three">
+        <!--===============spacing==============-->
+               <div class="pd_top_80"></div>
+        <div class="payment-container">
+            <div class="headercustom">
+                <h2>Credit/Debit Card Payment</h2>
+            </div>
+
+            <div class="form-content">
+                <div id="paymentForm">
+                    <div class="form-group">
+                        <label for="cardName">Cardholder Name</label>
+                        <input type="text" id="cardName" placeholder="John Doe" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cardNumber">Card Number</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="expiry">Expiry Date</label>
+                                <input type="text" id="expiry" placeholder="MM/YY" maxlength="5" required>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="cvv">CVV</label>
+                                <input type="password" id="cvv" placeholder="123" maxlength="4" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="paymentButton" >Complete Payment</button>
+
+                    <div class="secure-badge">
+                       Your payment information is secure
+                    </div>
+
+                    <div class="back-link">
+                        <a href="@($"/{CultureInfo.CurrentCulture.Name}/Ejari/Payment/{encryptedReferenceNumber}")">← Back to payment options</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+               <div class="pd_top_70"></div>
+               <!--===============spacing==============-->
+            </section>
+
+            
+
+         </div>
+         <!--===============PAGE CONTENT END==============-->

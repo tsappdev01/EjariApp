@@ -1,0 +1,404 @@
+@page "/admin/media-galleries/edit/{id}"
+@page "/admin/media-galleries/create"
+
+@attribute [Authorize(DIPPermissions.MediaGalleries.Default)]
+@using DIP.Blazor.Components
+@using DIP.MediaGalleries
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IMediaGalleriesAppService MediaGalleriesAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+
+
+<PageHeader Title="@( $"{L[Id.IsNullOrEmpty()? "Create":"Update"]} {L["MediaGalleries"]}")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+<Card>
+    @if (Id.IsNullOrEmpty())
+    {
+        <Form id="CreateMediaGalleryForm">
+
+
+            <CardBody>
+                <Tabs SelectedTab="@SelectedCreateTab" SelectedTabChanged="@OnSelectedCreateTabChanged">
+                    <Items>
+                        <Tab Name="create-tab-english">@L["English"]</Tab>
+                        <Tab Name="create-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                        <Validations @ref="@NewMediaGalleryValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@NewMediaGallery"
+                                 ValidateOnLoad="false">
+                            <TabPanel Name="create-tab-english">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                                        <TextEdit TextExpression="@(()=>NewMediaGallery.TitleEn)" TextChanged="@OnTitleEnChanged">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Slug"] *</FieldLabel>
+                                        <TextEdit @bind-Text="@NewMediaGallery.Slug">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewMediaGallery.MetaTitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewMediaGallery.MetaDescriptionEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryEn"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@NewMediaGallery.SummaryEn" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+                                <Field>
+                                    <FieldLabel>@L["Image"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(true)">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (!MediaGalleryImage.IsNullOrEmpty() && !MediaGalleryImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(MediaGalleryImage)};base64,{Convert.ToBase64String(MediaGalleryImageContent)}"))"></div>
+                                    }
+                                </Field>
+
+                                <Field>
+                                    <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="HeaderImageChanged" Upload="OnHeaderImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(false)">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (!MediaGalleryHeaderImage.IsNullOrEmpty() && !MediaGalleryHeaderImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(MediaGalleryHeaderImage)};base64,{Convert.ToBase64String(MediaGalleryHeaderImageContent)}"))"></div>
+                                    }
+                                </Field>
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@NewMediaGallery.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@NewMediaGallery.IsActive">@L["IsActive"]</Check>
+                                </Field>
+
+                            </TabPanel>
+                            <TabPanel Name="create-tab-arabic">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewMediaGallery.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewMediaGallery.MetaTitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewMediaGallery.MetaDescriptionAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryAr"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@NewMediaGallery.SummaryAr" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+                            </TabPanel>
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+
+            <CardFooter>
+                <SubmitButton Form="CreateMediaGalleryForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="CreateMediaGalleryForm" Clicked="async()=> await CreateMediaGalleryAsync()" />
+            </CardFooter>
+        </Form>
+    }
+    else
+    {
+        <Form id="EditMediaGalleryForm">
+            <CardBody>
+                <Tabs SelectedTab="@SelectedEditTab" SelectedTabChanged="@OnSelectedEditTabChanged">
+                    <Items>
+                        <Tab Name="edit-tab-english">@L["English"]</Tab>
+                        <Tab Name="edit-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                        <Validations @ref="@EditingMediaGalleryValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@EditingMediaGallery"
+                                 ValidateOnLoad="false">
+                            <TabPanel Name="edit-tab-english">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                                        <TextEdit Text="@EditingMediaGallery.TitleEn" TextExpression="@(()=>EditingMediaGallery.TitleEn)" TextChanged="@OnTitleEnChanged">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Slug"] *</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingMediaGallery.Slug">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingMediaGallery.MetaTitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingMediaGallery.MetaDescriptionEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryEn"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@EditingMediaGallery.SummaryEn" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["Image"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(true)">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (MediaGalleryImageNewUpload && !MediaGalleryImage.IsNullOrEmpty() && !MediaGalleryImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(MediaGalleryImage)};base64,{Convert.ToBase64String(MediaGalleryImageContent)}"))"></div>
+                                    }
+                                    else
+                                    {
+                                        if (!MediaGalleryImage.IsNullOrEmpty())
+                                        {
+                                            <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"{MimeTypes.MimeTypeMap.GetAttachmentPath()}/mediaGallery/{MediaGalleryImage}"))"></div>
+                                        }
+                                    }
+                                </Field>
+
+                                <Field>
+                                    <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="HeaderImageChanged" Upload="OnHeaderImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(false)">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (MediaGalleryHeaderImageNewUpload && !MediaGalleryHeaderImage.IsNullOrEmpty() && !MediaGalleryHeaderImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(MediaGalleryHeaderImage)};base64,{Convert.ToBase64String(MediaGalleryHeaderImageContent)}"))"></div>
+                                    }
+                                    else
+                                    {
+                                        if (!MediaGalleryHeaderImage.IsNullOrEmpty())
+                                        {
+                                            <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"{MimeTypes.MimeTypeMap.GetAttachmentPath()}/mediaGallery/{MediaGalleryHeaderImage}"))"></div>
+                                        }
+                                    }
+                                </Field>
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@EditingMediaGallery.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@EditingMediaGallery.IsActive">@L["IsActive"]</Check>
+                                </Field>
+                            </TabPanel>
+                            <TabPanel Name="edit-tab-arabic">
+                                
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingMediaGallery.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingMediaGallery.MetaTitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingMediaGallery.MetaDescriptionAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryAr"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@EditingMediaGallery.SummaryAr" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+                            </TabPanel>
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="EditMediaGalleryForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="EditMediaGalleryForm" Clicked="async()=> await UpdateMediaGalleryAsync()" />
+            </CardFooter>
+        </Form>
+
+    }
+</Card>
+
+
+

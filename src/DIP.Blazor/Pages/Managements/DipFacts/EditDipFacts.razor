@@ -1,0 +1,265 @@
+@page "/admin/dip-facts/edit/{id}"
+@*@page "/admin/dip-facts/create"*@
+
+@attribute [Authorize(DIPPermissions.DipFacts.Default)]
+@using DIP.Blazor.Components
+@using DIP.DipFacts
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IDipFactsAppService DipFactsAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+
+
+<PageHeader Title="@( $"{L[Id.IsNullOrEmpty()? "Create":"Update"]} {L["DipFacts"]}")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+
+@* ************************* CREATE MODAL ************************* *@
+
+<Card>
+    @if (Id.IsNullOrEmpty())
+    {
+        <Form id="CreateDipFactForm">
+
+            <CardBody>
+                <Tabs SelectedTab="@SelectedCreateTab" SelectedTabChanged="@OnSelectedCreateTabChanged">
+                    <Items>
+                        <Tab Name="create-tab-english">@L["English"]</Tab>
+                        <Tab Name="create-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                        <Validations @ref="@NewDipFactValidations"
+                                     Mode="ValidationMode.Auto"
+                                     Model="@NewDipFact"
+                                     ValidateOnLoad="false">
+                            <TabPanel Name="create-tab-english">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewDipFact.TitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@NewDipFact.DescriptionEn" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                        @*<CustomRichTextEditor InitValue="@EditingSliderHomePage.DescriptionEn" ContentChanged="@CreatingDescriptionArOnContentChanged"></CustomRichTextEditor>*@
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["Image"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia()">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (!DipFactImage.IsNullOrEmpty() && !DipFactImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(DipFactImage)};base64,{Convert.ToBase64String(DipFactImageContent)}"))"></div>
+                                    }
+                                </Field>
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@NewDipFact.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@NewDipFact.IsActive">@L["IsActive"]</Check>
+                                </Field>
+                            </TabPanel>
+                            <TabPanel Name="create-tab-arabic">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewDipFact.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@NewDipFact.DescriptionEn" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                        @*<CustomRichTextEditor InitValue="@EditingSliderHomePage.DescriptionEn" ContentChanged="@CreatingDescriptionArOnContentChanged"></CustomRichTextEditor>*@
+                                    </Field>
+                                </Validation>
+                            </TabPanel>
+
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+
+            <CardFooter>
+                <SubmitButton Form="CreateDipFactForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="CreateDipFactForm" Clicked="async()=> await CreateDipFactAsync()" />
+            </CardFooter>
+        </Form>
+    }
+    else
+    {
+        <Form id="EditDipFactForm">
+            <CardBody>
+                <Tabs SelectedTab="@SelectedEditTab" SelectedTabChanged="@OnSelectedEditTabChanged">
+                    <Items>
+                        <Tab Name="edit-tab-english">@L["English"]</Tab>
+                        <Tab Name="edit-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                        <Validations @ref="@EditingDipFactValidations"
+                                     Mode="ValidationMode.Auto"
+                                     Model="@EditingDipFact"
+                                     ValidateOnLoad="false">
+                            <TabPanel Name="edit-tab-english">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingDipFact.TitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@EditingDipFact.DescriptionEn" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@EditingDipFact.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["Image"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia()">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (DipFactImageNewUpload && !DipFactImage.IsNullOrEmpty() && !DipFactImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(DipFactImage)};base64,{Convert.ToBase64String(DipFactImageContent)}"))"></div>
+                                    }
+                                    else
+                                    {
+                                        if (!DipFactImage.IsNullOrEmpty())
+                                        {
+                                            <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"{MimeTypes.MimeTypeMap.GetAttachmentPath()}/dipFact/{DipFactImage}"))"></div>
+                                        }
+                                    }
+                                </Field>
+                                @if (ImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:ImageRequired"]
+                                    </div>
+                                }
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@EditingDipFact.IsActive">@L["IsActive"]</Check>
+                                </Field>
+                            </TabPanel>
+
+
+
+                            <TabPanel Name="edit-tab-arabic">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingDipFact.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@EditingDipFact.DescriptionAr" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+                            </TabPanel>
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="EditDipFactForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="EditDipFactForm" Clicked="async()=> await UpdateDipFactAsync()" />
+            </CardFooter>
+        </Form>
+
+    }
+</Card>
+
+@* ************************* EDIT MODAL ************************* *@

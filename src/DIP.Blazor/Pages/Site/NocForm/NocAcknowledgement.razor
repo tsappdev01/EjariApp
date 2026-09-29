@@ -1,0 +1,945 @@
+﻿@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using System.Linq;
+@using DIP.Blazor.Shared;
+@using DIP.Settings
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@inject IDIPSettingAppService DIPSettingAppService
+@page "/{lang}/Ejari/NocAcknowledgement/{ReferenceNumber}";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+    <style>
+            .modal.show {
+                /* z-index: 99999; */
+            }
+            .otp-modal-alert {
+                margin-bottom: 4px !important;
+            }
+            /* .modal-body{
+                max-height: 400px;
+                overflow-y: scroll;
+                overflow-x: hidden;
+            } */
+            .btn-proceed {
+                background-color: #6F6259;
+                border-color: transparent;
+                color: white;
+                font-weight: 500;
+                padding: 12px 40px;
+                border-top-left-radius: 10px;
+                border-bottom-left-radius: 0px;
+                border-top-right-radius: 0px;
+                border-bottom-right-radius: 10px;
+            }
+
+            .containerbox {
+                max-width: 900px;
+                margin: 0 auto;
+                background-color: white;
+                padding: 30px;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+
+            .declaration-text {
+                margin-bottom: 20px;
+                color: #333;
+            }
+
+                .declaration-text p {
+                    margin-bottom: 15px;
+                }
+
+            .divider {
+                border: none;
+                border-top: 2px solid #ddd;
+                margin: 30px 0;
+            }
+
+            .checkbox-container {
+                display: flex;
+                align-items: flex-start;
+                margin: 30px 0;
+                padding: 15px;
+                background-color: #f9f9f9;
+                border-radius: 5px;
+            }
+
+                .checkbox-container input[type="checkbox"] {
+                    width: 20px;
+                    height: 20px;
+                    margin-right: 12px;
+                    margin-top: 2px;
+                    cursor: pointer;
+                    flex-shrink: 0;
+                }
+
+                .checkbox-container label {
+                    cursor: pointer;
+                    font-size: 16px;
+                    color: #333;
+                    user-select: none;
+                }
+
+            .button-container {
+                text-align: center;
+                margin-top: 30px;
+            }
+
+            .otp-section {
+                margin-top: 30px;
+            }
+
+            .otp-label {
+                display: block;
+                margin-bottom: 10px;
+                color: #333;
+                font-size: 14px;
+                font-weight: 500;
+            }
+
+            .otp-inputs {
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+            }
+
+            .otp-input {
+                width: 50px;
+                height: 50px;
+                text-align: center;
+                font-size: 20px;
+                font-weight: 600;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                transition: all 0.3s ease;
+            }
+
+                .otp-input:focus {
+                    outline: none;
+                    border-color: #6F6259;
+                    box-shadow: 0 0 0 3px rgba(111, 98, 89, 0.1);
+                }
+
+                .otp-input.error {
+                    border-color: #dc3545;
+                }
+
+            th {
+                text-align: left;
+            }
+
+            table.datable {
+                border-collapse: collapse;
+                margin: 15px 0 0 0 !important;
+            }
+
+                table.datable th {
+                    padding: 10px;
+                    background-color: #f7f7f7;
+                    border: 1px solid #6f6259;
+                    font-size: 16px;
+                }
+
+                    table.datable th.headth {
+                        background-color: #6f6259;
+                        color: #fff;
+                    }
+
+                table.datable td {
+                    padding: 10px;
+                    border: 1px solid #6f6259;
+                    font-size: 15px;
+                }
+
+                    table.datable td p {
+                        margin: 15px 0 !important;
+                        line-height: 130%;
+                    }
+
+                    table.datable td li {
+                        margin: 10px 0 !important;
+                        line-height: 130%;
+                    }
+
+            .progress-icon {
+                color: #6c757d;
+                animation: spin 2s linear infinite;
+            }
+
+            .otp-resend {
+                text-decoration: underline;
+                cursor: pointer;
+                font-weight: 400;
+            }
+
+            @@keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+
+            /* OTP contact selection modal — theme #6F6259 */
+            .otp-modal-title {
+                color: #6F6259;
+                font-weight: 600;
+            }
+
+            .otp-modal-alert {
+                background-color: #e8f2fc;
+                color: #1e4d7a;
+                border-radius: 8px;
+                padding: 14px 18px;
+                text-align: center;
+                font-size: 15px;
+                line-height: 1.45;
+            }
+
+            .otp-prompt {
+                color: #333;
+                font-size: 15px;
+                margin-bottom: 0;
+            }
+
+            .otp-role-toggle {
+                display: flex;
+                gap: 8px;
+                margin-top: 0.5rem !important;
+                margin-bottom: 0.5rem !important;
+                padding: 0px 36px !important;
+            }
+
+            .otp-role-btn {
+                flex: 1;
+                border: 1px solid #d9d1cc;
+                background: #faf9f8;
+                color: #9a8f88;
+                font-weight: 600;
+                font-size: 15px;
+                padding: 8px 15px !important;
+                border-radius: 8px;
+                transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+            }
+
+                .otp-role-btn:hover:not(.active) {
+                    color: #6F6259;
+                    border-color: #c9bfb8;
+                    background: #fff;
+                }
+
+                .otp-role-btn.active {
+                    background: #fff;
+                    color: #6F6259;
+                    border-color: #6F6259;
+                    box-shadow: 0 1px 3px rgba(111, 98, 89, 0.12);
+                }
+
+            .otp-party-name {
+                text-align: center;
+                color: #333;
+                font-size: 15px;
+                margin-bottom: 1rem;
+                font-weight: 500;
+            }
+
+            .otp-option-list {
+                    display: flex !important;
+                    flex-direction: row !important;
+                    /* min-width: 50%; */
+                    /* max-width: 100%; */
+                    flex-wrap: wrap !important;
+                    /* flex-direction: column; */
+                    gap: 4px !important;
+            }
+
+            .otp-option-row {
+                background: #fff;
+                border-radius: unset;
+                padding: 4px 0px !important;
+                min-width: 48% !important;
+                max-width: 48% !important;
+            }
+
+                .otp-option-row:hover {
+                    border-color: #c9bfb8;
+                }
+
+                .otp-option-row .form-check {
+                    margin-bottom: 0;
+                }
+
+            .btn-proceed-otp {
+                border-radius: 10px;
+                width: 100%;
+                max-width: 360px;
+            }
+
+            .otp-modal-actions {
+                margin-top: 1.5rem;
+            } 
+            .otp-option-list .otp-option-row .form-check .form-check-inline {
+                    display: flex !important;
+                    align-items: center !important;
+                    margin: unset !important;
+            }
+            .otp-option-list .otp-option-row .form-check .form-check-inline label {
+                font-size: 14px !important;
+            }
+            .button-container.otp-modal-actions .btn-proceed-otp {
+                max-width: 180px !important;
+            }
+    </style>
+</HeadContent>
+
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            NOC Application Acknowledgement
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:Home:Ejari"]</li>
+                            <li class="active">NOC Application Acknowledgement</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="bg-white">
+    <div class="container py-4">
+        <StepProgress Steps="@registrationSteps"
+                      CurrentStep="@currentStep"
+                      OnStepChanged="HandleStepChanged"
+                      AllowClickNavigation="true" />
+
+        <div id="content" class="site-content pt-5">
+            <div class="containerbox">
+                <div class="declaration-text">
+                    <!-- Explanatory Notes/ Guidelines: -->
+                    <table>
+                        @if (new[] { "1" }.Contains(NOCFor))
+                        {
+                            <tr>
+                                <td>
+                                    <table width="100%" cellpadding="0" cellspacing="0" border="0" class="datable">
+                                        <tr>
+                                            <th class="headth">Explanatory Notes/Guidelines:</th>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <p>
+                                                    Please review the items below. For any applicable item, you may be required to submit the
+                                                    relevant documents and/or attend technical meetings with the DIP Engineering Department,
+                                                    as necessary.
+                                                </p>
+                                                <ol>
+                                                    <li>Porta cabins or containers are <b>not permitted</b> for use as additional storage or office space.</li>
+                                                    <li>
+                                                        DIP Security and Safety staff reserve the <b>
+                                                        right to inspect the premises
+                                                        at any time without prior notice or approval.
+                                                    </b>
+                                                </li>
+                                                <li>
+                                                    Parking of vehicles <b>outside the plot boundary is strictly prohibited.</b>
+                                                </li>
+                                                <li>A valid contract for waste collection must be established, and <b>cleanliness standards must be maintained at all times.</b></li>
+                                                <li>The DIP tenant must ensure that <b>the facility is adequately insured</b> at all times.</li>
+                                                <li>
+                                                    The DIP tenant is responsible for ensuring that the <b>
+                                                    subtenant complies with all
+                                                    applicable rules, regulations, and conditions
+                                                </b> specified in the lease agreement and for
+                                                obtaining all required approvals from the relevant government authorities.
+                                            </li>
+                                            <li>DIP reserves the <b>right to suspend or cease business operations</b> in the event of any violation or default of DIP regulations.</li>
+                                            <li>DIP shall <b>not be held liable</b> for any violations, penalties, or fines imposed by any government authority.</li>
+                                            <li>The DIP tenant is responsible for all <b>subleasing charges payable to DIP</b> and shall be liable for any default in subleasing payments.</li>
+                                            <li>No modifications to the site are permitted <b>without prior written approval</b> from Dubai Municipality, Dubai Civil Defence, and DIP.</li>
+                                            <li>
+                                                DIP shall have the right to conduct <b>routine inspections</b> of the leased premises
+                                                to ensure compliance with <b>Dubai Civil defence–approved storage materials.</b>
+                                            </li>
+                                            <li>
+                                                Fire and safety equipment must be <b>periodically maintained</b> by a <b>
+                                                Dubai Civil
+                                                defence (DCD)–approved contractor.
+                                            </b>
+                                        </li>
+                                        <li>Room density must comply with <b>DIP regulations.</b></li>
+                                        <li>Catering services must be <b>approved by Dubai Municipality and DIP.</b></li>
+                                        <li>
+                                            Any <b>modifications, renovations, or additions</b> must receive prior approval from <b>
+                                            DIP,
+                                            Dubai Civil defence, and Dubai Municipality.
+                                        </b>
+                                    </li>
+                                    <li>Cooking or any type of food-related activity is permitted <b>only in designated areas.</b></li>
+                                </ol>
+                            </td>
+                        </tr>
+                    </table>
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" class="datable">
+                        <tr>
+                            <th class="headth">Notes:</th>
+                        </tr>
+                        <tr>
+                            <td>
+                                <ul>
+                                    <li>
+                                        <b>Application approval is subject to compliance with all DIP requirements.</b>
+                                    </li>
+                                    <li>
+                                        <b>For status updates, please scan the QR code provided in the application. Alternatively, you may call 04 812 2146 or email ejarifollowup@dipark.com.</b>
+                                    </li>
+                                    <li>
+                                        <b> Ejari will be processed within five (5) working days from the date of receipt of payment.</b>
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        }
+                        else if (new[] { "2", "5", "6", "7" }.Contains(NOCFor))
+        {
+            <tr>
+                <td>
+                    <div class="page-break"></div>
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" class="datable">
+                        <tr>
+                            <th class="headth">Explanatory Notes/ Guidelines:</th>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>Please review the items below. For any applicable item, you may be required to submit the relevant documents and/or attend technical meetings with the DIP Engineering Department, as necessary.</p>
+                                <ol>
+                                    <li>DIP Security and Safety staff reserve the right to inspect the premises at any time without prior notice or approval.</li>
+                                    <li>
+                                        Parking of vehicles outside the plot boundary is strictly prohibited.
+                                    </li>
+                                    <li>A valid contract for waste collection must be established, and cleanliness standards must be maintained at all times.</li>
+                                    <li>The DIP tenant must ensure that the facility is adequately insured at all times.</li>
+                                    <li>The DIP tenant is responsible for ensuring that the subtenant complies with all applicable rules, regulations, and conditions specified in the lease agreement, and for obtaining all required approvals from the relevant government authorities.</li>
+                                    <li>DIP reserves the right to suspend or cease all business operations in the event of any violation or default of DIP regulations.</li>
+                                    <li>DIP shall not be held liable for any violations, penalties, or fines imposed by any government authority.</li>
+                                    <li>The DIP tenant is responsible for all subleasing charges payable to DIP and shall be liable for any default in subleasing payments.</li>
+                                    <li>DIP shall have the right to conduct routine inspections of the leased premises to ensure compliance with Dubai Civil Defense–approved storage materials.</li>
+                                    <li>Fire and safety equipment must be periodically maintained by a Dubai Civil Defense (DCD)–approved contractor, in accordance with Civil Defense requirements.</li>
+                                    <li>Any modifications, renovations, or additions must receive prior approval from DIP, Dubai Civil Defense (DCD), and Dubai Municipality (DM).</li>
+                                    <li>Decoration and partition works must be approved by DIP and Dubai Municipality (DM).</li>
+                                </ol>
+                            </td>
+                        </tr>
+                    </table>
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" class="datable">
+                        <tr>
+                            <th class="headth">Notes:</th>
+                        </tr>
+                        <tr>
+                            <td>
+                                <ul>
+                                    <li>
+                                        <b>Application approval is subject to compliance with all DIP requirements.</b>
+                                    </li>
+                                    <li>
+                                        <b>
+                                            For status updates, please scan the QR code provided in the application.
+                                            Alternatively, you may call 04 812 2146 or email ejarifollowup@dipark.com.
+                                        </b>
+                                    </li>
+                                    <li>
+                                        <b>Ejari will be processed within five (5) working days from the date of receipt of payment.</b>
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        }
+        else if (new[] { "4", "3" }.Contains(NOCFor))
+        {
+            <tr>
+                <td>
+                    <div class="page-break"></div>
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" class="datable">
+                        <tr>
+                            <th class="headth">Explanatory Notes/Guidelines:</th>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>
+                                    Please review the items below and note that for any applicable item, you
+                                    will be required to submit the relevant documents and/or attend technical
+                                    meetings with the  <b>
+                                    DIP Engineering
+                                    Department
+                                </b> as necessary:
+                            </p>
+                            <ol>
+                                <li>
+                                    Only security guards are permitted to stay on site
+                                    (maximum <b>two (2) persons per plot).</b> Laborers are <b>not allowed</b> to be accommodated on site.
+                                </li>
+                                <li>
+                                    The signboard must be submitted to and approved by <b>DIP</b> prior to installation.
+                                </li>
+                                <li>
+                                    <b>Porta cabins or containers</b> are not permitted for additional storage or office use.
+                                </li>
+                                <li>
+                                    <b>DIP Security/Safety staff</b> have the right to inspect the premises at any time without prior notice or approval.
+                                </li>
+                                <li>
+                                    An <b>NOC from the Economic Department</b> is required to operate during night shifts.
+                                </li>
+                                <li>
+                                    Parking of vehicles <b>outside the plot boundary</b> is strictly prohibited.
+                                </li>
+                                <li>
+                                    Loading and off-loading activities <b>outside the plot boundary</b> are not permitted.
+                                </li>
+                                <li>
+                                    A contract for <b>
+                                    waste/trash collection
+                                </b> must be established,
+                                and cleanliness standards must be maintained at all times.
+                            </li>
+                            <li>
+                                <b>
+                                    Industrial sewerage waste
+                                </b> is not permitted to be connected to the <b>
+                                DIP sewerage network.
+                            </b>
+                            A separate sewage holding tank for industrial waste is required.
+                            Paint, thinner, chemicals, grease, or similar substances must not enter the DIP sewerage network.
+                            <b>Penalties and legal action</b> will be taken in case of non-compliance.
+                        </li>
+                        <li>
+                            No operations are permitted without <b>Environmental Clearance from Dubai Municipality.</b>
+                        </li>
+                        <li>
+                            <b>Waste streams other than sanitary waste are classified as industrial/trade waste.</b>
+                        </li>
+                        <li>
+                            Only plots <b>without an existing office block/space</b> are permitted to construct an office space.
+                        </li>
+                        <li><b>Pets are not allowed</b> within the warehouse or premises.</li>
+                        <li>The <b>DIP tenant must ensure that the facility is adequately insured.</b></li>
+                        <li>
+                            The DIP tenant is responsible for ensuring that any <b>
+                            sub-tenant
+                        </b> complies with all rules, regulations,
+                        lease conditions, and obtains all required approvals from relevant government authorities.
+                    </li>
+                    <li>
+                        DIP reserves the right to <b>
+                        suspend or cease business operations
+                    </b> in the event of non-compliance
+                    with DIP regulations.
+                </li>
+                <li>
+                    DIP shall <b>not be held responsible</b> for any violations or penalties imposed by government authorities.
+                </li>
+                <li>
+                    DIP must be notified of <b>any change in activity</b> if it differs from the activity stated on the trade license.
+                </li>
+                <li>
+                    The DIP tenant is responsible for <b>subleasing charges payable to DIP</b> and shall be liable for any defaulted payments.
+                </li>
+                <li>
+                    Raw materials and finished products must be stored in accordance with Civil Defence <b>requirements</b> and DIP regulations.
+                </li>
+                <li>
+                    Storage of materials <b>outside the premises/warehouse</b> is strictly prohibited.
+                </li>
+                <li>
+                    Any <b>
+                    site modification
+                </b>
+                is not permitted without prior approval from
+                <b>Dubai Municipality, Civil Defence, and DIP.</b>
+            </li>
+            <li>
+                DIP reserves the right to conduct
+                <b>routine inspections</b> of the leased premises to ensure compliance with <b>Civil Defence–approved storage materials.</b>
+            </li>
+        </ol>
+    </td>
+</tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0" border="0" class="datable">
+    <tr>
+        <th class="headth">Notes:</th>
+    </tr>
+    <tr>
+        <td>
+            <ul>
+                <li>
+                    <b>Application approval is subject to compliance with all DIP requirements.</b>
+                </li>
+                <li>
+                    <b>
+                        For status updates, please scan the QR code provided in the application.
+                        Alternatively, you may call 04 812 2146 or email ejarifollowup@dipark.com.
+                    </b>
+                </li>
+                <li>
+                    <b>Ejari will be processed within five (5) working days from the date of receipt of payment.</b>
+                </li>
+            </ul>
+        </td>
+    </tr>
+</table>
+</td>
+</tr>
+                        }
+
+</table>
+</div>
+
+<hr class="divider">
+
+<div class="checkbox-container">
+    <input @bind="AgreeCheckbox" type="checkbox" id="agreeCheckbox">
+        @* <label for="agreeCheckbox">I agree to all the terms and declarations mentioned above</label> *@
+        <label for="agreeCheckbox">I agree to the guidelines by verifying with Mobile Number OTP (via SMS) Or Email</label>
+    </div>
+
+    @* @if (!AgreeCheckbox)
+                {
+                    <div class="button-container">
+                        <button type="button" class="btn-proceed" @onclick="handleBackAction" id="proceedBtn">Back</button>
+                    </div>
+                } *@
+
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+        <div class="button-container">
+            <button type="button" class="btn-proceed" @onclick="handleBackAction" id="proceedBtn">Back</button>
+        </div>
+
+        <div class="button-container">
+            <button disabled="@(!AgreeCheckbox)" type="button" class="btn-proceed" @onclick="HandleProceedAgree" id="proceedBtn">Proceed</button>
+        </div>
+    </div>
+</div>
+</div>
+
+
+<Modal @ref="modalRef"
+       Closing="OnModalClosing"
+       CloseOnEscapeKey="false"
+       CloseOnOutsideClick="false">
+    <ModalContent Centered>
+        <ModalHeader>
+            @if (contactSelction)
+            {
+                <ModalTitle Class="text-center otp-modal-title w-100">Confirm with OTP</ModalTitle>
+            }
+            else
+            {
+                <ModalTitle Class="text-center">@(NocApplicationProceed ? "Application Processing" : "Verify OTP")</ModalTitle>
+            }
+            <button type="button" class="btn-close" @onclick="OnModalCloseManual" aria-label="Close"></button>
+        </ModalHeader>
+        <ModalBody>
+            @if (contactSelction)
+            {
+                <Div>
+                    <div class="otp-modal-alert mb-4" role="status">
+                        We'll send the OTP to the email address or mobile number listed in your uploaded tenancy contract
+                    </div>
+                    <p class="otp-prompt">Please select your preferred option to receive the OTP</p>
+                    <div class="otp-role-toggle" role="tablist">
+                        <button type="button"
+                                class="otp-role-btn @(selectedTab == "Tenant" ? "active" : "")"
+                                role="tab"
+                                aria-selected="@(selectedTab == "Tenant")"
+                                @onclick="@(() => OnSelectedTabChanged("Tenant"))">
+                            Tenant
+                        </button>
+                        @* <button type="button"
+                                class="otp-role-btn @(selectedTab == "Landlord" ? "active" : "")"
+                                role="tab"
+                                aria-selected="@(selectedTab == "Landlord")"
+                                @onclick="@(() => OnSelectedTabChanged("Landlord"))">
+                            LandLord
+                        </button> *@
+                    </div>
+                    @if (selectedTab == "Tenant")
+                    {
+                        <p class="otp-party-name">Tenant Name: @(_clsEOGETTenant?.TenantName)</p>
+                        <div class="form-section mb-3 custom-form-section">
+                            <RadioGroup TValue="string"
+                                        Name="OtpContactTenant"
+                                        @bind-CheckedValue="@_otpsendDetails">
+                                <div class="otp-option-list">
+                                    @if (_clsEOGETTenant != null)
+                                    {
+                                        @foreach (var mobilenumber in (_clsEOGETTenant.TenantMobile ?? string.Empty).Split(","))
+                                        {
+                                            @if (!string.IsNullOrEmpty(mobilenumber))
+                                            {
+                                                <div class="otp-option-row">
+                                                    <div class="form-check">
+                                                        <Radio Value="@(mobilenumber + "%%Mobile")">@(MaskingMethods.MaskUaeNumber(mobilenumber)) (SMS)</Radio>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                    }
+                                    @if (_clsEOGETTenant != null)
+                                    {
+                                        @foreach (var emailId in (_clsEOGETTenant.TenantEmail ?? string.Empty).Split(","))
+                                        {
+                                            @if (!string.IsNullOrEmpty(emailId))
+                                            {
+                                                <div class="otp-option-row">
+                                                    <div class="form-check">
+                                                        <Radio Value="@(emailId + "%%Email")">@(MaskingMethods.MaskEmail(emailId)) (Email)</Radio>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                    }
+                                </div>
+                            </RadioGroup>
+                        </div>
+                    }
+                    @* else
+                    {
+                        <p class="otp-party-name">Landlord Name: @(_clsEOGETTenant?.LandLordName)</p>
+                        <div class="form-section mb-3 custom-form-section">
+                            <RadioGroup TValue="string"
+                                        Name="OtpContactLandlord"
+                                        @bind-CheckedValue="@_otpsendDetails">
+                                <div class="otp-option-list">
+                                    @if (_clsEOGETTenant != null)
+                                    {
+                                        @foreach (var mobilenumber in _clsEOGETTenant?.LandLordMobile.Split(","))
+                                        {
+                                            @if (!string.IsNullOrEmpty(mobilenumber))
+                                            {
+                                                <div class="otp-option-row">
+                                                    <div class="form-check">
+                                                        <Radio Value="@(mobilenumber + "%%Mobile")">@(MaskingMethods.MaskUaeNumber(mobilenumber)) (SMS)</Radio>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                    }
+                                    @if (_clsEOGETTenant != null)
+                                    {
+                                        @foreach (var emailId in _clsEOGETTenant?.LandLordEmail.Split(","))
+                                        {
+                                            @if (!string.IsNullOrEmpty(emailId))
+                                            {
+                                                <div class="otp-option-row">
+                                                    <div class="form-check">
+                                                        <Radio Value="@(emailId + "%%Email")">@(MaskingMethods.MaskEmail(emailId)) (Email)</Radio>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                    }
+                                </div>
+                            </RadioGroup>
+                        </div>
+                    } *@
+                </Div>
+                @if (!string.IsNullOrEmpty(OtpErrorMessage))
+                {
+                    <div class="alert alert-danger w-100 d-flex align-items-center mb-3" role="alert">
+                        <div class="text-center w-100">@OtpErrorMessage</div>
+                    </div>
+                }
+                <div class="button-container otp-modal-actions">
+                    <button disabled="@(_otpsendDetails.Length == 0 || OtpSending)"
+                            class="btn-proceed btn-proceed-otp"
+                            type="button"
+                            @onclick="HandleTriggerOtp"
+                            id="proceedOtpSendBtn">
+                        @(OtpSending ? "Sending…" : "Proceed")
+                    </button>
+                </div>
+            }
+            else
+            {
+
+                @if (OtpVerifyLoading)
+                {
+                    <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+
+                        <div style="text-align: center;margin: unset !important;width: 100%;">
+                            Your enter OTP has been verifying...
+                        </div>
+                    </div>
+
+                }
+                else if (NocApplicationProceed)
+                {
+                    <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+
+                        <div style="text-align: center;margin: unset !important;width: 100%;">
+                            Your Noc Application Under processing.
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+
+                        <div style="text-align: center;margin: unset !important;width: 100%;">
+                            Your OTP has been sent to the @(_otpsendDetails.Contains("Mobile") ? "mobile number" : "email Id")
+                            <p style="text-align: center;margin: unset !important;">@(_otpsendDetails.Contains("Mobile") ? MaskingMethods.MaskUaeNumber(_otpsentContact) : MaskingMethods.MaskEmail(_otpsentContact))</p>
+                        </div>
+                    </div>
+                }
+
+                <div class="otp-section">
+                    @if (!NocApplicationProceed)
+                    {
+                        <div>
+                            <label class="otp-label">OTP Code</label>
+                            <div class="otp-inputs">
+                                @* OTP: no Blazor @oninput — avoids 1 SignalR RTT per keystroke; dipNocOtp.wire handles focus instantly *@
+                                <input type="text"
+                                       maxlength="1"
+                                       inputmode="numeric"
+                                       pattern="[0-9]"
+                                       class="otp-input"
+                                       id="otp-input-0"
+                                       autocomplete="one-time-code"
+                                       placeholder="-" />
+                                <input type="text"
+                                       maxlength="1"
+                                       inputmode="numeric"
+                                       pattern="[0-9]"
+                                       class="otp-input"
+                                       id="otp-input-1"
+                                       placeholder="-" />
+                                <input type="text"
+                                       maxlength="1"
+                                       inputmode="numeric"
+                                       pattern="[0-9]"
+                                       class="otp-input"
+                                       id="otp-input-2"
+                                       placeholder="-" />
+                                <input type="text"
+                                       maxlength="1"
+                                       inputmode="numeric"
+                                       pattern="[0-9]"
+                                       class="otp-input"
+                                       id="otp-input-3"
+                                       placeholder="-" />
+                                <input type="text"
+                                       maxlength="1"
+                                       inputmode="numeric"
+                                       pattern="[0-9]"
+                                       class="otp-input"
+                                       id="otp-input-4"
+                                       placeholder="-" />
+                                <input type="text"
+                                       maxlength="1"
+                                       inputmode="numeric"
+                                       pattern="[0-9]"
+                                       class="otp-input"
+                                       id="otp-input-5"
+                                       placeholder="-" />
+                            </div>
+                        </div>
+                    }
+                    @if (OtpVerifyLoading || NocApplicationProceed)
+                    {
+                        <div class="w-100 text-center">
+                            <div class="text-center">
+                                <svg class="progress-icon mb-3" width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M40 7.99998V18H38.836M38.836 18C37.5083 14.7162 35.1286 11.9658 32.0699 10.1797C29.0112 8.3936 25.4464 7.6728 21.9341 8.13026C18.4217 8.58771 15.1604 10.1976 12.6613 12.7075C10.1621 15.2175 8.56631 18.4857 8.124 22M38.836 18H30M8 40V30H9.162M9.162 30C10.4916 33.2818 12.8719 36.0301 15.9303 37.8146C18.9887 39.5991 22.5525 40.319 26.0638 39.8617C29.5751 39.4044 32.8356 37.7957 35.3349 35.2874C37.8343 32.7791 39.4313 29.5129 39.876 26M9.162 30H18" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <br />
+                                Please Wait...
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex justify-content-center">
+                            <button type="button"
+                                    class="btn-proceed"
+                                    disabled="@(OtpSending || Otpcode.Any(x => string.IsNullOrEmpty(x)))"
+                                    @onclick="HandleVerificationOtp">Verify</button>
+                        </div>
+                        <div class="d-flex justify-content-center p-2">
+                            <p>
+                                Didn't receive code?
+                                <span class="otp-resend @(resendOTPEnable && !OtpSending ? "" : "text-muted")"
+                                      style="@(resendOTPEnable && !OtpSending ? "" : "cursor: default; text-decoration: none;")"
+                                      @onclick="HandleResendOtpClick">
+                                    @(OtpSending ? "Sending…" : resendOTPEnable ? "Resend OTP" : $"Resend OTP in {countdown} seconds")
+                                </span>
+                            </p>
+                        </div>
+                        <div class="d-flex justify-content-center">
+                            <p>
+                                <span class="otp-resend @(OtpSending ? "text-muted" : "")"
+                                      style="@(OtpSending ? "cursor: default; text-decoration: none;" : "")"
+                                      @onclick="HandleChangeOtpOption">Change OTP option</span>
+                            </p>
+                        </div>
+                    }
+                </div>
+                @if (!string.IsNullOrEmpty(OtpErrorMessage))
+                {
+                    <div class="alert alert-danger  w-100 d-flex align-items-center mb-4" role="alert">
+                        <div class="text-center">
+                            @OtpErrorMessage
+                        </div>
+                    </div>
+                }
+            }
+        </ModalBody>
+    </ModalContent>
+</Modal>
+</div>
+
+</div>

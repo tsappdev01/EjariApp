@@ -1,0 +1,520 @@
+
+
+@page "/page-info-sections"
+
+@attribute [Authorize(DIPPermissions.PageInfoSections.Default)]
+@using DIP.PageInfoSections
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IPageInfoSectionsAppService PageInfoSectionsAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["PageInfoSections"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+        <Form id="PageInfoSectionSearchForm" class="mb-3">
+            <Addons>
+                <Addon AddonType="AddonType.Body">
+                    <TextEdit @bind-Text="@Filter.FilterText"
+                              Autofocus="true"
+                              Placeholder="@L["Search"]">
+                    </TextEdit>
+                </Addon>
+                <Addon AddonType="AddonType.End">
+                    <SubmitButton Form="PageInfoSectionSearchForm" Clicked="GetPageInfoSectionsAsync">
+                        <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                    </SubmitButton>
+                </Addon>
+            </Addons>
+        </Form>
+    </CardBody>
+</Card>
+
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>
+        <DataGrid TItem="PageInfoSectionWithNavigationPropertiesDto"
+                  Data="PageInfoSectionList"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize">
+            <DataGridColumns>
+                <DataGridEntityActionsColumn TItem="PageInfoSectionWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="PageInfoSectionWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="PageInfoSectionWithNavigationPropertiesDto"
+                                          Visible="@CanEditPageInfoSection"
+                                          Clicked="async () => await OpenEditPageInfoSectionModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="PageInfoSectionWithNavigationPropertiesDto"
+                                          Visible="@CanDeletePageInfoSection"
+                                          Clicked="() => DeletePageInfoSectionAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+               
+              <DataGridColumn TItem="PageInfoSectionWithNavigationPropertiesDto"
+                      Field="PageInfoSection.TitleEn"
+                      Caption="@L["TitleEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PageInfoSectionWithNavigationPropertiesDto"
+                      Field="PageInfoSection.TitleAr"
+                      Caption="@L["TitleAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PageInfoSectionWithNavigationPropertiesDto"
+                      Field="PageInfoSection.SubTitleEn"
+                      Caption="@L["SubTitleEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PageInfoSectionWithNavigationPropertiesDto"
+                      Field="PageInfoSection.SubTitleAr"
+                      Caption="@L["SubTitleAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PageInfoSectionWithNavigationPropertiesDto"
+                      Field="PageInfoSection.SummaryEn"
+                      Caption="@L["SummaryEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PageInfoSectionWithNavigationPropertiesDto"
+                      Field="PageInfoSection.SummaryAr"
+                      Caption="@L["SummaryAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PageInfoSectionWithNavigationPropertiesDto"
+                      Field="PageInfoSection.DescriptionEn"
+                      Caption="@L["DescriptionEn"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PageInfoSectionWithNavigationPropertiesDto"
+                      Field="PageInfoSection.DescriptionAr"
+                      Caption="@L["DescriptionAr"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PageInfoSectionWithNavigationPropertiesDto"
+                      Field="PageInfoSection.PageSectionMedia"
+                      Caption="@L["PageSectionMedia"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PageInfoSectionWithNavigationPropertiesDto"
+                      Field="PageInfoSection.YoutubeUrl"
+                      Caption="@L["YoutubeUrl"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PageInfoSectionWithNavigationPropertiesDto"
+                      Field="PageInfoSection.Order"
+                      Caption="@L["Order"]">
+              </DataGridColumn>
+
+              <DataGridColumn TItem="PageInfoSectionWithNavigationPropertiesDto"
+                      Field="PageInfoSection.IsActive"
+                      Caption="@L["IsActive"]">
+                    <DisplayTemplate>
+                        @if (context.PageInfoSection.IsActive)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+
+
+              <DataGridColumn TItem="PageInfoSectionWithNavigationPropertiesDto"
+                      Field="PageInfo.TitleEn"
+                      Caption="@L["PageInfo"]">
+              </DataGridColumn>
+
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreatePageInfoSectionModal" Closing="@CreatePageInfoSectionModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="CreatePageInfoSectionForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewPageInfoSection"]</ModalTitle>
+                <CloseButton Clicked="CloseCreatePageInfoSectionModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewPageInfoSectionValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewPageInfoSection"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewPageInfoSection.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewPageInfoSection.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SubTitleEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewPageInfoSection.SubTitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SubTitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewPageInfoSection.SubTitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewPageInfoSection.SummaryEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewPageInfoSection.SummaryAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewPageInfoSection.DescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewPageInfoSection.DescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["PageSectionMedia"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewPageInfoSection.PageSectionMedia" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["YoutubeUrl"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewPageInfoSection.YoutubeUrl" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@NewPageInfoSection.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewPageInfoSection.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["PageInfo"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@NewPageInfoSection.PageInfoId">
+                            @foreach (var pageInfo in PageInfosCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@pageInfo.Id">
+                                    @pageInfo.DisplayName
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreatePageInfoSectionModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreatePageInfoSectionForm" Clicked="CreatePageInfoSectionAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditPageInfoSectionModal" Closing="@EditPageInfoSectionModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="EditPageInfoSectionForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditPageInfoSectionModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingPageInfoSectionValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingPageInfoSection"
+                            ValidateOnLoad="false">
+                     
+                    
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPageInfoSection.TitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPageInfoSection.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SubTitleEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPageInfoSection.SubTitleEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SubTitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPageInfoSection.SubTitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPageInfoSection.SummaryEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["SummaryAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPageInfoSection.SummaryAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPageInfoSection.DescriptionEn" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPageInfoSection.DescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["PageSectionMedia"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPageInfoSection.PageSectionMedia" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["YoutubeUrl"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingPageInfoSection.YoutubeUrl" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["Order"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@EditingPageInfoSection.Order"  Decimals="0">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+
+
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingPageInfoSection.IsActive">@L["IsActive"]</Check>
+                    </Field>
+
+                    <Field>
+                        <FieldLabel>@L["PageInfo"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@EditingPageInfoSection.PageInfoId">
+                            @foreach (var pageInfo in PageInfosCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@pageInfo.Id">
+                                    @pageInfo.DisplayName
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+
+
+                    
+                    
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditPageInfoSectionModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreatePageInfoSectionForm" Clicked="UpdatePageInfoSectionAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>

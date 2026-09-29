@@ -1,0 +1,137 @@
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@page "/{lang}/media-center/press-releases";
+
+<PageTitle>
+    @PageInfoFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@PageInfoFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+<!----page header----->
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@PageInfoFrontEnd?.HeaderImage" alt="@PageInfoFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @PageInfoFrontEnd?.Title
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:MediaCenter"]</li>
+                            <li class="active">@L["Site:PressReleases"]</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!----page header----->
+<!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content ">
+
+    <section class="blog_post_section two_column style_three">
+        <!--===============spacing==============-->
+        <div class="pd_top_80"></div>
+        <!--===============spacing==============-->
+
+        <div class="auto-container">
+            @if (PressReleaseList != null && PressReleaseList.Count() > 0)
+            {
+                <div class="row">
+                    @foreach (var singleNew in PressReleaseList)
+                    {
+                        <div class="col-lg-4 col-md-6 col-12">
+                            <div class="news_box style_two grid_box _card has_images inner-news-box">
+                                <div class="content_box">
+                                    <a href="@($"{CultureInfo.CurrentCulture.Name}/media-center/press-releases/{singleNew.Slug}")">
+                                        <img src="@singleNew.Image" class="img-fluid" alt="@singleNew.Title">
+                                    </a>
+                                </div>
+                                <div class="content_mid">
+                                    <span class="date_in_number">@($"{singleNew?.Date.Value.ToString("MMMMMM")} {singleNew?.Date.Value.Day}, {singleNew?.Date.Value.Year}")</span>
+                                    <h2 class="title">
+                                        <a href="@($"{CultureInfo.CurrentCulture.Name}/media-center/press-releases/{singleNew.Slug}")">@singleNew.Title</a>
+                                    </h2>
+                                    <p>@singleNew.Summary</p>
+                                    <a href="@($"{CultureInfo.CurrentCulture.Name}/media-center/press-releases/{singleNew.Slug}")" class="w-100 mt-2 theme-btn one">@L["Site:ReadMore"]</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination text-center align-items-center justify-content-center">
+                                <li class="prev_link">
+                                    <a id="gototop" class="gototop" onclick="@(() => UpdatePressreleases(CurrentPage-1))">
+                                        <i class="fa fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                                @{
+                                    int[] array = Enumerable.Range(0, PressreleasesTotalPage).ToArray();
+                                    foreach (var index in array)
+                                    {
+                                        if (CurrentPage == index)
+                                        {
+                                            <li class="active">
+                                                <a onclick="@(() => UpdatePressreleases(index))">@(index + 1)</a>
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            <li>
+                                                <a onclick="@(() => UpdatePressreleases(index))">@(index + 1)</a>
+                                            </li>
+                                        }
+
+                                    }
+                                }
+                                <li class="next_link">
+                                    <a id="gototop"  class="gototop" onclick="@(() => UpdatePressreleases(CurrentPage+1))">
+                                        <i class="fa fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            }
+         
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_top_70"></div>
+        <!--===============spacing==============-->
+
+    </section>
+
+</div>
+<!--===============PAGE CONTENT END==============-->

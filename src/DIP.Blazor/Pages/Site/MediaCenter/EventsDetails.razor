@@ -1,0 +1,179 @@
+@using DIP.Blazor.Components.Layout;
+@using System.Globalization;
+@using DIP.Blazor.Shared;
+@inherits DIPComponentBase
+@layout CustomLayout;
+
+@page "/{lang}/media-center/upcoming-events/{slug}";
+
+<PageTitle>
+    @LastEventsFrontEnd?.MetaTitle
+</PageTitle>
+<HeadContent>
+    <meta name="description" content="@LastEventsFrontEnd?.MetaDescription">
+    <link rel="canonical" href="@NavigationManager.Uri" />
+    @if (Lang.Contains("en"))
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="en" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="ar" />
+    }
+    else
+    {
+        <link rel="alternate" href="@NavigationManager.Uri" hreflang="ar" />
+        <link rel="alternate" href="@UtilClass.UpdateUriByLang(NavigationManager.Uri)" hreflang="en" />
+    }
+</HeadContent>
+<!----page header----->
+<div class="page_header_default style_one ">
+    <div class="parallax_cover">
+        <img src="@LastEventsFrontEnd?.HeaderImage" alt="@LastEventsFrontEnd?.Title" class="cover-parallax">
+    </div>
+    <div class="hero-background-overlay"></div>
+    <div class="page_header_content">
+        <div class="auto-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="banner_title_inner">
+                        <h1 class="title_page">
+                            @L["Site:UpcomingEvents"]
+                        </h1>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="breadcrumbs">
+                        <ul class="breadcrumb m-auto">
+                            <li><a href="@UtilClass.GetHomeUrlByLang()">@L["Site:Home"]</a> </li>
+                            <li>@L["Site:MediaCenter"]</li>
+                            <li class="active">@L["Site:UpcomingEvents"]</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!----page header----->
+<!--===============PAGE CONTENT==============-->
+<div id="content" class="site-content ">
+
+    <!---image-box-section---->
+    <section class="image-box-section py-lg-5">
+        <!--===============spacing==============-->
+        <div class="pd_top_30"></div>
+        <!--===============spacing==============-->
+        <div class="auto-container">
+            <div class="row">
+
+                <div class="col-xl-5 col-lg-5 col-md-12 col-12 mb-5 mb-lg-5 mb-xl-0">
+                    <div class="image_boxes style_three m-0">
+                        <img src="@LastEventsFrontEnd?.Image" class="img-fluid" alt="@LastEventsFrontEnd.Title">
+                    </div>
+                </div>
+                <div class="col-xl-7 col-lg-7 col-md-12 col-12 mb-5 mb-lg-5 mb-xl-0 ps-lg-5">
+                    <div class="title_all_box style_one dark_color">
+                        <div class="title_sections ">
+                            <div class="title text-capitalize text-primary-color mb-4">
+                                @LastEventsFrontEnd.Title
+                            </div>
+                            <div class="d-flex mb-3">
+                                <div class="date">
+                                    <div class="start d-flex"><h6>@L["Site:StartDate"]</h6><span> @($"{LastEventsFrontEnd?.StartDate.Value.ToString("MMM")} {LastEventsFrontEnd?.StartDate.Value.Day} , {LastEventsFrontEnd?.StartDate.Value.Year}")</span></div>
+                                    <div class="end d-flex"><h6>@L["Site:EndDate"]</h6><span>@($"{LastEventsFrontEnd?.EndDate.Value.ToString("MMM")} {LastEventsFrontEnd?.EndDate.Value.Day} , {LastEventsFrontEnd?.EndDate.Value.Year}")</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @((MarkupString)LastEventsFrontEnd?.Description)
+                </div>
+
+            </div>
+        </div>
+        <!--===============spacing==============-->
+        <div class="pd_bottom_30"></div>
+        <!--===============spacing==============-->
+    </section>
+    <!---image-box-section-end---->
+    @if (!RelatedEventsFrontEnd.IsNullOrEmpty() && RelatedEventsFrontEnd.Count >0)
+    {
+        <section class="service-section bg_light_1">
+            <!--===============spacing==============-->
+            <div class="pd_top_80"></div>
+            <!--===============spacing==============-->
+
+            <div class="auto-container">
+
+                <div class="row">
+                    <div class="col-lg-8 col-md-7">
+                        <div class="title_all_box style_seven dark_color">
+                            <div class="title_sections">
+                                <div class="title text-uppercase text-primary-color">@L["Site:RelatedEvents"]</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-3">
+                        <div class="theme_btn_all color_one mt-4 mt-md-0">
+                            <a href="@($"{CultureInfo.CurrentCulture.Name}/media-center/upcoming-events")"  rel="nofollow" class="theme-btn one w-100">
+                                @L["Site:Home:ViewAll"]
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <!--===============spacing==============-->
+                        <div class="pd_bottom_50"></div>
+                        <!--===============spacing==============-->
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="auto-container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="service_section grid_all three_column  news_wrapper_grid dark_color">
+                            <div class="grid_show_case grid_layout clearfix" style="position: relative; height: 538px;">
+                                @foreach (var singleEvents in RelatedEventsFrontEnd)
+                                {
+                                    <div class="grid_box _card">
+                                        <div class="service_post style_four">
+                                            <div class="image_box">
+                                                <a href="@($"{CultureInfo.CurrentCulture.Name}/media-center/upcoming-events/{singleEvents.Slug}")">
+                                                    <div class="eventdate text-center">
+                                                        <span style="font-size: 24px; font-weight: 700; display: block;"> @($"{singleEvents?.StartDate.Value.ToString("MMM")}")</span>
+                                                        @($"{singleEvents?.StartDate.Value.Day} - {singleEvents?.EndDate.Value.Day}")
+                                                    </div>
+                                                    <img src="@singleEvents.Image" class="img-fluid" alt="@singleEvents.Title" />
+                                                </a>
+                                            </div>
+                                            <div class="content_in_box">
+                                                <span class="icon icon-thumbs-up bg_im"></span>
+                                                <div class="content_box ">
+                                                    <h2 class="title_service">
+                                                        <a href="@($"{CultureInfo.CurrentCulture.Name}/media-center/upcoming-events/{singleEvents.Slug}")" rel="bookmark">
+                                                            @singleEvents.Title
+                                                        </a>
+                                                    </h2>
+                                                    <p class="short_desc">
+                                                        @singleEvents.Summary
+                                                    </p>
+                                                    <a class="read_more" href="@($"{CultureInfo.CurrentCulture.Name}/media-center/upcoming-events/{singleEvents.Slug}")">
+                                                        @L["Site:ReadMore"]<i class="icon-right-arrow-long"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <!--===============spacing==============-->
+            <div class="pd_bottom_60"></div>
+            <!--===============spacing==============-->
+        </section>
+    }
+
+</div>
+<!--===============PAGE CONTENT END==============-->

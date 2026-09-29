@@ -1,0 +1,75 @@
+﻿@using Microsoft.Extensions.Logging;
+@using Volo.Abp.AspNetCore.Components.Messages;
+@using Volo.Abp.Localization;
+@inject ILanguageProvider LanguageProvider
+@inject NavigationManager NavigationManager
+@inject IUiMessageService UiMessageService
+
+@inject ILogger<LanguageFieldFilter> Logger
+
+@inherits DIPComponentBase
+
+
+<div class="btn-group">
+    @{
+       IReadOnlyList<LanguageInfo> languageInfos =  LanguageProvider.GetLanguagesAsync().Result;
+        foreach (var item in languageInfos)
+        {
+            <Button Clicked="async(e)=> await changeFormLanguage(e,item)" class="btn btn-primary">@item.DisplayName</Button>
+        }
+    }
+
+</div>
+
+@code {
+
+
+    [Parameter]
+    public string Page { get; set; }
+    [Parameter]
+    public string Lang { get; set; }
+    [Parameter]
+    public string Id { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Logger.LogInformation("=========================================================================================================================");
+        Logger.LogInformation("=========================================================================================================================");
+        Logger.LogInformation("=========================================================================================================================");
+        Logger.LogInformation("=========================================================================================================================");
+        Logger.LogInformation("=========================================================================================================================");
+        Logger.LogInformation("=========================================================================================================================");
+        Logger.LogInformation("=========================================================================================================================");
+        Logger.LogInformation("=========================================================================================================================");
+        Logger.LogInformation("=========================================================================================================================");
+        Logger.LogInformation("=========================================================================================================================");
+        Logger.LogInformation("=========================================================================================================================");
+        Logger.LogInformation("=========================================================================================================================");
+
+        Logger.LogInformation("Page");
+        Logger.LogInformation(Page);
+
+
+
+        Logger.LogInformation("Lang");
+        Logger.LogInformation(Lang);
+
+
+
+        Logger.LogInformation("Id");
+        Logger.LogInformation(Id);
+
+
+        base.OnInitialized();
+    }
+
+    protected async Task changeFormLanguage(MouseEventArgs e, LanguageInfo item)
+    {
+        var confirm = await UiMessageService.Confirm(L["Messages:ChangeLanguageConfirmationMessage"]);
+
+        if (confirm)
+        {
+            NavigationManager.NavigateTo($"/{Page}/{item.CultureName}/{Id}", forceLoad: true);
+        }
+    }
+}

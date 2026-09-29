@@ -1,0 +1,406 @@
+
+
+@page "/admin/e-services/create"
+@page "/admin/e-services/edit/{id}"
+
+@attribute [Authorize(DIPPermissions.EServices.Default)]
+@using DIP.Blazor.Components
+@using DIP.EServices
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IEServicesAppService EServicesAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+
+
+<PageHeader Title="@( $"{L[Id.IsNullOrEmpty()? "Create":"Update"]} {L["EServices"]}")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+
+@* ************************* CREATE MODAL ************************* *@
+
+<Card>
+    @if (Id.IsNullOrEmpty())
+    {
+    <Form id="CreateEServiceForm">
+          
+
+                  <CardBody>
+                <Tabs SelectedTab="@SelectedCreateTab" SelectedTabChanged="@OnSelectedCreateTabChanged">
+                    <Items>
+                        <Tab Name="create-tab-english">@L["English"]</Tab>
+                        <Tab Name="create-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+
+         
+            
+                <Validations @ref="@NewEServiceValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewEService"
+                            ValidateOnLoad="false">
+
+
+                 <TabPanel Name="create-tab-english">
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                                        <TextEdit TextExpression="@(()=>NewEService.TitleEn)" TextChanged="@OnTitleEnChanged">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>
+
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["Slug"] *</FieldLabel>
+                                    <TextEdit @bind-Text="@NewEService.Slug">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>
+
+                             <Field>
+                                    <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                                    <CustomRichTextEditor ContentChanged="@CreatingDescriptionEnOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+
+                                <Field>
+                                    <FieldLabel>@L["Image"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List" />
+                                            </Column>
+                                            <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(true)">@L["Reset"]</Button>
+                                            </Column>
+                                            </Row>
+                                            @if (!EServiceImage.IsNullOrEmpty() && !EServiceImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(EServiceImage)};base64,{Convert.ToBase64String(EServiceImageContent)}"))"></div>
+                                    }
+                                </Field>
+
+                                <Field>
+                                    <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="HeaderImageChanged" Upload="OnHeaderImageUpload" ShowMode="FilePickerShowMode.List" />
+                                            </Column>
+                                            <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(false)">@L["Reset"]</Button>
+                                            </Column>
+                                            </Row>
+                                            @if (!EServiceHeaderImage.IsNullOrEmpty() && !EServiceHeaderImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(EServiceHeaderImage)};base64,{Convert.ToBase64String(EServiceHeaderImageContent)}"))"></div>
+                                    }
+                                </Field>
+
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                                    <TextEdit @bind-Text="@NewEService.MetaTitleEn">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>
+
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                                    <TextEdit @bind-Text="@NewEService.MetaDescriptionEn">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>
+
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["Order"]</FieldLabel>
+                                    <NumericPicker TValue="int" @bind-Value="@NewEService.Order" Decimals="0">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </NumericPicker>
+                                </Field>
+                            </Validation>
+
+                            <Field>
+                                <Check TValue="bool" @bind-Checked="@NewEService.IsActive">@L["IsActive"]</Check>
+                            </Field>
+
+                 </TabPanel>
+                  <TabPanel Name="create-tab-arabic">
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["TitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewEService.TitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                                    <CustomRichTextEditor ContentChanged="@CreatingDescriptionArOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+
+                                <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewEService.MetaTitleAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>         
+
+                    <Validation>
+                        <Field>
+                            <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewEService.MetaDescriptionAr" >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                   </TabPanel> 
+                    
+                </Validations>
+                </Content>
+            </Tabs>
+        </CardBody>
+
+        <CardFooter>
+            <SubmitButton Form="CreateEServiceForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="CreateEServiceForm" Clicked="async()=> await CreateEServiceAsync()" />
+        </CardFooter>
+        </Form>
+        
+    }
+    else
+    {
+
+                <Form id="EditEServiceForm">
+                       <CardBody>
+                <Tabs SelectedTab="@SelectedEditTab" SelectedTabChanged="@OnSelectedEditTabChanged">
+                    <Items>
+                        <Tab Name="edit-tab-english">@L["English"]</Tab>
+                        <Tab Name="edit-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                        <Validations @ref="@EditingEServiceValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@EditingEService"
+                                 ValidateOnLoad="false">
+
+                        <TabPanel Name="edit-tab-english">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                                        <TextEdit Text="@EditingEService.TitleEn" TextExpression="@(()=>EditingEService.TitleEn)" TextChanged="@OnTitleEnChanged">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Slug"] *</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingEService.Slug">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                                    <CustomRichTextEditor InitValue="@EditingEService.DescriptionEn" ContentChanged="@EditingDescriptionEnOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+
+                                <Field>
+                                    <FieldLabel>@L["Image"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List" />
+                                            </Column>
+                                            <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(true)">@L["Reset"]</Button>
+                                            </Column>
+                                            </Row>
+                                            @if (EServiceImageNewUpload && !EServiceImage.IsNullOrEmpty() && !EServiceImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(EServiceImage)};base64,{Convert.ToBase64String(EServiceImageContent)}"))"></div>
+                                    }
+                                    else
+                                    {
+                                        if (!EServiceImage.IsNullOrEmpty())
+                                        {
+                                            <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"{MimeTypes.MimeTypeMap.GetAttachmentPath()}/eservice/{EServiceImage}"))"></div>
+                                        }
+                                    }
+                                </Field>
+
+                                <Field>
+                                    <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="HeaderImageChanged" Upload="OnHeaderImageUpload" ShowMode="FilePickerShowMode.List" />
+                                            </Column>
+                                            <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(false)">@L["Reset"]</Button>
+                                            </Column>
+                                            </Row>
+                                            @if (EServiceHeaderImageNewUpload && !EServiceHeaderImage.IsNullOrEmpty() && !EServiceHeaderImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(EServiceHeaderImage)};base64,{Convert.ToBase64String(EServiceHeaderImageContent)}"))"></div>
+                                    }
+                                    else
+                                    {
+                                        if (!EServiceHeaderImage.IsNullOrEmpty())
+                                        {
+                                            <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"{MimeTypes.MimeTypeMap.GetAttachmentPath()}/eservice/{EServiceHeaderImage}"))"></div>
+                                        }
+                                    }
+                                </Field>
+
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingEService.MetaTitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                                    <TextEdit @bind-Text="@EditingEService.MetaDescriptionEn">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["Order"]</FieldLabel>
+                                    <NumericPicker TValue="int" @bind-Value="@EditingEService.Order" Decimals="0">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </NumericPicker>
+                                </Field>
+                            </Validation>
+
+
+                            <Field>
+                                <Check TValue="bool" @bind-Checked="@EditingEService.IsActive">@L["IsActive"]</Check>
+                            </Field>
+
+
+
+                            </TabPanel>
+                    
+                            <TabPanel Name="edit-tab-arabic">
+
+
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                    <TextEdit @bind-Text="@EditingEService.TitleAr">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                                    <CustomRichTextEditor InitValue="@EditingEService.DescriptionAr" ContentChanged="@EditingDescriptionArOnContentChanged"></CustomRichTextEditor>
+                                </Field>                       
+
+
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                                    <TextEdit @bind-Text="@EditingEService.MetaTitleAr">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>
+
+                            <Validation>
+                                <Field>
+                                    <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                                    <TextEdit @bind-Text="@EditingEService.MetaDescriptionAr">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </Field>
+                            </Validation>
+
+                            </TabPanel>
+
+
+                        </Validations>
+                </Content>
+                </Tabs>
+                </CardBody>
+            <CardFooter>
+                <SubmitButton Form="EditEServiceForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="EditEServiceForm" Clicked="async()=> await UpdateEServiceAsync()" />
+            </CardFooter>
+                </Form>
+ 
+
+    }
+
+@* ************************* EDIT MODAL ************************* *@
+</Card>

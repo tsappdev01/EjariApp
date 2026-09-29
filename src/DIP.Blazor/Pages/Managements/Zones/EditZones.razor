@@ -1,0 +1,483 @@
+@page "/admin/zones/edit/{id}"
+@page "/admin/zones/create"
+
+@attribute [Authorize(DIPPermissions.Zones.Default)]
+@using DIP.Blazor.Components
+@using DIP.Zones
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@inherits DIPComponentBase
+@inject IZonesAppService ZonesAppService
+@inject IUiMessageService UiMessageService
+@inject NavigationManager NavigationManager
+
+@* ************************* PAGE HEADER ************************* *@
+
+
+<PageHeader Title="@( $"{L[Id.IsNullOrEmpty()? "Create":"Update"]} {L["Zones"]}")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+<Card>
+    @if (Id.IsNullOrEmpty())
+    {
+        <Form id="CreateZoneForm">
+          
+
+                  <CardBody>
+                <Tabs SelectedTab="@SelectedCreateTab" SelectedTabChanged="@OnSelectedCreateTabChanged">
+                    <Items>
+                        <Tab Name="create-tab-english">@L["English"]</Tab>
+                        <Tab Name="create-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                        <Validations @ref="@NewZoneValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@NewZone"
+                                 ValidateOnLoad="false">
+                            <TabPanel Name="create-tab-english">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                                        <TextEdit TextExpression="@(()=>NewZone.TitleEn)" TextChanged="@OnTitleEnChanged">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Slug"] *</FieldLabel>
+                                        <TextEdit @bind-Text="@NewZone.Slug">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewZone.MetaTitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewZone.MetaDescriptionEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryEn"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@NewZone.SummaryEn" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+
+                         @*       <Field>
+                                    <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                                    <CustomRichTextEditor ContentChanged="@CreatingDescriptionEnOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionEnValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionEnRequired"]
+                                    </div>
+                                }*@
+
+                                <Field>
+                                    <FieldLabel>@L["Image"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(true)">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (!ZoneImage.IsNullOrEmpty() && !ZoneImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(ZoneImage)};base64,{Convert.ToBase64String(ZoneImageContent)}"))"></div>
+                                    }
+                                </Field>
+                                @if (ImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:ImageRequired"]
+                                    </div>
+                                }
+
+                                <Field>
+                                    <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="HeaderImageChanged" Upload="OnHeaderImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(false)">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (!ZoneHeaderImage.IsNullOrEmpty() && !ZoneHeaderImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(ZoneHeaderImage)};base64,{Convert.ToBase64String(ZoneHeaderImageContent)}"))"></div>
+                                    }
+                                </Field>
+                                @if (HeaderImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:HeaderImageRequired"]
+                                    </div>
+                                }
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@NewZone.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@NewZone.IsFeature">@L["IsFeature"]</Check>
+                                </Field>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@NewZone.IsActive">@L["IsActive"]</Check>
+                                </Field>
+                            </TabPanel>
+                            <TabPanel Name="create-tab-arabic">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAR"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewZone.TitleAR">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewZone.MetaTitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewZone.MetaDescriptionAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryAr"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@NewZone.SummaryAr" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+
+                        @*        <Field>
+                                    <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                                    <CustomRichTextEditor ContentChanged="@CreatingDescriptionArOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionArValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionArRequired"]
+                                    </div>
+                                }*@
+                            </TabPanel>
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+           
+            <CardFooter>
+                <SubmitButton Form="CreateZoneForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="CreateZoneForm" Clicked="async()=> await CreateZoneAsync()" />
+            </CardFooter>
+        </Form>
+    }
+    else
+    {
+ <Form id="EditZoneForm">
+            <CardBody>
+                <Tabs SelectedTab="@SelectedEditTab" SelectedTabChanged="@OnSelectedEditTabChanged">
+                    <Items>
+                        <Tab Name="edit-tab-english">@L["English"]</Tab>
+                        <Tab Name="edit-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                    <Validations @ref="@EditingZoneValidations"
+                             Mode="ValidationMode.Auto"
+                             Model="@EditingZone"
+                             ValidateOnLoad="false">
+                            <TabPanel Name="edit-tab-english">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"] *</FieldLabel>
+                                        <TextEdit Text="@EditingZone.TitleEn" TextExpression="@(()=>EditingZone.TitleEn)" TextChanged="@OnTitleEnChanged">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Slug"] *</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingZone.Slug">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingZone.MetaTitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingZone.MetaDescriptionEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryEn"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@EditingZone.SummaryEn" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+
+                            @*    <Field>
+                                    <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                                    <CustomRichTextEditor InitValue="@EditingZone.DescriptionEn" ContentChanged="@EditingDescriptionEnOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionEnValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionEnRequired"]
+                                    </div>
+                                }*@
+
+                                <Field>
+                                    <FieldLabel>@L["Image"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(true)">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (ZoneImageNewUpload && !ZoneImage.IsNullOrEmpty() && !ZoneImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(ZoneImage)};base64,{Convert.ToBase64String(ZoneImageContent)}"))"></div>
+                                    }
+                                    else
+                                    {
+                                        if (!ZoneImage.IsNullOrEmpty())
+                                        {
+                                            <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"{MimeTypes.MimeTypeMap.GetAttachmentPath()}/zone/{ZoneImage}"))"></div>
+                                        }
+                                    }
+                                </Field>
+                                @if (ImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:ImageRequired"]
+                                    </div>
+                                }
+
+                                <Field>
+                                    <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="HeaderImageChanged" Upload="OnHeaderImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(false)">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (ZoneHeaderImageNewUpload && !ZoneHeaderImage.IsNullOrEmpty() && !ZoneHeaderImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(ZoneHeaderImage)};base64,{Convert.ToBase64String(ZoneHeaderImageContent)}"))"></div>
+                                    }
+                                    else
+                                    {
+                                        if (!ZoneHeaderImage.IsNullOrEmpty())
+                                        {
+                                            <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"{MimeTypes.MimeTypeMap.GetAttachmentPath()}/zone/{ZoneHeaderImage}"))"></div>
+                                        }
+                                    }
+                                </Field>
+                                @if (HeaderImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:HeaderImageRequired"]
+                                    </div>
+                                }
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@EditingZone.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@EditingZone.IsFeature">@L["IsFeature"]</Check>
+                                </Field>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@EditingZone.IsActive">@L["IsActive"]</Check>
+                                </Field>                     
+                            </TabPanel>
+                            <TabPanel Name="edit-tab-arabic">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAR"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingZone.TitleAR">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingZone.MetaTitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingZone.MetaDescriptionAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryAr"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@EditingZone.SummaryAr" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+
+                          @*      <Field>
+                                    <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                                    <CustomRichTextEditor InitValue="@EditingZone.DescriptionAr" ContentChanged="@EditingDescriptionArOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionArValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionArRequired"]
+                                    </div>
+                                }*@
+                            </TabPanel>
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="EditZoneForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="EditZoneForm" Clicked="async()=> await UpdateZoneAsync()" />
+            </CardFooter>
+            </Form>
+
+
+
+
+
+
+
+    
+    }
+
+</Card>
+
+
+

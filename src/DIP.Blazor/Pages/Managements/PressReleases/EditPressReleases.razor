@@ -1,0 +1,502 @@
+@page "/admin/press-releases/edit/{id}"
+@page "/admin/press-releases/create"
+@attribute [Authorize(DIPPermissions.PressReleases.Default)]
+@using DIP.Blazor.Components
+@using DIP.PressReleases
+@using DIP.Localization
+@using DIP.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using DIP.Permissions
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.Http.Client
+@inherits DIPComponentBase
+@inject IPressReleasesAppService PressReleasesAppService
+@inject IUiMessageService UiMessageService
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+
+
+<PageHeader Title="@( $"{L[Id.IsNullOrEmpty()? "Create":"Update"]} {L["PressReleases"]}")" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+
+</PageHeader>
+
+
+
+<Card>
+    @if (Id.IsNullOrEmpty())
+    {
+
+        <Form id="CreatePressReleaseForm">
+
+            <CardBody>
+                <Tabs SelectedTab="@SelectedCreateTab" SelectedTabChanged="@OnSelectedCreateTabChanged">
+                    <Items>
+                        <Tab Name="create-tab-english">@L["English"]</Tab>
+                        <Tab Name="create-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                        <Validations @ref="@NewPressReleaseValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@NewPressRelease"
+                                 ValidateOnLoad="false">
+
+                            <TabPanel Name="create-tab-english">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"]</FieldLabel>
+                                        <TextEdit TextExpression="@(()=>NewPressRelease.TitleEn)" TextChanged="@OnTitleEnChanged">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Slug"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewPressRelease.Slug">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewPressRelease.MetaTitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryEn"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@NewPressRelease.SummaryEn" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                                    <CustomRichTextEditor ContentChanged="@CreatingDescriptionEnOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionEnValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionEnRequired"]
+                                    </div>
+                                }
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewPressRelease.MetaDescriptionEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["Image"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(true)">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (!PressReleaseImage.IsNullOrEmpty() && !PressReleaseImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(PressReleaseImage)};base64,{Convert.ToBase64String(PressReleaseImageContent)}"))"></div>
+                                    }
+                                </Field>
+                                @if (ImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:ImageRequired"]
+                                    </div>
+                                }
+                                <Field>
+                                    <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="HeaderImageChanged" Upload="OnHeaderImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(false)">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (!PressReleaseHeaderImage.IsNullOrEmpty() && !PressReleaseHeaderImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(PressReleaseHeaderImage)};base64,{Convert.ToBase64String(PressReleaseHeaderImageContent)}"))"></div>
+                                    }
+                                </Field>
+                                @if (HeaderImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:HeaderImageRequired"]
+                                    </div>
+                                }
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Date"]</FieldLabel>
+                                        <DateEdit TValue="DateTime" InputMode="DateInputMode.DateTime" @bind-Date="@NewPressRelease.Date">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </DateEdit>
+                                    </Field>
+                                </Validation>
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@NewPressRelease.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@NewPressRelease.IsFeatured">@L["IsFeatured"]</Check>
+                                </Field>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@NewPressRelease.IsActive">@L["IsActive"]</Check>
+                                </Field>
+
+
+                            </TabPanel>
+                            <TabPanel Name="create-tab-arabic">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewPressRelease.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewPressRelease.MetaTitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryAr"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@NewPressRelease.SummaryAr" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                                    <CustomRichTextEditor ContentChanged="@CreatingDescriptionArOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionArValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionArRequired"]
+                                    </div>
+                                }
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@NewPressRelease.MetaDescriptionAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+                            </TabPanel>
+
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="CreatePressReleaseForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="CreatePressReleaseForm" Clicked="async()=> await CreatePressReleaseAsync()" />
+            </CardFooter>
+
+        </Form>
+    }
+    else
+    {
+
+        <Form id="EditPressReleaseForm">
+            <CardBody>
+                <Tabs SelectedTab="@SelectedEditTab" SelectedTabChanged="@OnSelectedEditTabChanged">
+                    <Items>
+                        <Tab Name="edit-tab-english">@L["English"]</Tab>
+                        <Tab Name="edit-tab-arabic">@L["Arabic"]</Tab>
+                    </Items>
+                    <Content>
+                        <Validations @ref="@EditingPressReleaseValidations"
+                                 Mode="ValidationMode.Auto"
+                                 Model="@EditingPressRelease"
+                                 ValidateOnLoad="false">
+
+                            <TabPanel Name="edit-tab-english">
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleEn"]</FieldLabel>
+                                        <TextEdit Text="@EditingPressRelease.TitleEn" TextExpression="@(()=>EditingPressRelease.TitleEn)" TextChanged="@OnTitleEnChanged">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Slug"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingPressRelease.Slug">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingPressRelease.MetaTitleEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryEn"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@EditingPressRelease.SummaryEn" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionEn"]</FieldLabel>
+                                    <CustomRichTextEditor InitValue="@EditingPressRelease.DescriptionEn" ContentChanged="@EditingDescriptionEnOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionEnValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionEnRequired"]
+                                    </div>
+                                }
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionEn"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingPressRelease.MetaDescriptionEn">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["Image"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="ImageChanged" Upload="OnImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(true)">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (PressReleaseImageNewUpload && !PressReleaseImage.IsNullOrEmpty() && !PressReleaseImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(PressReleaseImage)};base64,{Convert.ToBase64String(PressReleaseImageContent)}"))"></div>
+                                    }
+                                    else
+                                    {
+                                        if (!PressReleaseImage.IsNullOrEmpty())
+                                        {
+                                            <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"{MimeTypes.MimeTypeMap.GetAttachmentPath()}/pressRelease/{PressReleaseImage}"))"></div>
+                                        }
+                                    }
+                                </Field>
+                                @if (ImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:ImageRequired"]
+                                    </div>
+                                }
+                                <Field>
+                                    <FieldLabel>@L["HeaderImage"]</FieldLabel>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is11">
+                                            <FilePicker Multiple Changed="HeaderImageChanged" Upload="OnHeaderImageUpload" ShowMode="FilePickerShowMode.List" />
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is1">
+                                            <Button Color="Color.Primary" Clicked="async()=> await RemoveMedia(false)">@L["Reset"]</Button>
+                                        </Column>
+                                    </Row>
+                                    @if (PressReleaseHeaderImageNewUpload && !PressReleaseHeaderImage.IsNullOrEmpty() && !PressReleaseHeaderImageContent.IsNullOrEmpty())
+                                    {
+                                        <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"data:{MimeTypes.MimeTypeMap.GetMimeType(PressReleaseHeaderImage)};base64,{Convert.ToBase64String(PressReleaseHeaderImageContent)}"))"></div>
+                                    }
+                                    else
+                                    {
+                                        if (!PressReleaseHeaderImage.IsNullOrEmpty())
+                                        {
+                                            <div style="width:256px;height:256px;background-size: cover; background-image:url(@($"{MimeTypes.MimeTypeMap.GetAttachmentPath()}/pressRelease/{PressReleaseHeaderImage}"))"></div>
+                                        }
+                                    }
+                                </Field>
+                                @if (HeaderImageValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:HeaderImageRequired"]
+                                    </div>
+                                }
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Date"]</FieldLabel>
+                                        <DateEdit TValue="DateTime" InputMode="DateInputMode.DateTime" @bind-Date="@EditingPressRelease.Date">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </DateEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["Order"]</FieldLabel>
+                                        <NumericPicker TValue="int" @bind-Value="@EditingPressRelease.Order" Decimals="0">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </NumericPicker>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@EditingPressRelease.IsFeatured">@L["IsFeatured"]</Check>
+                                </Field>
+
+                                <Field>
+                                    <Check TValue="bool" @bind-Checked="@EditingPressRelease.IsActive">@L["IsActive"]</Check>
+                                </Field>
+
+                            </TabPanel>
+
+                            <TabPanel Name="edit-tab-arabic">
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["TitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingPressRelease.TitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaTitleAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingPressRelease.MetaTitleAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["SummaryAr"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@EditingPressRelease.SummaryAr" Rows="3">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </MemoEdit>
+                                    </Field>
+                                </Validation>
+
+                                <Field>
+                                    <FieldLabel>@L["DescriptionAr"]</FieldLabel>
+                                    <CustomRichTextEditor InitValue="@EditingPressRelease.DescriptionAr" ContentChanged="@EditingDescriptionArOnContentChanged"></CustomRichTextEditor>
+                                </Field>
+                                @if (DescriptionArValidationError)
+                                {
+                                    <div class="alert alert-danger">
+                                        @L["Message:DescriptionArRequired"]
+                                    </div>
+                                }
+                                <Validation>
+                                    <Field>
+                                        <FieldLabel>@L["MetaDescriptionAr"]</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingPressRelease.MetaDescriptionAr">
+                                            <Feedback>
+                                                <ValidationError />
+                                            </Feedback>
+                                        </TextEdit>
+                                    </Field>
+                                </Validation>
+
+                            </TabPanel>
+
+                        </Validations>
+                    </Content>
+                </Tabs>
+            </CardBody>
+            <CardFooter>
+                <SubmitButton Form="EditPressReleaseForm" Clicked="Cancel">@L["Cancel"]</SubmitButton>
+                <SubmitButton Form="EditPressReleaseForm" Clicked="async()=> await UpdatePressReleaseAsync()" />
+            </CardFooter>
+        </Form>
+
+
+    }
+
+
+    @* ************************* EDIT MODAL ************************* *@
+</Card>
