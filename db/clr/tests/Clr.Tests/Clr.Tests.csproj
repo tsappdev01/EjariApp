@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <!-- Lets the tests run where only a newer runtime is installed. -->
+    <RollForward>Major</RollForward>
+    <IsPackable>false</IsPackable>
+    <UsesClrKeys>true</UsesClrKeys>
+    <!-- AesManaged is obsolete on .NET 6+, but it is what the SAFE assembly must use. -->
+    <NoWarn>$(NoWarn);SYSLIB0021</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- The CLR code under test, compiled for .NET 9. -->
+    <Compile Include="..\..\Shared\AesUrl.cs" Link="Clr\AesUrl.cs" />
+    <Compile Include="..\..\EncryptionUrlHelper\EncryptionHelper.cs" Link="Clr\EncryptionUrlHelper.cs" />
+    <Compile Include="..\..\EncryptionHelper\EncryptionHelper.cs" Link="Clr\EncryptionHelper.cs" />
+    <!-- The web app's helper, unmodified: the database and the app must agree. -->
+    <Compile Include="..\..\..\..\src\DIP.Blazor\Shared\EncryptionHelper.cs" Link="App\EncryptionHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="Microsoft.SqlServer.Server" Version="1.0.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+</Project>

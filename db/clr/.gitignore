@@ -1,0 +1,4 @@
+# Build output embeds the AES key (in the DLL, the generated ClrKeys.g.cs and
+# the generated deploy.sql). None of it may be committed.
+bin/
+obj/
