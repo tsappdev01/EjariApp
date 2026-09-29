@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyName>EncryptionUrlHelper</AssemblyName>
+    <RootNamespace>EncryptionUrlHelper</RootNamespace>
+    <IsClrAssembly>true</IsClrAssembly>
+    <UsesClrKeys>true</UsesClrKeys>
+  </PropertyGroup>
+</Project>
